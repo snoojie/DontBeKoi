@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "outDir": "./build",
+      "target": "ESNext",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "noEmitOnError": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true
+    },
+    "include": ["src", "enviroment.d.ts"],
+    "exclude": ["node_modules"]
+}
