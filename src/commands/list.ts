@@ -84,6 +84,8 @@ class ListCommand extends KoiCommand
                 return;
             }
 
+            const RARITY = colorIndex<16 ? "common" : "rare";
+
             const IMAGE_URL: string = await axios
                 .create()
                 .get(`https://zenkoi2.fandom.com/wiki/${PATTERN}`)
@@ -95,7 +97,7 @@ class ListCommand extends KoiCommand
                     // example: Usagi common 1.jpg
                     const IMAGE_KEY = 
                         PATTERN[0].toUpperCase() + PATTERN.slice(1) + "_" + // ex: usagi -> Usagi
-                        (colorIndex<16 ? "common" : "rare") + "_" +         // rarity
+                        RARITY + "_" + 
                         (1+(Math.floor(colorIndex/4)%4));                   // file number
                     console.log(IMAGE_KEY);
                     
@@ -153,7 +155,7 @@ class ListCommand extends KoiCommand
 
             // we are done!            
             await interaction.editReply({ 
-                content: `Needing ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`,
+                content: `Needing ${RARITY} ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`,
                 files: [new MessageAttachment(
                     canvas.toBuffer(), `${COLOR}-${PATTERN}.png`
                 )]
