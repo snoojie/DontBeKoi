@@ -35,8 +35,6 @@ class ListCommand extends KoiCommand
             return;
         }
 
-        let usernames: string[] = [];
-
         // find our color in the pattern channel
         let messages: Collection<string, Message<boolean>> = await channel.messages.fetch();
         for (let [messageId, message] of messages)
@@ -56,23 +54,30 @@ class ListCommand extends KoiCommand
                     this.replyWithVagueError(interaction);
                     return;
                 }
-                let users: Collection<string, User> = await reaction.users.fetch();
+
+                // collect user ids of those who need this color pattern
+                // also, ignore the bot
                 
-                for (let [userid, user] of users)
+                let users: Collection<string, User> = await reaction.users.fetch();
+                let userMentions: string[] = [];
+                for (let [userId, user] of users)
                 {
                     if (!user.bot)
                     {
-                        usernames.push(user.username);
+                        userMentions.push(`<@${userId}>`);
                     }
                 }
 
                 // we're done!
-                if (usernames.length == 0)
+                if (userMentions.length == 0)
                 {
                     await interaction.editReply(`Nobody needs ${COLOR} ${PATTERN}.`);
                     return;
                 }
-                await interaction.editReply(`Folks needing ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`);
+                await interaction.editReply({
+                    content: `Folks needing ${COLOR} ${PATTERN}:\n${userMentions.join("\n")}`,
+                    files: [attachment]
+                });
                 return;
             }
         }
