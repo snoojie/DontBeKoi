@@ -78,11 +78,6 @@ class ListCommand extends KoiCommand
                     usernames.push(user.username);
                 }
             }
-            if (usernames.length == 0)
-            {
-                await interaction.editReply(`Nobody needs ${COLOR} ${PATTERN}.`);
-                return;
-            }
 
             const RARITY = colorIndex<16 ? "common" : "rare";
 
@@ -99,21 +94,18 @@ class ListCommand extends KoiCommand
                         PATTERN[0].toUpperCase() + PATTERN.slice(1) + "_" + // ex: usagi -> Usagi
                         RARITY + "_" + 
                         (1+(Math.floor(colorIndex/4)%4));                   // file number
-                    console.log(IMAGE_KEY);
                     
                     // return the url of this image
                     // note the url data attribute gives something like
                     // https://static.wikia.nocookie.net/zenkoi2/images/1/16/Usagi_common_1.jpg/revision/latest/scale-to-width-down/177?cb=20180514192047
                     // strip everything after .jpg
                     const URL: string = <string>$(`[data-image-key^="${IMAGE_KEY}"]`).data("src");
-                    console.log(URL);
                     if (!URL)
                     {
                         console.error(`Couldn't find the image URL for ${COLOR} ${PATTERN}`);
                         return "";
                     }
                     const KEY_INDEX = URL.indexOf(IMAGE_KEY);
-                    console.log(KEY_INDEX);
                     if (!KEY_INDEX)
                     {
                         console.error(`Can't remove .jpg or .png from image url for ${COLOR} ${PATTERN}: ${URL}.`);
@@ -125,7 +117,6 @@ class ListCommand extends KoiCommand
                     console.error(`Failed to access wiki for ${COLOR} ${PATTERN}.`);
                     return "";
                 });
-            console.log(IMAGE_URL);
             if (!IMAGE_URL)
             {
                 console.error(`Image url for ${COLOR} ${PATTERN} is empty.`);
@@ -153,9 +144,19 @@ class ListCommand extends KoiCommand
                 0, 0, KOI_WIDTH/2, KOI_HEIGHT/2
             );
 
+            let replyText: string = `${RARITY} ${COLOR} ${PATTERN}`;
+            if(usernames.length == 0)
+            {
+                replyText = `Nobody needs ${replyText}.`;
+            }
+            else
+            {
+                replyText = `Needing ${replyText}:\n${usernames.join("\n")}`;
+            }
+
             // we are done!            
             await interaction.editReply({ 
-                content: `Needing ${RARITY} ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`,
+                content: replyText,
                 files: [new MessageAttachment(
                     canvas.toBuffer(), `${COLOR}-${PATTERN}.png`
                 )]
