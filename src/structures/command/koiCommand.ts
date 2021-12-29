@@ -51,7 +51,7 @@ export abstract class KoiCommand extends Command
         return <TextChannel>CHANNEL;
     }
 
-    protected async getPatternCollection(pattern: string) : Promise<PatternCollection | undefined>
+    protected async getPatternCollection(pattern: string) : Promise<PatternCollection>
     {
         return PatternUtil.getCollection(pattern);
     }
@@ -67,17 +67,17 @@ export abstract class KoiCommand extends Command
         return true;
     }
 
-    protected replyWithVagueError(interaction: CommandInteraction)
+    protected async replyWithVagueError(interaction: CommandInteraction)
     {
         const REPLY = "Uh oh. Something went wrong.";
 
         if (interaction.deferred)
         {
-            interaction.editReply(REPLY);
+            await interaction.editReply(REPLY);
         }
         else
         {
-            interaction.reply(REPLY);
+            await interaction.reply(REPLY);
         }
     }
 }

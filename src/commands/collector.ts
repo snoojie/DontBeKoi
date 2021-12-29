@@ -31,7 +31,7 @@ class CollectorCommand extends KoiCommand
         if (channel)
         {
             console.error(`There already exists a channel for ${pattern}`);
-            interaction.editReply(`There already exists a channel for ${pattern}`);
+            await interaction.editReply(`There already exists a channel for ${pattern}`);
             return;
         }
 
