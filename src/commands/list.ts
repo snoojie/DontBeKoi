@@ -127,7 +127,7 @@ class ListCommand extends KoiCommand
             // draw the fish
 
             const IMAGE = await Canvas.loadImage(IMAGE_URL);
-            const KOI_WIDTH = IMAGE.width / 2.5;
+            const KOI_WIDTH = IMAGE.width / 2.62;   // tested with shikoji usagi, shidai fuwa
             const KOI_HEIGHT = IMAGE.height / 4;
             const CANVAS_WIDTH = KOI_WIDTH/2;
             const CANVAS_HEIGHT = KOI_HEIGHT/2;
