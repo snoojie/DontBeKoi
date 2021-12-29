@@ -23,15 +23,15 @@ class CollectorCommand extends KoiCommand
         }
 
         // pattern as provided by the discord user
-        let pattern = this.getPattern(interaction);
+        const PATTERN = this.getPattern(interaction);
 
         // check that there doesn't yet exist a channel for this pattern
         let channel: TextChannel | undefined = 
-            this.getChannelOfPattern(interaction, pattern);
+            this.getChannelOfPattern(interaction, PATTERN);
         if (channel)
         {
-            console.error(`There already exists a channel for ${pattern}`);
-            await interaction.editReply(`There already exists a channel for ${pattern}`);
+            console.error(`There already exists a channel for ${PATTERN}`);
+            await interaction.editReply(`There already exists a channel for ${PATTERN}`);
             return;
         }
 
@@ -39,7 +39,7 @@ class CollectorCommand extends KoiCommand
         let patternCollection: PatternCollection | undefined = undefined;
         try 
         {
-            patternCollection = await this.getPatternCollection(pattern);
+            patternCollection = await this.getPatternCollection(PATTERN);
         }
         catch(error)
         {
@@ -50,62 +50,62 @@ class CollectorCommand extends KoiCommand
         if (!patternCollection)
         {
             console.error("Pattern collection is empty, somehow without error");
-            this.replyWithVagueError(interaction);
+            await this.replyWithVagueError(interaction);
             return;
         }
         
         // create channel for this pattern
         // note interaction.guild was proven valid in the validateInteraction method earlier
         channel = <TextChannel>await interaction.guild!.channels.create(
-            pattern + " - " + patternCollection.hatchTime, 
+            PATTERN + " - " + patternCollection.hatchTime, 
             { 
                 parent: process.env.CATEGORY_ID
             }
         );
 
         // populate the new channel
-        await populatePatternChannel(channel, patternCollection.commons, "commons");
+        await this.populatePatternChannel(channel, patternCollection.commons, "commons");
         await channel.send("=====");
-        await populatePatternChannel(channel, patternCollection.rares, "rares");
+        await this.populatePatternChannel(channel, patternCollection.rares, "rares");
 
         // edit our earlier deferred response
         // we are done!
-	    await interaction.editReply(`Created the ${pattern} channel!`);
+	    await interaction.editReply(`Created the ${PATTERN} channel!`);
 	}
-}
 
-async function populatePatternChannel(
-    channel: TextChannel, collection: KoiColoring[], rarity: string
-): Promise<void>
-{
-    await channel.send("**" + rarity.toUpperCase() + ":**");
-    for (let koi of collection)
+    private async populatePatternChannel(
+        channel: TextChannel, collection: KoiColoring[], rarity: string
+    ): Promise<void>
     {
-        // draw 
-
-        const HEIGHT: number = 30;
-        let canvas: Canvas.Canvas = Canvas.createCanvas(250, HEIGHT);
-        let context: Canvas.NodeCanvasRenderingContext2D = canvas.getContext("2d");
-        
-        // base color
-        drawCircle(context, HEIGHT/2, koi.baseColor);
-
-        // highlight color
-        drawCircle(context, HEIGHT * 0.22, koi.highlightColor);
-
-        // name as text 
-        context.fillStyle="white";
-        context.font = "20px Papyrus";
-        context.fillText(koi.name, HEIGHT + 10, HEIGHT * 0.7 );
-
-        let message: Message = await channel.send({ 
-            files: [new MessageAttachment(
-                canvas.toBuffer(), koi.name + ".png"
-            )]
-        });
-
-        await message.react("🎣");
-        await message.react("🐉");
+        await channel.send("**" + rarity.toUpperCase() + ":**");
+        for (let koi of collection)
+        {
+            // draw 
+    
+            const HEIGHT: number = 30;
+            let canvas: Canvas.Canvas = Canvas.createCanvas(250, HEIGHT);
+            let context: Canvas.NodeCanvasRenderingContext2D = canvas.getContext("2d");
+            
+            // base color
+            drawCircle(context, HEIGHT/2, koi.baseColor);
+    
+            // highlight color
+            drawCircle(context, HEIGHT * 0.22, koi.highlightColor);
+    
+            // name as text 
+            context.fillStyle="white";
+            context.font = "20px Papyrus";
+            context.fillText(koi.name, HEIGHT + 10, HEIGHT * 0.7 );
+    
+            let message: Message = await channel.send({ 
+                files: [new MessageAttachment(
+                    canvas.toBuffer(), koi.name + ".png"
+                )]
+            });
+    
+            await message.react(this.REACTION_NEED);
+            await message.react(this.REACTION_DRAGON);
+        }
     }
 }
 

@@ -5,13 +5,25 @@ import { PatternUtil, PatternCollection } from "../../patternUtil";
 
 export abstract class KoiCommand extends Command
 {
-    constructor(name: string, description: string)
+    protected REACTION_NEED = "🎣";
+    protected REACTION_DRAGON = "🐉";
+
+    constructor(name: string, description: string, colorOption: boolean = false)
     {
         super(name, description);
         
-        this.data.addStringOption(function(option:  SlashCommandStringOption) {
-            return option.setName(PATTERN)
-                .setDescription("Name of the koi pattern")
+        if (colorOption)
+        {
+            this.addOption(COLOR, "Color of the koi.");
+        }
+        this.addOption(PATTERN, "Name of the koi pattern.");
+    }
+
+    protected addOption(name: string, description: string): void
+    {
+        this.data.addStringOption(function(option) {
+            return option.setName(name)
+                .setDescription(description)
                 .setRequired(true);
         });
     }
@@ -28,7 +40,12 @@ export abstract class KoiCommand extends Command
     
     protected getPattern(interaction: CommandInteraction) : string
     {
-        return this.getOption(interaction, PATTERN).toLowerCase();
+        return this.getOption(interaction, PATTERN);
+    }
+    
+    protected getColor(interaction: CommandInteraction) : string
+    {
+        return this.getOption(interaction, COLOR);
     }
 
     protected getChannelOfPattern(interaction: CommandInteraction, pattern: string) : TextChannel | undefined
@@ -83,3 +100,4 @@ export abstract class KoiCommand extends Command
 }
 
 const PATTERN = "pattern";
+const COLOR = "color";
