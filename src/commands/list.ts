@@ -81,6 +81,19 @@ class ListCommand extends KoiCommand
 
             const RARITY = colorIndex<16 ? "common" : "rare";
 
+            // the text to display back to the user
+            let replyText: string = `${RARITY} ${COLOR} ${PATTERN}`;
+            if(usernames.length == 0)
+            {
+                replyText = `Nobody needs ${replyText}.`;
+            }
+            else
+            {
+                replyText = `Needing ${replyText}:\n${usernames.join("\n")}`;
+            }
+
+            // draw the fish
+
             const IMAGE_URL: string = await axios
                 .create()
                 .get(`https://zenkoi2.fandom.com/wiki/${PATTERN}`)
@@ -117,49 +130,39 @@ class ListCommand extends KoiCommand
                     console.error(`Failed to access wiki for ${COLOR} ${PATTERN}.`);
                     return "";
                 });
-            if (!IMAGE_URL)
+
+            // by default, show the color image
+            // this will be displayed if the wiki is missing an image for this fish
+            let replyDrawing: MessageAttachment = COLOR_IMAGE;
+            if (IMAGE_URL)
             {
-                console.error(`Image url for ${COLOR} ${PATTERN} is empty.`);
-                await this.replyWithVagueError(interaction);
-                return;
-            }
+                const IMAGE = await Canvas.loadImage(IMAGE_URL);
+                const KOI_WIDTH = IMAGE.width / 2.62;   // tested with shikoji usagi, shidai fuwa
+                const KOI_HEIGHT = IMAGE.height / 4;
+                const CANVAS_WIDTH = KOI_WIDTH/2;
+                const CANVAS_HEIGHT = KOI_HEIGHT/2;
 
-            // draw the fish
+                let canvas: Canvas.Canvas = new Canvas.Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+                let context: Canvas.NodeCanvasRenderingContext2D = canvas.getContext("2d");
 
-            const IMAGE = await Canvas.loadImage(IMAGE_URL);
-            const KOI_WIDTH = IMAGE.width / 2.62;   // tested with shikoji usagi, shidai fuwa
-            const KOI_HEIGHT = IMAGE.height / 4;
-            const CANVAS_WIDTH = KOI_WIDTH/2;
-            const CANVAS_HEIGHT = KOI_HEIGHT/2;
+                // this image has 4 colored koi
+                // only draw the one we need
+                const POSITION = colorIndex%4;
+                context.drawImage(
+                    IMAGE, 
+                    0, POSITION*KOI_HEIGHT, KOI_WIDTH, KOI_HEIGHT, 
+                    0, 0, KOI_WIDTH/2, KOI_HEIGHT/2
+                );
 
-            let canvas: Canvas.Canvas = new Canvas.Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-            let context: Canvas.NodeCanvasRenderingContext2D = canvas.getContext("2d");
-
-            // this image has 4 colored koi
-            // only draw the one we need
-            const POSITION = colorIndex%4;
-            context.drawImage(
-                IMAGE, 
-                0, POSITION*KOI_HEIGHT, KOI_WIDTH, KOI_HEIGHT, 
-                0, 0, KOI_WIDTH/2, KOI_HEIGHT/2
-            );
-
-            let replyText: string = `${RARITY} ${COLOR} ${PATTERN}`;
-            if(usernames.length == 0)
-            {
-                replyText = `Nobody needs ${replyText}.`;
-            }
-            else
-            {
-                replyText = `Needing ${replyText}:\n${usernames.join("\n")}`;
+                replyDrawing = new MessageAttachment(
+                    canvas.toBuffer(), `${COLOR}-${PATTERN}.png`
+                );
             }
 
             // we are done!            
             await interaction.editReply({ 
                 content: replyText,
-                files: [new MessageAttachment(
-                    canvas.toBuffer(), `${COLOR}-${PATTERN}.png`
-                )]
+                files: [replyDrawing]
             });
             return;
 
