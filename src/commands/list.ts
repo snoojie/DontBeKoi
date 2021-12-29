@@ -93,34 +93,37 @@ class ListCommand extends KoiCommand
                     const $: CheerioAPI = cheerio.load(response.data);
 
                     // example: Usagi common 1.jpg
-                    const IMAGE_NAME = 
-                        PATTERN[0].toUpperCase() + PATTERN.slice(1) + " " + // ex: usagi -> Usagi
-                        (colorIndex<16 ? "common" : "rare") + " " +         // rarity
-                        (1+(Math.floor(colorIndex/4)%4)) +                  // file number
-                        ".jpg";
+                    const IMAGE_KEY = 
+                        PATTERN[0].toUpperCase() + PATTERN.slice(1) + "_" + // ex: usagi -> Usagi
+                        (colorIndex<16 ? "common" : "rare") + "_" +         // rarity
+                        (1+(Math.floor(colorIndex/4)%4));                   // file number
+                    console.log(IMAGE_KEY);
                     
                     // return the url of this image
                     // note the url data attribute gives something like
                     // https://static.wikia.nocookie.net/zenkoi2/images/1/16/Usagi_common_1.jpg/revision/latest/scale-to-width-down/177?cb=20180514192047
                     // strip everything after .jpg
-                    const URL: string = <string>$(`[data-image-name="${IMAGE_NAME}"]`).data("src");
+                    const URL: string = <string>$(`[data-image-key^="${IMAGE_KEY}"]`).data("src");
+                    console.log(URL);
                     if (!URL)
                     {
                         console.error(`Couldn't find the image URL for ${COLOR} ${PATTERN}`);
                         return "";
                     }
-                    const INDEX = URL.indexOf(".jpg/");
-                    if (!INDEX)
+                    const KEY_INDEX = URL.indexOf(IMAGE_KEY);
+                    console.log(KEY_INDEX);
+                    if (!KEY_INDEX)
                     {
-                        console.error(`Image url for ${COLOR} ${PATTERN} isn't a jpg: ${URL}.`);
+                        console.error(`Can't remove .jpg or .png from image url for ${COLOR} ${PATTERN}: ${URL}.`);
                         return "";
                     }
-                    return URL.substring(0, INDEX+4);
+                    return URL.substring(0, KEY_INDEX+IMAGE_KEY.length+4);
                 })
                 .catch(function(error) {
                     console.error(`Failed to access wiki for ${COLOR} ${PATTERN}.`);
                     return "";
                 });
+            console.log(IMAGE_URL);
             if (!IMAGE_URL)
             {
                 console.error(`Image url for ${COLOR} ${PATTERN} is empty.`);
@@ -150,7 +153,7 @@ class ListCommand extends KoiCommand
 
             // we are done!            
             await interaction.editReply({ 
-                content: `Folks needing ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`,
+                content: `Needing ${COLOR} ${PATTERN}:\n${usernames.join("\n")}`,
                 files: [new MessageAttachment(
                     canvas.toBuffer(), `${COLOR}-${PATTERN}.png`
                 )]
