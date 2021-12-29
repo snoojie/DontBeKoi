@@ -15,16 +15,20 @@ export abstract class KoiCommand extends Command
                 .setRequired(true);
         });
     }
-    
-    protected getPattern(interaction: CommandInteraction) : string
+
+    protected getOption(interaction: CommandInteraction, option: string) : string
     {
-        
-        let pattern = interaction.options.getString(PATTERN);
-        if (!pattern)
+        let value = interaction.options.getString(option);
+        if (!value)
         {
             return "";
         }
-        return pattern.toLowerCase();
+        return value.toLowerCase();
+    }
+    
+    protected getPattern(interaction: CommandInteraction) : string
+    {
+        return this.getOption(interaction, PATTERN).toLowerCase();
     }
 
     protected getChannelOfPattern(interaction: CommandInteraction, pattern: string) : TextChannel | undefined
@@ -50,6 +54,31 @@ export abstract class KoiCommand extends Command
     protected async getPatternCollection(pattern: string) : Promise<PatternCollection | undefined>
     {
         return PatternUtil.getCollection(pattern);
+    }
+
+    protected validateInteraction(interaction: CommandInteraction): boolean
+    {
+        if (!interaction.guild)
+        {
+            console.error("This interaction is not associated with a guild.");
+            this.replyWithVagueError(interaction);
+            return false;
+        }
+        return true;
+    }
+
+    protected replyWithVagueError(interaction: CommandInteraction)
+    {
+        const REPLY = "Uh oh. Something went wrong.";
+
+        if (interaction.deferred)
+        {
+            interaction.editReply(REPLY);
+        }
+        else
+        {
+            interaction.reply(REPLY);
+        }
     }
 }
 

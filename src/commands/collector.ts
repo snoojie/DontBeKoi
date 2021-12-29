@@ -7,7 +7,7 @@ class CollectorCommand extends KoiCommand
 {
     constructor()
 	{
-        super("collector", "Create collector channel");
+        super("collector", "Create collector channel.");
 	}
 
 	public async execute(interaction: CommandInteraction): Promise<void>
@@ -17,10 +17,8 @@ class CollectorCommand extends KoiCommand
         // more info: https://discordjs.guide/interactions/replying-to-slash-commands.html#deferred-responses
         await interaction.deferReply();
 
-        if (!interaction.guild)
+        if (!this.validateInteraction(interaction))
         {
-            console.error("This interaction is not associated with a guild.");
-            replyWithVagueError(interaction);
             return;
         }
 
@@ -32,8 +30,8 @@ class CollectorCommand extends KoiCommand
             this.getChannelOfPattern(interaction, pattern);
         if (channel)
         {
-            console.error("There already exists a channel for " + pattern);
-            interaction.editReply("There already exists a channel for " + pattern);
+            console.error(`There already exists a channel for ${pattern}`);
+            interaction.editReply(`There already exists a channel for ${pattern}`);
             return;
         }
 
@@ -52,12 +50,13 @@ class CollectorCommand extends KoiCommand
         if (!patternCollection)
         {
             console.error("Pattern collection is empty, somehow without error");
-            replyWithVagueError(interaction);
+            this.replyWithVagueError(interaction);
             return;
         }
         
         // create channel for this pattern
-        channel = <TextChannel>await interaction.guild.channels.create(
+        // note interaction.guild was proven valid in the validateInteraction method earlier
+        channel = <TextChannel>await interaction.guild!.channels.create(
             pattern + " - " + patternCollection.hatchTime, 
             { 
                 parent: process.env.CATEGORY_ID
@@ -73,11 +72,6 @@ class CollectorCommand extends KoiCommand
         // we are done!
 	    await interaction.editReply(`Created the ${pattern} channel!`);
 	}
-}
-
-function replyWithVagueError(interaction: CommandInteraction)
-{
-    interaction.editReply("Uh oh. Something went wrong.");
 }
 
 async function populatePatternChannel(
