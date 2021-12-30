@@ -1,7 +1,4 @@
-import * as fs from "fs";
-import * as readline from "readline";
 import { google, sheets_v4 } from "googleapis";
-import googleToken from "../googleToken.json";
 
 export class Google
 {
@@ -10,14 +7,9 @@ export class Google
 
     private constructor() 
     { 
-        const O_AUTH_2_CLIENT = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID, 
-            process.env.GOOGLE_CLIENT_SECRET, 
-            process.env.GOOGLE_REDIRECT_URI
-        );
-        O_AUTH_2_CLIENT.setCredentials(googleToken);
-        this.SPREADSHEET_API =
-            google.sheets({version: 'v4', auth: O_AUTH_2_CLIENT}).spreadsheets;
+        this.SPREADSHEET_API = google
+            .sheets({version: 'v4', auth: process.env.GOOGLE_API_KEY})
+            .spreadsheets;
     }
 
     public static getInstance(): Google 
