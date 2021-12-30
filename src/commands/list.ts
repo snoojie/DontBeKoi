@@ -70,12 +70,12 @@ class ListCommand extends KoiCommand
 
             // get everyone who needs this colored pattern            
             const USERS: Collection<string, User> = await NEED.users.fetch();
-            let usernames: string[] = [];
+            let people: string[] = []
             for (let [userId, user] of USERS)
             {
                 if (!user.bot)
                 {
-                    usernames.push(user.username);
+                    people.push(`<@${userId}>`);
                 }
             }
 
@@ -83,13 +83,13 @@ class ListCommand extends KoiCommand
 
             // the text to display back to the user
             let replyText: string = `${RARITY} ${COLOR} ${PATTERN}`;
-            if(usernames.length == 0)
+            if(people.length == 0)
             {
                 replyText = `Nobody needs ${replyText}.`;
             }
             else
             {
-                replyText = `Needing ${replyText}:\n${usernames.join("\n")}`;
+                replyText = `Needing ${replyText}:\n${people.join(" ")}`;
             }
 
             // draw the fish
