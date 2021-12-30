@@ -34,15 +34,21 @@ export abstract class Command
         });
     }
 
+    protected getOption(interaction: CommandInteraction, option: string) : string
+    {
+        let value: string = interaction.options.getString(option) || "";
+        return value.toLowerCase();
+    }
+
     protected getNumberOption(interaction: CommandInteraction, option: string): number | undefined
     {
         return interaction.options.getNumber(option) || undefined;
     }
 
-    protected getOption(interaction: CommandInteraction, option: string) : string
+    protected getListOption(interaction: CommandInteraction, option: string): string[]
     {
-        let value: string = interaction.options.getString(option) || "";
-        return value.toLowerCase();
+        const LIST_STRING: string = this.getOption(interaction, option);
+        return LIST_STRING.split(" ");
     }
 
     public getSlashCommandJson(): any

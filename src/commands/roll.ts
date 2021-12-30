@@ -1,7 +1,7 @@
 import { CommandInteraction } from "discord.js";
-import { Command } from "../structures/command/command";
+import { RandomizeCommand } from "../structures/command/randomizeCommand";
 
-class RollCommand extends Command
+class RollCommand extends RandomizeCommand
 {
     constructor()
 	{
@@ -20,8 +20,7 @@ class RollCommand extends Command
             this.replyWithVagueError(interaction);
             return;
         }
-        const ROLLED_NUMBER: number = 1 + Math.floor(Math.random()*SIDES)
-        let x = "Hi";
+        const ROLLED_NUMBER: number = this.random(1, SIDES);
 
         await interaction.reply(`Rolling a ${SIDES} sided die...\n${ROLLED_NUMBER}`);
 	}
