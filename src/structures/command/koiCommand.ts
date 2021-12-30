@@ -18,25 +18,6 @@ export abstract class KoiCommand extends Command
         }
         this.addOption(PATTERN, "Name of the koi pattern.");
     }
-
-    protected addOption(name: string, description: string): void
-    {
-        this.data.addStringOption(function(option) {
-            return option.setName(name)
-                .setDescription(description)
-                .setRequired(true);
-        });
-    }
-
-    protected getOption(interaction: CommandInteraction, option: string) : string
-    {
-        let value = interaction.options.getString(option);
-        if (!value)
-        {
-            return "";
-        }
-        return value.toLowerCase();
-    }
     
     protected getPattern(interaction: CommandInteraction) : string
     {
@@ -82,20 +63,6 @@ export abstract class KoiCommand extends Command
             return false;
         }
         return true;
-    }
-
-    protected async replyWithVagueError(interaction: CommandInteraction)
-    {
-        const REPLY = "Uh oh. Something went wrong.";
-
-        if (interaction.deferred)
-        {
-            await interaction.editReply(REPLY);
-        }
-        else
-        {
-            await interaction.reply(REPLY);
-        }
     }
 }
 
