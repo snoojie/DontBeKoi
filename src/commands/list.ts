@@ -16,8 +16,10 @@ class ListCommand extends KoiCommand
     {
         await interaction.deferReply();
 
-        if (!this.validateInteraction(interaction))
+        if (!interaction.guild)
         {
+            console.error("This interaction is not associated with a guild.");
+            this.replyWithVagueError(interaction);
             return;
         }
 
