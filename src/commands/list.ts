@@ -38,6 +38,7 @@ class ListCommand extends KoiCommand
         }
 
         // find our color in the pattern channel
+        // note we cannot use the messages cache as it is empty
         const MESSAGES: Collection<string, Message<boolean>> = await channel.messages.fetch();
         let colorIndex = 32;
         for (let [messageId, message] of MESSAGES)
@@ -68,10 +69,9 @@ class ListCommand extends KoiCommand
                 return;
             }
 
-            // get everyone who needs this colored pattern            
-            const USERS: Collection<string, User> = await NEED.users.fetch();
+            // get everyone who needs this colored pattern
             let people: string[] = []
-            for (let [userId, user] of USERS)
+            for (let [userId, user] of NEED.users.cache)
             {
                 if (!user.bot)
                 {
