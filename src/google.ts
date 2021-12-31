@@ -22,7 +22,7 @@ export class Google
         return Google.instance;
     }
 
-    public async getSpreadsheet(spreadsheetId: string, ranges: string[]) : Promise<Spreadsheet | undefined>
+    public async getSpreadsheet(spreadsheetId: string, ranges: string[]) : Promise<Spreadsheet>
     {
         let response;
         try 
@@ -35,35 +35,46 @@ export class Google
         }
         catch(err)
         {
-            console.error("Failed to retrieve the google sheet: " + err);
-            return;
+            throw "Failed to retrieve the google spreadsheet: " + err;
         }
 
         if (!response)
         {
-            console.error("Failed to retrieve the google sheet due to an empty response.")
-            return;
+            throw "Failed to retrieve the google spreadsheet due to an empty response.";
         }
     
         return <Spreadsheet>response.data;
     }
 
-    public getSheet(spreadsheet: Spreadsheet, index: number) : Sheet | undefined
+    public async getSheets(spreadsheetId: string, ranges: string[]): Promise<Sheet[]>
+    {
+        const SPREADSHEET = await this.getSpreadsheet(spreadsheetId, ranges);
+
+        let sheets: Sheet[] = [];
+        if (SPREADSHEET.sheets)
+        {
+            for (let sheet of SPREADSHEET.sheets)
+            {
+                sheets.push(<Sheet>sheet);
+            }
+        }
+        return sheets;
+
+    }
+
+    public getSheet(spreadsheet: Spreadsheet, index: number) : Sheet
     {
         if (!spreadsheet)
         {
-            console.error("Cannot get sheet from empty spreadsheet");
-            return;
+            throw "Cannot get sheet from empty spreadsheet";
         }
         if (!spreadsheet.sheets)
         {
-            console.error("Cannot get sheet when spreadsheet has no sheets");
-            return;
+            throw "Cannot get sheet when spreadsheet has no sheets";
         }
         if (spreadsheet.sheets.length < index)
         {
-            console.error(`Cannot get sheet at index ${index} because this spreadsheet does not have any that many sheets.`);
-            return;
+            throw `Cannot get sheet at index ${index} because this spreadsheet does not have any that many sheets.`;
         }
 
         return <Sheet>spreadsheet.sheets[index];
