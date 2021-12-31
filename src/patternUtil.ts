@@ -58,8 +58,6 @@ export class PatternUtil
             throw "Could not get the hatch time google sheet";
         }
 
-        
-
         // find the row containing the hatch time
         const HATCH_TIME_ROWS = google.getSheetRows(HATCH_TIME_SHEET);
         let hatchTimeRow: SheetRow | undefined = undefined;

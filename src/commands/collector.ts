@@ -17,8 +17,10 @@ class CollectorCommand extends KoiCommand
         // more info: https://discordjs.guide/interactions/replying-to-slash-commands.html#deferred-responses
         await interaction.deferReply();
 
-        if (!this.validateInteraction(interaction))
+        if (!interaction.guild)
         {
+            console.error("This interaction is not associated with a guild.");
+            this.replyWithVagueError(interaction);
             return;
         }
 
@@ -56,7 +58,7 @@ class CollectorCommand extends KoiCommand
         
         // create channel for this pattern
         // note interaction.guild was proven valid in the validateInteraction method earlier
-        channel = <TextChannel>await interaction.guild!.channels.create(
+        channel = <TextChannel>await interaction.guild.channels.create(
             PATTERN + " - " + patternCollection.hatchTime, 
             { 
                 parent: process.env.CATEGORY_ID

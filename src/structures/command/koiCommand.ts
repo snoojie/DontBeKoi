@@ -1,5 +1,4 @@
 import { Command } from "./command";
-import { SlashCommandStringOption } from "@discordjs/builders";
 import { CommandInteraction, GuildBasedChannel, TextChannel } from "discord.js";
 import { PatternUtil, PatternCollection } from "../../patternUtil";
 
@@ -52,17 +51,6 @@ export abstract class KoiCommand extends Command
     protected async getPatternCollection(pattern: string) : Promise<PatternCollection>
     {
         return PatternUtil.getCollection(pattern);
-    }
-
-    protected validateInteraction(interaction: CommandInteraction): boolean
-    {
-        if (!interaction.guild)
-        {
-            console.error("This interaction is not associated with a guild.");
-            this.replyWithVagueError(interaction);
-            return false;
-        }
-        return true;
     }
 }
 
