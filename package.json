@@ -1,8 +1,8 @@
 {
   "name": "dontbekoi",
   "scripts": {
-    "dev": "ts-node-dev --respawn --clear src/index.ts",
-    "db": "ts-node-dev --respawn --clear src/db/db.ts"
+    "dev": "ts-node-dev src/index.ts",
+    "prod": "ts-node src/index.ts"
   },
   "dependencies": {
     "@discordjs/rest": "^0.2.0-canary.0",
