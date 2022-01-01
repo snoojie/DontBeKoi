@@ -81,7 +81,7 @@ async function setup()
     await sequelize.sync({ force: true });
 
     try {
-        populatePatterns();
+        await populatePatterns();
     }
     catch (error) {
         console.error(error);
@@ -96,7 +96,12 @@ async function populatePatterns(): Promise<void>
     // get google sheets
     const SHEETS: Sheet[] = await google.getSheets(
         "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo",
-        ["Progressives!I2:AN70", "A-M: Collectors!B2:K", "N-Z: Collectors!B2:K"]
+        [
+            "Overview!A4:I",             // hatch time for collectors
+            "Progressives!I2:AN70",     // progressives
+            "A-M: Collectors!B2:K",     // collectors
+            "N-Z: Collectors!B2:K"     // collectors
+        ]
     );
 
     let patterns: PatternAttributes[] = [];
@@ -104,27 +109,72 @@ async function populatePatterns(): Promise<void>
     // get the progressive patterns
     patterns.push(...getPatterns(
         google, 
-        google.getSheetRows(SHEETS[0]), // rows in the progressive sheet
+        google.getSheetRows(SHEETS[1]), // rows in the progressive sheet
         Type.Progressive
     ));
 
     // get the collector patterns
     // note there's two sheets for this
-    for (let i=1; i<3; i++)
+    let collectorPatterns: PatternAttributes[] = [];
+    for (let i=2; i<4; i++)
     {
-        patterns.push(...getPatterns(
+        // get collectors from one of the two sheets
+        collectorPatterns.push(...getPatterns(
             google, 
             google.getSheetRows(SHEETS[i]), // rows in the collector sheet
             Type.Collector
         ));
     }
 
-    // save the progressive patterns in the db
+    // get the hatch times for collectors
+
+    // create json of pattern names to hatch times
+    // generally, the overview sheet is sorted by pattern name
+    // but there was at least one pattern that wasn't....
+    let hatchTimes: { [key:string] : number } = {};
+    for (let overviewRow of google.getSheetRows(SHEETS[0]))
+    {
+        const PATTERN_NAME = google.getCellText(overviewRow, 0);
+
+        // there's an empty row between patterns starting with m and n,
+        // ignore that row
+        if (!PATTERN_NAME)
+        {
+            continue;
+        }
+
+         // the hatch time column will have text like "10h"
+         const ORIGINAL_HATCH_TIME: number = parseInt(google.getCellText(overviewRow, 7));
+
+         // the pattern reference column will have text like "Covid - 5h"
+         // pull just the number out
+         const REDUCTION_TIME: number = parseInt(google.getCellText(overviewRow, 8).substring(8));
+ 
+         // calculate the hatch time
+         hatchTimes[PATTERN_NAME] = ORIGINAL_HATCH_TIME - REDUCTION_TIME;
+    }
+
+    for (let pattern of collectorPatterns)
+    {
+        // confirm this pattern has a known hatch time
+        if (!(pattern.name in hatchTimes)) 
+        {
+            console.error(`Pattern ${pattern.name} is in the collector sheet but not in overview sheet.`);
+            continue;
+        }
+
+        // save the hatch time
+        pattern.hatchTime = hatchTimes[pattern.name];
+    }
+
+    patterns.push(...collectorPatterns);
+
+    // save the patterns in the db
     await Pattern.bulkCreate(patterns, { validate: true });
     console.log("Done!");
 }
 
-setup();
+try { setup(); } catch(error) { console.error(error); }
 
 function getPatterns(google: Google, rows: SheetRow[], type: Type): PatternAttributes[]
 {

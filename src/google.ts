@@ -97,7 +97,7 @@ export class Google
             console.error(`Sheet row does not have any values: ${row}`);
             return "";
         }
-        if (row.values.length < columnIndex)
+        if (columnIndex >= row.values.length)
         {
             console.error(`Sheet row does not have a column at ${columnIndex}: ${row}`);
             return "";
