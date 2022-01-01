@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, GuildBasedChannel, TextChannel } from "discord.js";
 import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption } 
     from "@discordjs/builders";
 
@@ -64,8 +64,9 @@ export abstract class Command
      * Since this is a string option, the value provided, 
      * "bukimi" in this example, must be a string.
      * 
-     * @param name Name that is displayed to the discord user in the slash command
-     * @param description Describes the option and is displayed to the discord user in the slash command.
+     * @param name Name that is displayed to the discord user in the slash command.
+     * @param description Describes the option and is displayed to the discord user 
+     *                    in the slash command.
      */
     protected addOption(name: string, description: string): void
     {
@@ -90,8 +91,9 @@ export abstract class Command
      * Since this is a number option, the value provided, 
      * 3 in this example, must be a number.
      * 
-     * @param name Name that is displayed to the discord user in the slash command
-     * @param description Describes the option and is displayed to the discord user in the slash command.
+     * @param name Name that is displayed to the discord user in the slash command.
+     * @param description Describes the option and is displayed to the discord user 
+     *                    in the slash command.
      */
     protected addOptionNumber(name: string, description: string): void
     {
@@ -189,6 +191,27 @@ export abstract class Command
         {
             await interaction.reply(REPLY);
         }
+    }
+
+    /** 
+     * @param interaction Interaction this slash command occured in.
+     * @param name Name of the channel.
+     * @returns The channel if it exists, otherwise undefined.
+     */
+    protected getChannel(interaction: CommandInteraction, name: string) : TextChannel | undefined
+    {
+        // we validated interaction.guild earlier
+
+        const CHANNEL: GuildBasedChannel | undefined = 
+            interaction.guild!.channels.cache.find(
+                CHANNEL => CHANNEL.name.startsWith(name)
+            );
+        if (!CHANNEL || !CHANNEL.isText())
+        {
+            return;
+        }
+        
+        return <TextChannel>CHANNEL;
     }
 
 	

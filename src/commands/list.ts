@@ -24,14 +24,14 @@ class ListCommand extends KoiCommand
         }
 
         // pattern as provided by the discord user
-        const PATTERN = this.getPatternOption(interaction);
+        const PATTERN = this.getOptionValuePattern(interaction);
         
         // color name as provided by the discord user
         const COLOR = this.getColor(interaction);
 
         // check that the channel of this pattern exists
         let channel: TextChannel | undefined = 
-            this.getChannelOfPattern(interaction, PATTERN);
+            this.getChannel(interaction, PATTERN);
         if (!channel)
         {
             console.error(`User requested to list everyone who needs ${PATTERN} but its channel does not exist`);

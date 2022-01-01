@@ -12,23 +12,22 @@ class CollectorCommand extends KoiCommand
 
 	public async execute(interaction: CommandInteraction): Promise<void>
     {
-        // sending messages to the new channel is time consuming,
-        // so let's defer the reply
-        // more info: https://discordjs.guide/interactions/replying-to-slash-commands.html#deferred-responses
         await interaction.deferReply();
 
         if (!interaction.guild)
         {
-            this.replyWithError(interaction, "This interaction is not associated with a guild.");
+            // this shouldn't ever happen
+            await this.replyWithError(
+                interaction, "This interaction is not associated with a guild."
+            );
             return;
         }
 
         // pattern as provided by the discord user
-        const PATTERN_NAME = this.getPatternOption(interaction);
+        const PATTERN_NAME = this.getOptionValuePattern(interaction);
 
-        // check that there doesn't yet exist a channel for this pattern
-        let channel: TextChannel | undefined = 
-            this.getChannelOfPattern(interaction, PATTERN_NAME);
+        // confirm that there doesn't yet exist a channel for this pattern
+        let channel: TextChannel | undefined = this.getChannel(interaction, PATTERN_NAME);
         if (channel)
         {
             await this.replyWithError(
@@ -57,12 +56,11 @@ class CollectorCommand extends KoiCommand
         );
 
         // populate the new channel
-
-        await this.populatePatternChannel(
+        await this.sendCollection(
             channel, PATTERN.baseColors, PATTERN.commonColors, "COMMONS"
         );
         await channel.send("=====");
-        await this.populatePatternChannel(
+        await this.sendCollection(
             channel, PATTERN.baseColors, PATTERN.rareColors, "RARES"
         );
 
@@ -71,13 +69,26 @@ class CollectorCommand extends KoiCommand
 	    await interaction.editReply(`Created the ${PATTERN_NAME} channel!`);
 	}
 
-    private async populatePatternChannel(
+    /**
+     * Populate the channel with the pattern collection.
+     * This is either the common collection or rare collection.
+     * 
+     * @param channel The channel to send the collection to.
+     * @param baseColors The base colors of the collection.
+     * @param highlightColors The highlight colors of the collection.
+     * @param rarity The rarity of the collection. 
+     *               This gets printed in the channel as a title 
+     *               before the collection is sent.
+     */
+    private async sendCollection(
         channel: TextChannel,
         baseColors: Color[], 
         highlightColors: Color[], 
         rarity: string
     ): Promise<void>
     {
+        const CANVAS_HEIGHT: number = 30;
+
         await channel.send("**" + rarity + ":**");
         for (let baseColor of baseColors)
         {
@@ -87,26 +98,23 @@ class CollectorCommand extends KoiCommand
 
                 // draw 
     
-                const HEIGHT: number = 30;
-                let canvas: Canvas.Canvas = Canvas.createCanvas(250, HEIGHT);
+                let canvas: Canvas.Canvas = Canvas.createCanvas(250, CANVAS_HEIGHT);
                 let context: Canvas.NodeCanvasRenderingContext2D = canvas.getContext("2d");
                 
                 // base color
-                drawCircle(context, HEIGHT/2, baseColor.hex);
+                this.drawCircle(context, CANVAS_HEIGHT / 2, baseColor.hex);
         
                 // highlight color
-                drawCircle(context, HEIGHT * 0.22, highlightColor.hex);
+                this.drawCircle(context, CANVAS_HEIGHT * 0.22, highlightColor.hex);
         
                 // name as text 
                 context.fillStyle="white";
                 context.font = "20px Papyrus";
-                context.fillText(KOI_NAME, HEIGHT + 10, HEIGHT * 0.7 );
+                context.fillText(KOI_NAME, CANVAS_HEIGHT + 10, CANVAS_HEIGHT * 0.7 );
 
                 // generate message with the drawing
                 let message: Message = await channel.send({ 
-                    files: [new MessageAttachment(
-                        canvas.toBuffer(), KOI_NAME + ".png"
-                    )]
+                    files: [new MessageAttachment(canvas.toBuffer(), KOI_NAME + ".png")]
                 });
 
                 // add emojis to the message
@@ -115,23 +123,30 @@ class CollectorCommand extends KoiCommand
             }
         }
     }
-}
 
-function drawCircle(
-    context: Canvas.NodeCanvasRenderingContext2D, radius: number, hexColor: string
-): void
-{
-    // the circle's center (x, y) is half the canvas height
-    const CIRCLE_CENTER = context.canvas.height / 2;
-
-    // drawing a circle requires the start and end angles for the arc function
-    const CIRCLE_START_ANGLE = 0;
-    const CIRCLE_END_ANGLE = 2 * Math.PI;
-
-    context.beginPath();
-    context.arc(CIRCLE_CENTER, CIRCLE_CENTER, radius, CIRCLE_START_ANGLE, CIRCLE_END_ANGLE);
-    context.fillStyle = hexColor;
-    context.fill();
+    /**
+     * Draw a circle on a canvas.
+     * 
+     * @param context The canvas context to draw on.
+     * @param radius Radius of the circle.
+     * @param hexColor Color of the circle.
+     */
+    private drawCircle(
+        context: Canvas.NodeCanvasRenderingContext2D, radius: number, hexColor: string
+    ): void
+    {
+        // the circle's center (x, y) is half the canvas height
+        const CIRCLE_CENTER = context.canvas.height / 2;
+    
+        // drawing a circle requires the start and end angles for the arc function
+        const CIRCLE_START_ANGLE = 0;
+        const CIRCLE_END_ANGLE = 2 * Math.PI;
+    
+        context.beginPath();
+        context.arc(CIRCLE_CENTER, CIRCLE_CENTER, radius, CIRCLE_START_ANGLE, CIRCLE_END_ANGLE);
+        context.fillStyle = hexColor;
+        context.fill();
+    }
 }
 
 export default new CollectorCommand();
