@@ -8,6 +8,11 @@ export abstract class RandomizeCommand extends Command
 	}
 
     // https://medium.com/@rocambille/how-to-roll-a-dice-in-javascript-ec543f8ffda1
+    /**
+     * @param min The min number that can be returned.
+     * @param max The max number that can be returned.
+     * @returns random int between [min, max] inclusive.
+     */
     protected random(min: number, max: number): number
     {
         return min + Math.floor(Math.random() * (max-min + 1));
