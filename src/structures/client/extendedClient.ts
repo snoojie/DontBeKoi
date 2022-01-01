@@ -4,7 +4,7 @@ import { Routes } from "discord-api-types/v9";
 import { ClientEvent } from "./clientEvent";
 import { Command } from"../command/command";
 import * as fs from "fs";
-import { dbStart, Pattern } from "../../db/db";
+import { dbStart } from "../../db/db";
 
 export class ExtendedClient extends Client
 {

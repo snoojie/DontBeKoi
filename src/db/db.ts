@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import { Google, Sheet, SheetRow, Spreadsheet } from "../google";
+import { Google, Sheet, SheetRow } from "../google";
 
 // connect to database
 const sequelize = new Sequelize({

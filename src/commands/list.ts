@@ -1,7 +1,7 @@
 import { Collection, CommandInteraction, GuildBasedChannel, Message, MessageAttachment, MessageEmbed, MessageManager, MessageReaction, ReactionUserManager, TextChannel, User } from "discord.js";
 import { KoiCommand } from "../structures/command/koiCommand";
 import axios from "axios";
-import cheerio, { Cheerio, CheerioAPI } from "cheerio";
+import cheerio, { CheerioAPI } from "cheerio";
 import * as Canvas from "canvas";
 
 class ListCommand extends KoiCommand

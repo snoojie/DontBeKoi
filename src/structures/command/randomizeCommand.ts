@@ -1,4 +1,3 @@
-import { CommandInteraction } from "discord.js";
 import { Command } from "./command";
 
 export abstract class RandomizeCommand extends Command
