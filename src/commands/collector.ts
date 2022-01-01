@@ -17,7 +17,7 @@ class CollectorCommand extends KoiCommand
         if (!interaction.guild)
         {
             // this shouldn't ever happen
-            await this.replyWithError(
+            await this.replyWithVagueError(
                 interaction, "This interaction is not associated with a guild."
             );
             return;
@@ -31,7 +31,7 @@ class CollectorCommand extends KoiCommand
         if (channel)
         {
             await this.replyWithError(
-                interaction, `There already exists a channel for ${PATTERN_NAME}`, true
+                interaction, `There already exists a channel for ${PATTERN_NAME}`
             );
             return;
         }
@@ -41,7 +41,7 @@ class CollectorCommand extends KoiCommand
         if (!PATTERN)
         {
             await this.replyWithError(
-                interaction, `Pattern ${PATTERN_NAME} is not a valid collector pattern.`, true
+                interaction, `Pattern ${PATTERN_NAME} is not a valid collector pattern.`
             );
             return;
         }

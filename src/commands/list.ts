@@ -30,7 +30,7 @@ class ListCommand extends KoiCommand
         if (!channel)
         {
             await this.replyWithError(
-                interaction, `There isn't a channel yet for ${PATTERN}`, true
+                interaction, `There isn't a channel yet for ${PATTERN}`
             );
             return;
         }
@@ -68,7 +68,7 @@ class ListCommand extends KoiCommand
             {
                 // this shouldn't happen
                 await this.replyWithError(
-                    interaction, `No need reaction found on ${COLOR} ${PATTERN}.`, true
+                    interaction, `No need reaction found on ${COLOR} ${PATTERN}.`
                 );
                 return;
             }
@@ -179,7 +179,7 @@ class ListCommand extends KoiCommand
 
         // if this is reached, we could not find the color in the pattern channel
         await this.replyWithError(
-            interaction, `Pattern ${PATTERN} does not have color ${COLOR}.`, true
+            interaction, `Pattern ${PATTERN} does not have color ${COLOR}.`
         );
 	}
 }

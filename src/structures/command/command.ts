@@ -136,8 +136,8 @@ export abstract class Command
      */
     protected getOptionValueNumber(interaction: CommandInteraction, option: string): number
     {
-        const VALUE: number | undefined = interaction.options.getNumber(option) || undefined;
-        if (VALUE == undefined)
+        const VALUE: number | null = interaction.options.getNumber(option);
+        if (VALUE == null)
         {
             // this should never happen because the option is required
             throw `Option ${option} is required but could not get its number value.`;
@@ -161,37 +161,67 @@ export abstract class Command
         return this.getOptionValue(interaction, option).split(" ");
     }
 
-    //============================================
-    //=====Helper functions for child classes=====
-    //============================================
+    //==============================================
+    //=====Handling errors in command exeuction=====
+    //==============================================
 
     /**
      * Handle errors in the slash command by 
-     * printing an error in the console and sending a message to discord.
+     * printing the error in the console and discord.
      * 
      * @param interaction Interaction this slash command occured in.
-     * @param errorMessage Message to print in the console logs.
-     * @param isPublic Optional parameter. Default false.
-     *                 If true, the error message will also be sent in discord. 
-     *                 Otherwise, a generic "Uh oh" message will be sent.
+     * @param errorMessage Message to print in the console logs and discord.
      */
-    protected async replyWithError(
-        interaction: CommandInteraction, errorMessage: string, isPublic: boolean = false
+     protected async replyWithError(
+        interaction: CommandInteraction, errorMessage: string
     ): Promise<void>
     {
         console.error(errorMessage);
 
-        const REPLY = isPublic ? errorMessage : "Uh oh. Something went wrong.";
-
         if (interaction.deferred)
         {
-            await interaction.editReply(REPLY);
+            await interaction.editReply(errorMessage);
         }
         else
         {
-            await interaction.reply(REPLY);
+            await interaction.reply(errorMessage);
         }
     }
+
+    /**
+     * Handle errors in the slash command by 
+     * printing the error in the console and sending a vague error message to discord.
+     * 
+     * @param interaction Interaction this slash command occured in.
+     * @param errorMessage Message to print in the console logs.
+     */
+    protected async replyWithVagueError(
+        interaction: CommandInteraction, errorMessage: string
+    ): Promise<void>
+    {
+        await this._replyWithError(interaction, errorMessage, true);
+    }
+
+    /**
+     * Handle errors in the slash command by 
+     * printing the error in the console and 
+     * sending either that error or a vague error message to discord.
+     * 
+     * @param interaction Interaction this slash command occured in.
+     * @param errorMessage Message to print in the console logs.
+     * @param isVague If true, the error message will also be sent in discord. 
+     *                Otherwise, a generic "Uh oh" message will be sent.
+     */
+    protected async _replyWithError(
+        interaction: CommandInteraction, errorMessage: string, isVague: boolean
+    ): Promise<void>
+    {
+        await this._replyWithError(interaction, errorMessage, false);
+    }
+
+    //============================================
+    //=====Helper functions for child classes=====
+    //============================================
 
     /** 
      * @param interaction Interaction this slash command occured in.

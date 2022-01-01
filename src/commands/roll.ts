@@ -16,6 +16,13 @@ class RollCommand extends RandomizeCommand
     {
         // roll [1, number of sides on dice] inclusive
         const SIDES = this.getOptionValueNumber(interaction, OPTION_NAME);
+
+        if (SIDES < 2)
+        {
+            await this.replyWithError(interaction, "Dice needs at least 2 sides.");
+            return;
+        }
+
         const ROLLED_NUMBER: number = this.random(1, SIDES);
 
         await interaction.reply(`Rolling a ${SIDES} sided die...\n${ROLLED_NUMBER}`);
