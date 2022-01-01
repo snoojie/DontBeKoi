@@ -93,59 +93,58 @@ async function populatePatterns(): Promise<void>
     //https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
     let google: Google = Google.getInstance();
 
-    // get the progressive sheet    
+    // get google sheets
     const SHEETS: Sheet[] = await google.getSheets(
         "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo",
-        ["Progressives!I2:AN70"]    // progressives sheet
+        ["Progressives!I2:AN70", "A-M: Collectors!B2:K"]
     );
-    const PROGRESSIVE_ROWS: SheetRow[] = google.getSheetRows(SHEETS[0]);
+
+    let patterns: PatternAttributes[] = [];
 
     // get the progressive patterns
-    let progressivePatterns: PatternAttributes[] = [];
-    for (let i=0; i<PROGRESSIVE_ROWS.length; i+=7)
-    {
-        // every 7 rows represents a pattern
-        // there's also three patterns displayed on each row every 11 columns
+    patterns.push(...getPatterns(
+        google, 
+        google.getSheetRows(SHEETS[0]), // rows in the progressive sheet
+        Type.Progressive
+    ));
 
-        const ROWS = PROGRESSIVE_ROWS.slice(i, i+6);
-
-        for (let j=0; j<3; j++)
-        {
-            progressivePatterns.push(getPattern(google, ROWS, j*11));
-        }
-    }
+    // get the collector patterns
+    patterns.push(...getPatterns(
+        google, 
+        google.getSheetRows(SHEETS[1]), // rows in the collector sheet
+        Type.Collector
+    ));
 
     // save the progressive patterns in the db
-    await Pattern.bulkCreate(progressivePatterns, { validate: true });
-    console.log("Done");
+    await Pattern.bulkCreate(patterns, { validate: true });
+    console.log("Done!");
 }
 
 setup();
 
-function getColor(google: Google, row: SheetRow, columnIndex: number): Color
+function getPatterns(google: Google, rows: SheetRow[], type: Type): PatternAttributes[]
 {
-    // get the name
-    // note that on the google sheet,
-    // prefixes generally end with a dash like "Ku-",
-    // and suffixes generally start with a dash like "-shiro"
-    // however sometimes there is no dash at all
-    let name = google.getCellText(row, columnIndex);
-    if (name.startsWith("-"))
+    let patterns: PatternAttributes[] = [];
+
+    for (let i=0; i+5<rows.length; i+=7)
     {
-        name = name.substring(1);
-    }
-    else if (name.endsWith("-"))
-    {
-        name = name.slice(0, -1);
+        // every 7 rows represents a pattern
+
+        const PATTERN_ROWS = rows.slice(i, i+6);
+
+        // progressive sheet has a pattern every 11 columns per row
+        // collector sheet has only 1 pattern per row
+        const PATTERNS_PER_ROW = type == Type.Progressive ? 3 : 1;
+        for (let j=0; j<PATTERNS_PER_ROW; j++)
+        {
+            patterns.push(getPattern(google, PATTERN_ROWS, j*11, type));
+        }
     }
 
-    return {
-        name: name,
-        hex: google.getCellBackgroundColor(row, columnIndex)
-    }
+    return patterns;
 }
 
-function getPattern(google: Google, rows: SheetRow[], columnIndex: number): PatternAttributes
+function getPattern(google: Google, rows: SheetRow[], columnIndex: number, type: Type): PatternAttributes
 {
     // first row is the pattern name
     // the next row has the highlight colors for common and rare
@@ -180,6 +179,29 @@ function getPattern(google: Google, rows: SheetRow[], columnIndex: number): Patt
         baseColors: baseColors,
         commonColors: commonColors,
         rareColors: rareColors,
-        type: Type.Progressive
+        type: type
     };
+}
+
+function getColor(google: Google, row: SheetRow, columnIndex: number): Color
+{
+    // get the name
+    // note that on the google sheet,
+    // prefixes generally end with a dash like "Ku-",
+    // and suffixes generally start with a dash like "-shiro"
+    // however sometimes there is no dash at all
+    let name = google.getCellText(row, columnIndex);
+    if (name.startsWith("-"))
+    {
+        name = name.substring(1);
+    }
+    else if (name.endsWith("-"))
+    {
+        name = name.slice(0, -1);
+    }
+
+    return {
+        name: name,
+        hex: google.getCellBackgroundColor(row, columnIndex)
+    }
 }

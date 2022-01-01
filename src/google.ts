@@ -141,18 +141,11 @@ export class Google
             return "";
         }
 
-        const STYLE: sheets_v4.Schema$ColorStyle | undefined = 
-            FORMAT.backgroundColorStyle;
-        if (!STYLE)
-        {
-            console.error(`Cannot get cell background color at column ${columnIndex} because the background color style is unknown: ${row}`);
-            return "";
-        }
-
-        const GOOGLE_COLOR: sheets_v4.Schema$Color | undefined = STYLE.rgbColor;
+        const GOOGLE_COLOR: sheets_v4.Schema$Color | undefined = 
+            FORMAT.backgroundColor;
         if (!GOOGLE_COLOR)
         {
-            console.error(`Cannot get background cell color at column ${columnIndex} because its rgb color is missing: ${row}`);
+            console.error(`Cannot get cell background color at column ${columnIndex} because the background color style is unknown: ${row}`);
             return "";
         }
 
