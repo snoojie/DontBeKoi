@@ -96,7 +96,7 @@ async function populatePatterns(): Promise<void>
     // get google sheets
     const SHEETS: Sheet[] = await google.getSheets(
         "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo",
-        ["Progressives!I2:AN70", "A-M: Collectors!B2:K"]
+        ["Progressives!I2:AN70", "A-M: Collectors!B2:K", "N-Z: Collectors!B2:K"]
     );
 
     let patterns: PatternAttributes[] = [];
@@ -109,11 +109,15 @@ async function populatePatterns(): Promise<void>
     ));
 
     // get the collector patterns
-    patterns.push(...getPatterns(
-        google, 
-        google.getSheetRows(SHEETS[1]), // rows in the collector sheet
-        Type.Collector
-    ));
+    // note there's two sheets for this
+    for (let i=1; i<3; i++)
+    {
+        patterns.push(...getPatterns(
+            google, 
+            google.getSheetRows(SHEETS[i]), // rows in the collector sheet
+            Type.Collector
+        ));
+    }
 
     // save the progressive patterns in the db
     await Pattern.bulkCreate(patterns, { validate: true });
