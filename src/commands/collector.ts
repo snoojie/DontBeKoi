@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildBasedChannel, Message, MessageAttachment, TextChannel } from "discord.js";
+import { CommandInteraction, Message, MessageAttachment, TextChannel } from "discord.js";
 import { KoiCommand } from "../structures/command/koiCommand";
 import * as Canvas from "canvas";
 import { Color, Pattern } from "../db/db";
