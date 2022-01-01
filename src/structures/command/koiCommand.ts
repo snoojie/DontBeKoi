@@ -19,12 +19,12 @@ export abstract class KoiCommand extends Command
     
     protected getPatternOption(interaction: CommandInteraction) : string
     {
-        return this.getOption(interaction, PATTERN);
+        return this.getOptionValue(interaction, PATTERN);
     }
     
     protected getColor(interaction: CommandInteraction) : string
     {
-        return this.getOption(interaction, COLOR);
+        return this.getOptionValue(interaction, COLOR);
     }
 
     protected getChannelOfPattern(interaction: CommandInteraction, pattern: string) : TextChannel | undefined

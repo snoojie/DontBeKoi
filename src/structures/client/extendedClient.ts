@@ -52,7 +52,7 @@ export class ExtendedClient extends Client
         const COMMANDS: Command[] = await loadScripts("commands");
         for (const COMMAND of COMMANDS)
         {
-            this.commands.set(COMMAND.name, COMMAND);
+            this.commands.set(COMMAND.NAME, COMMAND);
         }
 
         // deploy slash commands to discord server

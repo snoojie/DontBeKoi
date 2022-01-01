@@ -17,8 +17,9 @@ class ListCommand extends KoiCommand
 
         if (!interaction.guild)
         {
-            console.error("This interaction is not associated with a guild.");
-            this.replyWithVagueError(interaction);
+            await this.replyWithError(
+                interaction, "This interaction is not associated with a guild."
+            );
             return;
         }
 
@@ -65,8 +66,7 @@ class ListCommand extends KoiCommand
                 message.reactions.cache.get(this.REACTION_NEED);
             if (!NEED)
             {
-                console.error(`No need reaction found on ${COLOR} ${PATTERN}.`);
-                await this.replyWithVagueError(interaction);
+                await this.replyWithError(interaction, `No need reaction found on ${COLOR} ${PATTERN}.`);
                 return;
             }
 

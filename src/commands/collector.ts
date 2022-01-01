@@ -19,8 +19,7 @@ class CollectorCommand extends KoiCommand
 
         if (!interaction.guild)
         {
-            console.error("This interaction is not associated with a guild.");
-            this.replyWithVagueError(interaction);
+            this.replyWithError(interaction, "This interaction is not associated with a guild.");
             return;
         }
 
@@ -32,7 +31,9 @@ class CollectorCommand extends KoiCommand
             this.getChannelOfPattern(interaction, PATTERN_NAME);
         if (channel)
         {
-            await replyWithError(interaction, `There already exists a channel for ${PATTERN_NAME}`);
+            await this.replyWithError(
+                interaction, `There already exists a channel for ${PATTERN_NAME}`, true
+            );
             return;
         }
 
@@ -40,7 +41,9 @@ class CollectorCommand extends KoiCommand
         const PATTERN: Pattern | undefined = await Pattern.getCollector(PATTERN_NAME);
         if (!PATTERN)
         {
-            await replyWithError(interaction, `Pattern ${PATTERN_NAME} is not a valid collector pattern.`);
+            await this.replyWithError(
+                interaction, `Pattern ${PATTERN_NAME} is not a valid collector pattern.`, true
+            );
             return;
         }
         
@@ -59,9 +62,9 @@ class CollectorCommand extends KoiCommand
             channel, PATTERN.baseColors, PATTERN.commonColors, "COMMONS"
         );
         await channel.send("=====");
-        /*await this.populatePatternChannel(
+        await this.populatePatternChannel(
             channel, PATTERN.baseColors, PATTERN.rareColors, "RARES"
-        );*/
+        );
 
         // edit our earlier deferred response
         // we are done!
@@ -129,13 +132,6 @@ function drawCircle(
     context.arc(CIRCLE_CENTER, CIRCLE_CENTER, radius, CIRCLE_START_ANGLE, CIRCLE_END_ANGLE);
     context.fillStyle = hexColor;
     context.fill();
-}
-
-async function replyWithError(interaction: CommandInteraction, errorMessage: string): Promise<void>
-{
-    console.error(errorMessage);
-    await interaction.editReply(errorMessage);
-    return;
 }
 
 export default new CollectorCommand();

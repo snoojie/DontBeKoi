@@ -12,7 +12,7 @@ class EenieCommand extends RandomizeCommand
 
 	public async execute(interaction: CommandInteraction): Promise<void>
     {
-        const CHOICES: string[] = this.getListOption(interaction, OPTION);
+        const CHOICES: string[] = this.getOptionValueList(interaction, OPTION);
         const INDEX = this.random(0, CHOICES.length-1);
         const CHOICE = CHOICES[INDEX];
         
