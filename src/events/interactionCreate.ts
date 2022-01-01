@@ -26,6 +26,15 @@ class InteractionCreateEvent extends ClientEvent
             console.error("Unknown command " + COMMAND_NAME);
             return;
         }
+
+        // log the slash command
+        let logMessage: string = 
+            `${commandInteraction.user.username} /${commandInteraction.commandName}`;
+        for (let option of commandInteraction.options.data)
+        {
+            logMessage += ` ${option.name}:${option.value}`;
+        }
+        console.log(logMessage);
         await command.execute(commandInteraction);
 	}
 }
