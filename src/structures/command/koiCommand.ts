@@ -18,7 +18,7 @@ export abstract class KoiCommand extends Command
         this.addOption(PATTERN, "Name of the koi pattern.");
     }
     
-    protected getPattern(interaction: CommandInteraction) : string
+    protected getPatternOption(interaction: CommandInteraction) : string
     {
         return this.getOption(interaction, PATTERN);
     }

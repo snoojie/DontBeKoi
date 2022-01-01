@@ -24,7 +24,7 @@ class ListCommand extends KoiCommand
         }
 
         // pattern as provided by the discord user
-        const PATTERN = this.getPattern(interaction);
+        const PATTERN = this.getPatternOption(interaction);
         
         // color name as provided by the discord user
         const COLOR = this.getColor(interaction);

@@ -4,6 +4,7 @@ import { Routes } from "discord-api-types/v9";
 import { ClientEvent } from "./clientEvent";
 import { Command } from"../command/command";
 import * as fs from "fs";
+import { dbStart, Pattern } from "../../db/db";
 
 export class ExtendedClient extends Client
 {
@@ -14,11 +15,20 @@ export class ExtendedClient extends Client
         super({ intents: [Intents.FLAGS.GUILDS] });
     }
 
-    public start(): void
+    public async start(): Promise<void>
     {
-        this.registerEvents();
-        this.registerCommands();
-        this.login(process.env.BOT_TOKEN);
+        await this.registerEvents();
+        await this.registerCommands();
+        
+        try
+        {   
+            await this.registerData();
+        } catch (error)
+        {
+            console.error(error);
+        }
+        await this.login(process.env.BOT_TOKEN);
+
     }
 
     public getCommand(name: string): Command | undefined
@@ -65,6 +75,12 @@ export class ExtendedClient extends Client
                 console.error("Failed to register slash commands");
                 console.error(error);
             });
+    }
+
+    protected async registerData(): Promise<void>
+    {
+        await dbStart();
+        console.log("DB ready");
     }
 }
 

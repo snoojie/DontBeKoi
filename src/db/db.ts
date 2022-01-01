@@ -1,8 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { Google, Sheet, SheetRow, Spreadsheet } from "../google";
 
-require("dotenv").config(); // only needed for testing
-
 // connect to database
 const sequelize = new Sequelize({
     dialect: "sqlite",
@@ -10,7 +8,7 @@ const sequelize = new Sequelize({
     logging: false
 });
 
-interface Color {
+export interface Color {
     name: string;
     hex: string;
 }
@@ -30,7 +28,7 @@ interface PatternAttributes
     type: Type;
 }
 
-class Pattern extends Model<PatternAttributes> implements PatternAttributes
+export class Pattern extends Model<PatternAttributes> implements PatternAttributes
 {
     public name!: string;   // null assertion ! is required in strict mode
     public hatchTime!: number | null;
@@ -38,6 +36,21 @@ class Pattern extends Model<PatternAttributes> implements PatternAttributes
     public commonColors!: Color[];
     public rareColors!: Color[];
     public type!: Type;
+
+    public static async getCollector(name: string): Promise<Pattern | undefined>
+    {
+        const PATTERN: Pattern | null = await Pattern.findOne({
+            where: {
+                name: capitalizeFirstLetter(name),
+                type: Type.Collector
+            }
+        });
+        if (!PATTERN)
+        {
+            return undefined;
+        }
+        return PATTERN;
+    }
 }
 
 Pattern.init(
@@ -74,18 +87,13 @@ Pattern.init(
     }
 );
 
-async function setup()
+export async function dbStart()
 {
     // drop table and recreate it
     //await Pattern.sync({ force: true });
     await sequelize.sync({ force: true });
 
-    try {
-        await populatePatterns();
-    }
-    catch (error) {
-        console.error(error);
-    }
+    await populatePatterns();
 }
 
 async function populatePatterns(): Promise<void>
@@ -171,10 +179,7 @@ async function populatePatterns(): Promise<void>
 
     // save the patterns in the db
     await Pattern.bulkCreate(patterns, { validate: true });
-    console.log("Done!");
 }
-
-try { setup(); } catch(error) { console.error(error); }
 
 function getPatterns(google: Google, rows: SheetRow[], type: Type): PatternAttributes[]
 {
@@ -258,4 +263,18 @@ function getColor(google: Google, row: SheetRow, columnIndex: number): Color
         name: name,
         hex: google.getCellBackgroundColor(row, columnIndex)
     }
+}
+
+function capitalizeFirstLetter(text: string): string
+{
+    if (text.length == 0)
+    {
+        return "";
+    }
+    let formattedText = text[0].toUpperCase();
+    if (text.length > 1)
+    {
+        formattedText += text.substring(1).toLowerCase();
+    }
+    return formattedText;
 }
