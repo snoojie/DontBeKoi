@@ -1,6 +1,5 @@
 import { Command } from "./command";
 import { CommandInteraction, GuildBasedChannel, TextChannel } from "discord.js";
-import { PatternUtil, PatternCollection } from "../../patternUtil";
 
 export abstract class KoiCommand extends Command
 {
@@ -46,11 +45,6 @@ export abstract class KoiCommand extends Command
         }
         
         return <TextChannel>CHANNEL;
-    }
-
-    protected async getPatternCollection(pattern: string) : Promise<PatternCollection>
-    {
-        return PatternUtil.getCollection(pattern);
     }
 }
 

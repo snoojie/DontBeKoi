@@ -1,6 +1,5 @@
 import { Collection, CommandInteraction, GuildBasedChannel, Message, MessageAttachment, MessageEmbed, MessageManager, MessageReaction, ReactionUserManager, TextChannel, User } from "discord.js";
 import { KoiCommand } from "../structures/command/koiCommand";
-import { PatternCollection, KoiColoring } from "../patternUtil";
 import axios from "axios";
 import cheerio, { Cheerio, CheerioAPI } from "cheerio";
 import * as Canvas from "canvas";
