@@ -35,7 +35,9 @@ class InteractionCreateEvent extends ClientEvent
             logMessage += ` ${option.name}:${option.value}`;
         }
         console.log(logMessage);
+        console.time(commandInteraction.commandName);
         await command.execute(commandInteraction);
+        console.timeEnd(commandInteraction.commandName);
 	}
 }
 

@@ -1,4 +1,4 @@
-import { Collection, CommandInteraction, GuildBasedChannel, Message, MessageAttachment, MessageEmbed, MessageManager, MessageReaction, ReactionUserManager, TextChannel, User } from "discord.js";
+import { Collection, CommandInteraction, Message, MessageAttachment, MessageReaction, TextChannel, User } from "discord.js";
 import { KoiCommand } from "../structures/command/koiCommand";
 import axios, { AxiosResponse } from "axios";
 import cheerio, { CheerioAPI } from "cheerio";
@@ -26,7 +26,7 @@ class ListCommand extends KoiCommand
         const COLOR = this.getOptionValueColor(interaction);
 
         // check that the channel of this pattern exists
-        let channel: TextChannel | undefined = this.getChannel(interaction, PATTERN);
+        let channel: TextChannel | undefined = await this.getChannel(interaction, PATTERN);
         if (!channel)
         {
             await this.replyWithError(
@@ -37,7 +37,6 @@ class ListCommand extends KoiCommand
 
         // find our color in the pattern channel
         // note we cannot use the messages cache as it is empty
-
         const MESSAGES: Collection<string, Message<boolean>> = 
             (await channel.messages.fetch())
             .reverse()
@@ -62,6 +61,10 @@ class ListCommand extends KoiCommand
             }
 
             // found our color!
+
+            // so far cache seems safe to use
+            // there's no fetch anyway on ReactionManager
+            // I think fetching messages also fetches the reactions anyway
             const NEED_REACTION: MessageReaction | undefined = 
                 message.reactions.cache.get(this.REACTION_NEED);
             if (!NEED_REACTION)

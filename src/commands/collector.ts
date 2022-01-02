@@ -27,7 +27,7 @@ class CollectorCommand extends KoiCommand
         const PATTERN_NAME = this.getOptionValuePattern(interaction);
 
         // confirm that there doesn't yet exist a channel for this pattern
-        let channel: TextChannel | undefined = this.getChannel(interaction, PATTERN_NAME);
+        let channel: TextChannel | undefined = await this.getChannel(interaction, PATTERN_NAME);
         if (channel)
         {
             await this.replyWithError(

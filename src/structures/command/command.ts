@@ -228,14 +228,18 @@ export abstract class Command
      * @param name Name of the channel.
      * @returns The channel if it exists, otherwise undefined.
      */
-    protected getChannel(interaction: CommandInteraction, name: string) : TextChannel | undefined
+    protected async getChannel(interaction: CommandInteraction, name: string) : Promise<TextChannel | undefined>
     {
-        // we validated interaction.guild earlier
+        if (!interaction.guild)
+        {
+            return;
+        }
 
+        // although cache seems to work,
+        // lets fetch just to be safe
         const CHANNEL: GuildBasedChannel | undefined = 
-            interaction.guild!.channels.cache.find(
-                CHANNEL => CHANNEL.name.startsWith(name)
-            );
+            (await interaction.guild.channels.fetch())
+            .find(channel => channel.name.startsWith(name));
         if (!CHANNEL || !CHANNEL.isText())
         {
             return;
