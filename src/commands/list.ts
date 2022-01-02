@@ -74,8 +74,10 @@ class ListCommand extends KoiCommand
             }
 
             // get everyone who needs this colored pattern
+            // note we used to be able to get users from the cache,
+            // but then that stopped working so now we fetch
             let people: string[] = []
-            for (let [userId, user] of NEED_REACTION.users.cache)
+            for (let [userId, user] of (await NEED_REACTION.users.fetch()))
             {
                 if (!user.bot)
                 {
