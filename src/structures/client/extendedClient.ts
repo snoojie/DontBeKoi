@@ -19,14 +19,7 @@ export class ExtendedClient extends Client
     {
         await this.registerEvents();
         await this.registerCommands();
-        
-        try
-        {   
-            await this.registerData();
-        } catch (error)
-        {
-            console.error(error);
-        }
+        await this.registerData();
         await this.login(process.env.BOT_TOKEN);
 
     }
@@ -43,6 +36,7 @@ export class ExtendedClient extends Client
         {
             EVENT.start(this);
         }
+        console.log("Registered events.");
     }
 
     protected async registerCommands(): Promise<void>
@@ -61,7 +55,7 @@ export class ExtendedClient extends Client
         {
             slashCommands.push(COMMAND.getSlashCommandJson());
         }
-        new REST({ version: "9" })
+        return new REST({ version: "9" })
             .setToken(process.env.BOT_TOKEN!)
             .put(
                 Routes.applicationGuildCommands(
@@ -80,7 +74,7 @@ export class ExtendedClient extends Client
     protected async registerData(): Promise<void>
     {
         await dbStart();
-        console.log("DB ready");
+        console.log("Database running.");
     }
 }
 
