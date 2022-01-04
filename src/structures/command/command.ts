@@ -176,16 +176,7 @@ export abstract class Command
         interaction: CommandInteraction, errorMessage: string
     ): Promise<void>
     {
-        console.error(errorMessage);
-
-        if (interaction.deferred)
-        {
-            await interaction.editReply(errorMessage);
-        }
-        else
-        {
-            await interaction.reply(errorMessage);
-        }
+        await this._replyWithError(interaction, errorMessage, false);
     }
 
     /**
@@ -216,7 +207,19 @@ export abstract class Command
         interaction: CommandInteraction, errorMessage: string, isVague: boolean
     ): Promise<void>
     {
-        await this._replyWithError(interaction, errorMessage, false);
+        console.error(errorMessage);
+        
+        const PUBLIC_MESSAGE: string = 
+            isVague ? "Uh oh, something went wrong." : errorMessage;
+
+        if (interaction.deferred)
+        {
+            await interaction.editReply(PUBLIC_MESSAGE);
+        }
+        else
+        {
+            await interaction.reply(PUBLIC_MESSAGE);
+        }
     }
 
     //============================================

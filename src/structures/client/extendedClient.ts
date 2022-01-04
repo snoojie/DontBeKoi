@@ -21,7 +21,6 @@ export class ExtendedClient extends Client
         await this.registerCommands();
         await this.registerData();
         await this.login(process.env.BOT_TOKEN);
-
     }
 
     public getCommand(name: string): Command | undefined
