@@ -1,4 +1,4 @@
-import { Collection, CommandInteraction, Message, MessageAttachment, MessageReaction, ReactionUserManager, TextChannel, User } from "discord.js";
+import { CommandInteraction, MessageAttachment, TextChannel } from "discord.js";
 import { Koi, KoiCommand, KoiCommandPrivateError, KoiCommandPublicError } from "../structures/command/koiCommand";
 import axios, { AxiosResponse } from "axios";
 import cheerio, { CheerioAPI } from "cheerio";
@@ -14,19 +14,7 @@ class ListCommand extends KoiCommand
             true
         );
 	}
-
-    public async dostuff(interaction: CommandInteraction) {
-        let cacheChannel = <TextChannel>interaction!.guild!.channels.cache.get("925593521224826890"); 
-        if(cacheChannel){
-            return cacheChannel!.messages!.fetch("925593747188748318").then(reactionMessage => {
-                return reactionMessage.reactions.resolve(this.REACTION_NEED)!.users.fetch().then(userList => {
-                    return userList.map((user) => user.id)
-                });
-            });
-        }
-        return;
-    }
-
+    
 	public async execute(interaction: CommandInteraction): Promise<void>
     {
         await interaction.deferReply();
@@ -166,8 +154,3 @@ class ListCommand extends KoiCommand
 }
 
 export default new ListCommand();
-
-class KoiError extends Error
-{
-
-}
