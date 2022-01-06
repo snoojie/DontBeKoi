@@ -1,3 +1,5 @@
+import { access } from "fs";
+import { Credentials, JWT, OAuth2Client } from "google-auth-library";
 import { google, sheets_v4 } from "googleapis";
 
 export class Google
@@ -8,7 +10,7 @@ export class Google
     private constructor() 
     { 
         this.SPREADSHEET_API = google
-            .sheets({version: 'v4', auth: process.env.GOOGLE_API_KEY})
+            .sheets({version: "v4"})
             .spreadsheets;
     }
 
@@ -30,7 +32,8 @@ export class Google
             response = await this.SPREADSHEET_API.get({
                 spreadsheetId,
                 ranges,
-                includeGridData: true
+                includeGridData: true,
+                auth: process.env.GOOGLE_API_KEY
             });
         }
         catch(err)
@@ -44,6 +47,40 @@ export class Google
         }
     
         return <Spreadsheet>response.data;
+    }
+
+
+    public async updateSpreadsheet(
+        spreadsheetId: string, range: string, values: string[][]
+    ): Promise<void>
+    {
+        let jwt: JWT = new google.auth.JWT(
+            process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            undefined,
+            process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+            "https://www.googleapis.com/auth/spreadsheets"
+        );
+
+        // todo could explode
+        const TOKEN: Credentials = await jwt.authorize()
+
+        let auth: OAuth2Client = new google.auth.OAuth2(
+            process.env.CLIENT_ID, 
+            process.env.GOOGLE_CLIENT_SECRET, 
+            process.env.GOOGLE_REDIRECT_URI
+        );
+        auth.setCredentials(TOKEN);
+        
+        google.sheets({version: 'v4', auth: auth}).spreadsheets.values.update({
+            spreadsheetId: spreadsheetId,
+            range: range,
+            valueInputOption: "USER_ENTERED",
+            requestBody: {
+                "majorDimension": "ROWS",
+                "range": range,
+                "values": values
+            }
+        });
     }
 
     public async getSheets(spreadsheetId: string, ranges: string[]): Promise<Sheet[]>
@@ -108,6 +145,11 @@ export class Google
             return "";
         }
         return text;
+    }
+
+    public isCellEmpty(row: SheetRow, columnIndex: number): boolean
+    {
+        return !this.getCellText(row, columnIndex);
     }
 
     //https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#Color

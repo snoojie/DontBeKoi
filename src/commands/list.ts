@@ -1,5 +1,5 @@
 import { CommandInteraction, MessageAttachment, TextChannel } from "discord.js";
-import { Koi, KoiCommand, KoiCommandPrivateError, KoiCommandPublicError } from "../structures/command/koiCommand";
+import { KoiRequest, KoiCommand, KoiCommandPrivateError, KoiCommandPublicError } from "../structures/command/koiCommand";
 import axios, { AxiosResponse } from "axios";
 import cheerio, { CheerioAPI } from "cheerio";
 import * as Canvas from "canvas";
@@ -26,10 +26,10 @@ class ListCommand extends KoiCommand
         const COLOR = this.getOptionValueColor(interaction);
 
         // get this koi from the channel
-        let koi: Koi | undefined = undefined;
+        let koiRequest: KoiRequest | undefined = undefined;
         try
         {
-            koi = await this.getKoi(interaction, PATTERN, COLOR);
+            koiRequest = await this.getKoiRequest(interaction, PATTERN, COLOR);
         }
         catch(e)
         {
@@ -50,7 +50,7 @@ class ListCommand extends KoiCommand
             }
             return;
         }
-        if (!koi)
+        if (!koiRequest)
         {
             this.replyWithVagueError(
                 interaction, `Koi is undefined, which shouldn't happen`
@@ -59,14 +59,14 @@ class ListCommand extends KoiCommand
         }
 
         // the text to display back to the user
-        let replyText: string = `${koi.rarity} ${COLOR} ${PATTERN}`;
-        if(koi.neededBy.length == 0)
+        let replyText: string = `${koiRequest.rarity} ${COLOR} ${PATTERN}`;
+        if(koiRequest.neededBy.length == 0)
         {
             replyText = `Nobody needs ${replyText}.`;
         }
         else
         {
-            const MENTIONS: string[] = koi.neededBy.map(userId => `<@${userId}>`);
+            const MENTIONS: string[] = koiRequest.neededBy.map(userId => `<@${userId}>`);
             replyText = `Needing ${replyText}:\n${MENTIONS.join(" ")}`;
         }
 
@@ -83,8 +83,8 @@ class ListCommand extends KoiCommand
                 // example: Usagi common 1.jpg
                 const IMAGE_KEY = 
                     PATTERN[0].toUpperCase() + PATTERN.slice(1) + "_" + // ex: usagi -> Usagi
-                    koi!.rarity + "_" + 
-                    (1+(Math.floor(koi!.index/4)%4)); // file number between [1,4]
+                    koiRequest!.rarity + "_" + 
+                    (1+(Math.floor(koiRequest!.index/4)%4)); // file number between [1,4]
                 console.log(IMAGE_KEY);
                 
                 // return the url of this image
@@ -117,7 +117,7 @@ class ListCommand extends KoiCommand
 
         // by default, show the drawing from the pattern channel
         // this will be displayed if the wiki is missing an image for this fish
-        let replyDrawing: MessageAttachment = koi.drawing;
+        let replyDrawing: MessageAttachment = koiRequest.drawing;
         if (IMAGE_URL)
         {
             const IMAGE: Canvas.Image = await Canvas.loadImage(IMAGE_URL);
@@ -131,7 +131,7 @@ class ListCommand extends KoiCommand
 
             // this image has 4 colored koi
             // only draw the one we need
-            const POSITION = koi.index%4;
+            const POSITION = koiRequest.index%4;
             context.drawImage(
                 IMAGE, 
                 0, POSITION*KOI_HEIGHT, KOI_WIDTH, KOI_HEIGHT, 

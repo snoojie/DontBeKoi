@@ -10,7 +10,7 @@ export enum Rarity
     Rare = "rare"
 }
 
-export interface Koi
+export interface KoiRequest
 {
     name: string;
     neededBy: string[];
@@ -65,32 +65,26 @@ export abstract class KoiCommand extends Command
         return this.getOptionValue(interaction, OPTION_COLOR_NAME);
     }
 
-    protected async getKoi(
+    protected async getKoiRequest(
         interaction: CommandInteraction, patternName: string, colorName: string
-    ): Promise<Koi>
+    ): Promise<KoiRequest>
     {
-        const KOIS: Koi[] = await this._getKois(interaction, patternName, colorName);
-        if (KOIS.length==0)
+        const KOI_REQUESTS: KoiRequest[] = 
+            await this.getKoiRequests(interaction, patternName, [colorName]);
+        if (KOI_REQUESTS.length==0)
         {
             throw new KoiCommandPublicError(
                 `Pattern ${patternName} does not have color ${colorName}`
             );
         }
-        return KOIS[0];
+        return KOI_REQUESTS[0];
     }
 
-    protected async getKois(
-        interaction: CommandInteraction, patternName: string
-    ): Promise<Koi[]>
+    protected async getKoiRequests(
+        interaction: CommandInteraction, patternName: string, koiNames: string[]
+    ): Promise<KoiRequest[]>
     {
-        return this._getKois(interaction, patternName);
-    }
-
-    private async _getKois(
-        interaction: CommandInteraction, patternName: string, colorName?: string
-    ): Promise<Koi[]>
-    {
-        let kois: Koi[] = [];
+        let koiRequests: KoiRequest[] = [];
 
         // check that the channel of this pattern exists
         let channel: TextChannel | undefined = await this.getChannel(interaction, patternName);
@@ -125,10 +119,9 @@ export abstract class KoiCommand extends Command
 
             const NAME: string = DRAWING.name.slice(0,-4);
 
-            if (colorName && colorName != NAME.toLowerCase())
+            if (koiNames.indexOf(NAME) < 0)
             {
-                // we are looking for a specific color, 
-                // and this koi isn't it
+                // we are not looking for this koi so skip it
                 continue;
             }
 
@@ -157,22 +150,16 @@ export abstract class KoiCommand extends Command
                 }
             }
 
-            kois.push({
+            koiRequests.push({
                 name: NAME,
                 neededBy: neededBy,
                 rarity: rarityIndex<16 ? Rarity.Common : Rarity.Rare,
                 index: rarityIndex,
                 drawing: DRAWING
             });
-
-            if (colorName && colorName == NAME.toLowerCase())
-            {
-                // this is our color! we are done
-                break;
-            }
         }
 
-        return kois;
+        return koiRequests;
     }
 }
 
