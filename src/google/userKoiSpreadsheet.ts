@@ -22,6 +22,7 @@ export interface PatternProgress
     name: string;
     common: KoiProgress[];
     rare: KoiProgress[];
+    sheetRowNumber: number;
 }
 
 export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
@@ -59,11 +60,12 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
     {
         // get the sheet with this pattern
         const SHEET: Sheet = patternName[0].toLowerCase()<"m" 
-                            ? this.collectorAMSheet
-                            : this.collectorNZSheet;
+                            ? this.sheets.CollectorAM
+                            : this.sheets.CollectorNZ;
 
         // get the rows representing this pattern
         let patternRows: SheetRow[] = [];
+        let rowNumber: number = -1;
         const SHEET_ROWS: SheetRow[] = this.GOOGLE.getSheetRows(SHEET);
         for (let i=0; i+5<SHEET_ROWS.length; i+=7)
         {
@@ -74,6 +76,7 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
             )
             {
                 // found our pattern!
+                rowNumber = i+2;
                 patternRows = SHEET_ROWS.slice(i, i+6);
             }
         }
@@ -101,7 +104,8 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
         return {
             name: patternName,
             common: commonProgress,
-            rare: rareProgress
+            rare: rareProgress,
+            sheetRowNumber: rowNumber
         };
     }
 
@@ -153,25 +157,31 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
         for (let rowIndex=0; rowIndex<4; rowIndex++)
         {
             // first four values are for the commons
-            let row: string[] = this._updateKoisProgress(patternProgress.common, rowIndex);
+            let row: string[] = this._getRowValuesFromPatternProgress(
+                patternProgress.common, rowIndex
+            );
 
             // next value is empty
             row.push("");
 
             // last four values are for the rares
-            row.push(...this._updateKoisProgress(patternProgress.rare, rowIndex));
+            row.push(...this._getRowValuesFromPatternProgress(
+                patternProgress.rare, rowIndex
+            ));
 
             values.push(row);
         }
 
         await this.GOOGLE.updateSpreadsheet(
             this.spreadsheetId,
-            "A-M: Collectors!C4:K7",
+            `${KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsAM}!C${patternProgress.sheetRowNumber+2}:K${patternProgress.sheetRowNumber+6}`,
             values
         );
     }
 
-    private _updateKoisProgress(collectionProgress: KoiProgress[], rowIndex: number): string[]
+    private _getRowValuesFromPatternProgress(
+        collectionProgress: KoiProgress[], rowIndex: number
+    ): string[]
     {
         let row: string[] = [];
         for (let columnIndex=0; columnIndex<4; columnIndex++)

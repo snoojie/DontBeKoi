@@ -1,16 +1,28 @@
 import { Color, PatternAttributes, Type } from "../koiInterfaces";
 import { Google, Sheet, SheetRow } from "./google";
 
+interface KoiSheets
+{
+    Overview: Sheet;
+    Progressive: Sheet;
+    CollectorAM: Sheet;
+    CollectorNZ: Sheet;
+}
+
 export class KoiCommunitySpreadsheet {
 
     protected readonly GOOGLE: Google;
 
     protected spreadsheetId: string;
 
-    protected overviewSheet: Sheet;
-    protected progressiveSheet: Sheet;
-    protected collectorAMSheet: Sheet;
-    protected collectorNZSheet: Sheet;
+    protected static SHEET_NAMES = {
+        Overview: "Overview",
+        Progressives: "Progressives", 
+        CollectorsAM: "A-M: Collectors", 
+        CollectorsNZ: "N-Z: Collectors"
+    };
+
+    protected sheets: KoiSheets;
 
     public constructor() 
     { 
@@ -25,17 +37,19 @@ export class KoiCommunitySpreadsheet {
         const SHEETS: Sheet[] = await this.GOOGLE.getSheets(
             spreadsheetId,
             [
-                "Overview!A4:I",            // hatch time for collectors
-                "Progressives!I2:AN70",     // progressives
-                "A-M: Collectors!B2:K",     // collectors
-                "N-Z: Collectors!B2:K"      // collectors
+                KoiCommunitySpreadsheet.SHEET_NAMES.Overview + "!A4:I",
+                KoiCommunitySpreadsheet.SHEET_NAMES.Progressives + "!I2:AN70",
+                KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsAM + "!B2:K",
+                KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsNZ + "!B2:K"
             ]
         );
 
-        this.overviewSheet = SHEETS[0];
-        this.progressiveSheet = SHEETS[1];
-        this.collectorAMSheet = SHEETS[2];
-        this.collectorNZSheet = SHEETS[3];
+        this.sheets = {
+            Overview: SHEETS[0],
+            Progressive: SHEETS[1],
+            CollectorAM: SHEETS[2],
+            CollectorNZ: SHEETS[3],
+        };
     }
 
     public getPatternsAttributes(): PatternAttributes[]
@@ -44,15 +58,15 @@ export class KoiCommunitySpreadsheet {
 
         // get progressive patterns
         patterns.push(...this._getPatternsAttributesFromSheet(
-            this.progressiveSheet, Type.Progressive
+            this.sheets.Progressive, Type.Progressive
         ));
 
         // get the collector patterns
         // note there's two sheets for this
         let collectorPatterns: PatternAttributes[] = 
-            this._getPatternsAttributesFromSheet(this.collectorAMSheet, Type.Collector);
+            this._getPatternsAttributesFromSheet(this.sheets.CollectorAM, Type.Collector);
         collectorPatterns.push(
-            ...this._getPatternsAttributesFromSheet(this.collectorNZSheet, Type.Collector)
+            ...this._getPatternsAttributesFromSheet(this.sheets.CollectorNZ, Type.Collector)
         );
         
         // get the hatch times for collectors
@@ -61,7 +75,7 @@ export class KoiCommunitySpreadsheet {
         // generally, the overview sheet is sorted by pattern name
         // but there was at least one pattern that wasn't....
         let hatchTimes: { [key:string] : number } = {};
-        for (let overviewRow of this.GOOGLE.getSheetRows(this.overviewSheet))
+        for (let overviewRow of this.GOOGLE.getSheetRows(this.sheets.Overview))
         {
             const PATTERN_NAME = this.GOOGLE.getCellText(overviewRow, 0);
 
