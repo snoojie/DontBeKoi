@@ -59,9 +59,7 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
     public _getPatternProgress(patternName: string): PatternProgress | undefined
     {
         // get the sheet with this pattern
-        const SHEET: Sheet = patternName[0].toLowerCase()<"m" 
-                            ? this.sheets.CollectorAM
-                            : this.sheets.CollectorNZ;
+        const SHEET: Sheet = this._getSheetWithPattern(patternName);
 
         // get the rows representing this pattern
         let patternRows: SheetRow[] = [];
@@ -172,9 +170,12 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
             values.push(row);
         }
 
+        const SHEET_NAME: string = this._getSheetNameWithPattern(patternName);
+        const START_ROW_NUMBER: number = patternProgress.sheetRowNumber+2;
+
         await this.GOOGLE.updateSpreadsheet(
             this.spreadsheetId,
-            `${KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsAM}!C${patternProgress.sheetRowNumber+2}:K${patternProgress.sheetRowNumber+6}`,
+            `${SHEET_NAME}!C${START_ROW_NUMBER}:K${START_ROW_NUMBER+4}`,
             values
         );
     }

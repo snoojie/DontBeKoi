@@ -199,4 +199,18 @@ export class KoiCommunitySpreadsheet {
             hex: this.GOOGLE.getCellBackgroundColor(row, columnIndex)
         }
     }
+
+    protected _getSheetWithPattern(patternName: string): Sheet
+    {
+        return  patternName[0].toLowerCase()<"m" 
+            ? this.sheets.CollectorAM
+            : this.sheets.CollectorNZ;
+    }
+
+    protected _getSheetNameWithPattern(patternName: string): string
+    {
+        return patternName[0].toLowerCase()<"m" 
+            ? KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsAM
+            : KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsNZ;
+    }
 }
