@@ -10,6 +10,7 @@ export interface KoiProgress
     highlight: Color;
     owned: boolean;
     dragonned: boolean;
+    value: string;
 }
 
 export interface KoisProgress
@@ -60,10 +61,11 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
     {
         // get the sheet with this pattern
         const SHEET: Sheet = this._getSheetWithPattern(patternName);
+        const SHEET_NAME: string = this.GOOGLE.getSheetName(SHEET);
 
         // get the rows representing this pattern
         let patternRows: SheetRow[] = [];
-        let rowNumber: number = -1;
+        let patternRowNumber: number = -1;
         const SHEET_ROWS: SheetRow[] = this.GOOGLE.getSheetRows(SHEET);
         for (let i=0; i+5<SHEET_ROWS.length; i+=7)
         {
@@ -74,7 +76,7 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
             )
             {
                 // found our pattern!
-                rowNumber = i+2;
+                patternRowNumber = i+2;
                 patternRows = SHEET_ROWS.slice(i, i+6);
             }
         }
@@ -103,7 +105,7 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
             name: patternName,
             common: commonProgress,
             rare: rareProgress,
-            sheetRowNumber: rowNumber
+            sheetRowNumber: patternRowNumber
         };
     }
 
@@ -125,7 +127,8 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
             base: BASE,
             highlight: HIGHLIGHT,
             owned: VALUE != "",
-            dragonned: VALUE == "d"
+            dragonned: VALUE == "d",
+            value: VALUE
         };
     }
 

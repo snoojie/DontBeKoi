@@ -105,7 +105,7 @@ class SyncCommand extends KoiCommand
 
         // we are done!            
         await interaction.editReply({ 
-            content: "hi"
+            content: `Marked "k" for pattern ${PATTERN} in your google spreadsheet for the following koi: ${Object.keys(updateKois).join(", ")}`
         });
         return;
 

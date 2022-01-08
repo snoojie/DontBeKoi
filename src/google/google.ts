@@ -244,6 +244,25 @@ export class Google
         resultBuilder.push(HEX_STRING);
         return resultBuilder.join('');
     }
+
+    public getSheetName(sheet: Sheet): string
+    {
+        const PROPS: sheets_v4.Schema$SheetProperties | undefined = sheet.properties;
+        if (!PROPS)
+        {
+            console.error("Sheet has no properties. This shouldn't happen.");
+            return "";
+        }
+
+        const TITLE: string | null | undefined = PROPS.title;
+        if (!TITLE)
+        {
+            console.error("Sheet has no title. This shouldn't happen.");
+            return "";
+        }
+        
+        return TITLE;
+    }
 }
 
 // rename google objects so no one else needs to know google specifics
