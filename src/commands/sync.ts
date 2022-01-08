@@ -21,7 +21,6 @@ class SyncCommand extends KoiCommand
 
         // get the user's google spreadsheet ID
         const SPREADSHEET_ID = this.getOptionValue(interaction, GOOGLE_OPTION_NAME, false);
-        console.log(SPREADSHEET_ID);
 
         // get list of koi from google sheet that are not marked as owned or ascended
         let userKoiSpreadsheet: UserKoiSpreadsheet = new UserKoiSpreadsheet();
