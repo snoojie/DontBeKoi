@@ -8,7 +8,7 @@ class SyncCommand extends KoiCommand
 {
     constructor()
 	{
-        super("sync", "Update google spreadsheet from discord emojis");
+        super("sync", "TODO. THIS IS JANK.");//Update google spreadsheet from discord emojis");
         this.addOption(GOOGLE_OPTION_NAME, "ID of your google spreadsheet.");
 	}
 
