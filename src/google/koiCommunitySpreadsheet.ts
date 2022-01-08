@@ -83,17 +83,10 @@ export class KoiCommunitySpreadsheet {
                 continue;
             }
 
-            // the hatch time column will have text like "10h"
-            const ORIGINAL_HATCH_TIME: number = 
-                parseInt(this.GOOGLE.getCellText(overviewRow, 7));
-
             // the pattern reference column will have text like "Covid - 5h"
-            // pull just the number out
-            const REDUCTION_TIME: number = 
-                parseInt(this.GOOGLE.getCellText(overviewRow, 8).substring(8));
-    
-            // calculate the hatch time
-            hatchTimes[PATTERN_NAME] = ORIGINAL_HATCH_TIME - REDUCTION_TIME;
+            // pull just the number out as that's the hatch time
+            hatchTimes[PATTERN_NAME] = 
+                parseInt(this.GOOGLE.getCellText(overviewRow, 8).substring(8))
         }
 
         for (let pattern of collectorPatterns)
