@@ -2,10 +2,12 @@ import { Credentials, JWT, OAuth2Client } from "google-auth-library";
 import { google, sheets_v4 } from "googleapis";
 import * as fs from "fs";
 
+const TOKEN_FILE_PATH = "./src/google/token.json";
+
 export class Google
 {
     private static instance: Google;
-    private readonly SPREADSHEET_API : sheets_v4.Resource$Spreadsheets;
+    private readonly SPREADSHEET_API: sheets_v4.Resource$Spreadsheets;
 
     private constructor() 
     { 
@@ -24,22 +26,65 @@ export class Google
         return Google.instance;
     }
 
+    /**
+     * Authorization to pass to google to read a spreadsheet.
+     * This returns a Google API key.
+     * 
+     * @returns authorization
+     * @throws {GoogleError} if API key can't be found.
+     */
     private _getReadAuth(): string
     {
-        return process.env.GOOGLE_API_KEY || "";
+        if (!process.env.GOOGLE_API_KEY)
+        {
+            throw new GoogleError(
+                "Can't find Google API key. Add'GOOGLE_API_KEY' to the .env file."
+            );
+        }
+        return process.env.GOOGLE_API_KEY;
     }
 
+    /**
+     * Authorization to pass to google to write to a spreadsheet.
+     * Note ths method takes longer than getReadAuth.
+     * Instead of returning a Google API key which can't write to spreadsheets,
+     * this method returns a token for the service account.
+     * 
+     * @returns authorization
+     * @throws {GoogleError} if client ID, client secret, or redirect uri can't be found.
+     */
     private async _getWriteAuth(): Promise<OAuth2Client>
     {
-        const TOKEN_FILE_PATH = "./src/google/token.json";
+
+        // confirm environment variables are set
+        if (!process.env.CLIENT_ID)
+        {
+            throw new GoogleError(
+                "Can't find Google client ID. Add'GOOGLE_CLIENT_ID' to the .env file."
+            );
+        }
+        if (!process.env.GOOGLE_CLIENT_SECRET)
+        {
+            throw new GoogleError(
+                "Can't find Google client secret. Add'GOOGLE_CLIENT_SECRET' to the .env file."
+            );
+        }
+        if (!process.env.GOOGLE_REDIRECT_URI)
+        {
+            throw new GoogleError(
+                "Can't find Google redirect uri. Add'GOOGLE_REDIRECT_URI' to the .env file."
+            );
+        }
         
+        //create authorization
         let auth: OAuth2Client = new google.auth.OAuth2(
             process.env.CLIENT_ID, 
             process.env.GOOGLE_CLIENT_SECRET, 
             process.env.GOOGLE_REDIRECT_URI
         );
 
-        // get token
+        // get token from file if available and valid,
+        // otherwise get a new token
         let token: Credentials | undefined;
         if (fs.existsSync(TOKEN_FILE_PATH))
         {  
@@ -59,7 +104,6 @@ export class Google
             // either there was no token file,
             // or the token had expired
             // so get a new token
-
             let jwt: JWT = new google.auth.JWT(
                 process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
                 undefined,
@@ -269,3 +313,5 @@ export class Google
 export interface Spreadsheet extends sheets_v4.Schema$Spreadsheet {}
 export interface Sheet extends sheets_v4.Schema$Sheet {};
 export interface SheetRow extends sheets_v4.Schema$RowData {};
+
+export class GoogleError extends Error {}
