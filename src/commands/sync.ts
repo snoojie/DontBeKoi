@@ -14,7 +14,7 @@ class SyncCommand extends KoiCommand
 
 	public async execute(interaction: CommandInteraction): Promise<void>
     {
-        await interaction.deferReply();
+        await interaction.deferReply({ ephemeral: true });
 
         // pattern as provided by the discord user
         const PATTERN = this.getOptionValuePattern(interaction);
