@@ -2,11 +2,14 @@ import { CommandInteraction } from "discord.js";
 import { UserKoiSpreadsheet, KoiProgress, KoisProgress } from "../google/userKoiSpreadsheet";
 import { KoiRequest, KoiCommand, KoiCommandPrivateError, KoiCommandPublicError } from "../structures/command/koiCommand";
 
+const GOOGLE_OPTION_NAME = "spreadsheet";
+
 class SyncCommand extends KoiCommand
 {
     constructor()
 	{
         super("sync", "Update google spreadsheet from discord emojis");
+        this.addOption(GOOGLE_OPTION_NAME, "ID of your google spreadsheet.");
 	}
 
 	public async execute(interaction: CommandInteraction): Promise<void>
@@ -16,9 +19,13 @@ class SyncCommand extends KoiCommand
         // pattern as provided by the discord user
         const PATTERN = this.getOptionValuePattern(interaction);
 
+        // get the user's google spreadsheet ID
+        const SPREADSHEET_ID = this.getOptionValue(interaction, GOOGLE_OPTION_NAME, false);
+        console.log(SPREADSHEET_ID);
+
         // get list of koi from google sheet that are not marked as owned or ascended
         let userKoiSpreadsheet: UserKoiSpreadsheet = new UserKoiSpreadsheet();
-        await userKoiSpreadsheet.connect("1cUG1W7nqyLyZyeXRp_OH9Q-rIjjLTaSdftedK56-4U0");
+        await userKoiSpreadsheet.connect(SPREADSHEET_ID);
         const MISSING_KOIS: KoisProgress | undefined = 
             userKoiSpreadsheet.getMissingKois(PATTERN);
         if (!MISSING_KOIS)

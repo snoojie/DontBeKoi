@@ -118,9 +118,16 @@ export abstract class Command
      * @param option Name of the option.
      * @returns Value of the option as provided by the discord user.
      */
-    protected getOptionValue(interaction: CommandInteraction, option: string): string
+    protected getOptionValue(
+        interaction: CommandInteraction, option: string, toLowerCase: boolean = true
+    ): string
     {
-        return (interaction.options.getString(option) || "").toLowerCase();
+        let value: string = interaction.options.getString(option) || "";
+        if (toLowerCase)
+        {
+            value = value.toLowerCase();
+        }
+        return value;
     }
 
     /**
