@@ -1,14 +1,6 @@
 import { Color, PatternAttributes, Type } from "../koiInterfaces";
 import { Google, Sheet, SheetRow } from "./google";
 
-interface KoiSheets
-{
-    Overview: Sheet;
-    Progressive: Sheet;
-    CollectorAM: Sheet;
-    CollectorNZ: Sheet;
-}
-
 export class KoiCommunitySpreadsheet {
 
     protected readonly GOOGLE: Google;
@@ -22,7 +14,12 @@ export class KoiCommunitySpreadsheet {
         CollectorsNZ: "N-Z: Collectors"
     };
 
-    protected sheets: KoiSheets;
+    protected sheets: {
+        Overview: Sheet;
+        Progressive: Sheet;
+        CollectorAM: Sheet;
+        CollectorNZ: Sheet;
+    };
 
     public constructor() 
     { 

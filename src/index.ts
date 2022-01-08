@@ -1,5 +1,7 @@
+import * as dotenv from "dotenv";
+
 // init environment variables
-require("dotenv").config();
+dotenv.config();
 
 import { ExtendedClient } from "./structures/client/extendedClient";
 

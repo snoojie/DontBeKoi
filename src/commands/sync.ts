@@ -1,6 +1,5 @@
 import { CommandInteraction } from "discord.js";
 import { UserKoiSpreadsheet, KoiProgress, KoisProgress } from "../google/userKoiSpreadsheet";
-import { Type } from "../koiInterfaces";
 import { KoiRequest, KoiCommand, KoiCommandPrivateError, KoiCommandPublicError } from "../structures/command/koiCommand";
 
 class SyncCommand extends KoiCommand

@@ -1,6 +1,6 @@
-import { access } from "fs";
 import { Credentials, JWT, OAuth2Client } from "google-auth-library";
 import { google, sheets_v4 } from "googleapis";
+import * as fs from "fs";
 
 export class Google
 {
@@ -24,6 +24,57 @@ export class Google
         return Google.instance;
     }
 
+    private _getReadAuth(): string
+    {
+        return process.env.GOOGLE_API_KEY || "";
+    }
+
+    private async _getWriteAuth(): Promise<OAuth2Client>
+    {
+        const TOKEN_FILE_PATH = "./src/google/token.json";
+        
+        let auth: OAuth2Client = new google.auth.OAuth2(
+            process.env.CLIENT_ID, 
+            process.env.GOOGLE_CLIENT_SECRET, 
+            process.env.GOOGLE_REDIRECT_URI
+        );
+
+        // get token
+        let token: Credentials | undefined;
+        if (fs.existsSync(TOKEN_FILE_PATH))
+        {  
+            const TOKEN_STRING = fs.readFileSync(TOKEN_FILE_PATH, "utf8");
+            try
+            {
+                // if the token has expired, this will throw an error
+                await auth.getTokenInfo(TOKEN_STRING);
+
+                // token is valid!
+                token = JSON.parse(TOKEN_STRING);
+            }
+            catch(error) { /* invalid token, likely expired */ }
+        }
+        if (!token)
+        {
+            // either there was no token file,
+            // or the token had expired
+            // so get a new token
+
+            let jwt: JWT = new google.auth.JWT(
+                process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                undefined,
+                process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+                "https://www.googleapis.com/auth/spreadsheets"
+            );
+            token = await jwt.authorize();
+            fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(token));
+        }
+        
+        auth.setCredentials(token);
+
+        return auth;
+    }
+
     public async getSpreadsheet(spreadsheetId: string, ranges: string[]) : Promise<Spreadsheet>
     {
         let response;
@@ -33,7 +84,7 @@ export class Google
                 spreadsheetId,
                 ranges,
                 includeGridData: true,
-                auth: process.env.GOOGLE_API_KEY
+                auth: this._getReadAuth()
             });
         }
         catch(err)
@@ -49,29 +100,13 @@ export class Google
         return <Spreadsheet>response.data;
     }
 
-
     public async updateSpreadsheet(
         spreadsheetId: string, range: string, values: string[][]
     ): Promise<void>
     {
-        let jwt: JWT = new google.auth.JWT(
-            process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            undefined,
-            process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
-            "https://www.googleapis.com/auth/spreadsheets"
-        );
-
-        // todo could explode
-        const TOKEN: Credentials = await jwt.authorize()
-
-        let auth: OAuth2Client = new google.auth.OAuth2(
-            process.env.CLIENT_ID, 
-            process.env.GOOGLE_CLIENT_SECRET, 
-            process.env.GOOGLE_REDIRECT_URI
-        );
-        auth.setCredentials(TOKEN);
+        const AUTH: OAuth2Client = await this._getWriteAuth();
         
-        google.sheets({version: 'v4', auth: auth}).spreadsheets.values.update({
+        await this.SPREADSHEET_API.values.update({
             spreadsheetId: spreadsheetId,
             range: range,
             valueInputOption: "USER_ENTERED",
@@ -79,7 +114,8 @@ export class Google
                 "majorDimension": "ROWS",
                 "range": range,
                 "values": values
-            }
+            },
+            auth: AUTH
         });
     }
 
