@@ -101,14 +101,20 @@ class SyncCommand extends KoiCommand
             }
         }
 
-        await userKoiSpreadsheet.updateKoisProgress(PATTERN, updateKois);
+        // update the google spreadsheet if there are any koi to update
+        let reply: string = "";
+        if (Object.keys(updateKois).length > 0)
+        {
+            await userKoiSpreadsheet.updateKoisProgress(PATTERN, updateKois);
+            reply = `Marked "k" for pattern ${PATTERN} in your google spreadsheet for the following koi: ${Object.keys(updateKois).join(", ")}`;
+        }
+        else
+        {
+            reply = `Google spreadsheet already up to date.`;
+        }
 
         // we are done!            
-        await interaction.editReply({ 
-            content: `Marked "k" for pattern ${PATTERN} in your google spreadsheet for the following koi: ${Object.keys(updateKois).join(", ")}`
-        });
-        return;
-
+        await interaction.editReply(reply);
     }
 }
 
