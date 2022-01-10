@@ -119,7 +119,7 @@ export abstract class KoiCommand extends Command
 
             const NAME: string = DRAWING.name.slice(0,-4);
 
-            if (koiNames.indexOf(NAME.toLowerCase()) < 0)
+            if (koiNames.indexOf(NAME.toLowerCase()) < 0 && koiNames.indexOf(NAME) < 0)
             {
                 // we are not looking for this koi so skip it
                 continue;
