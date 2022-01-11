@@ -1,7 +1,7 @@
 import { CommandInteraction, Message, MessageAttachment, TextChannel } from "discord.js";
 import { KoiCommand } from "../structures/command/koiCommand";
 import * as Canvas from "canvas";
-import { Pattern } from "../db/db";
+import { Pattern } from "../db/pattern";
 import { Color } from "../koiInterfaces";
 
 class CollectorCommand extends KoiCommand

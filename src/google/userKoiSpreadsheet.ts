@@ -1,7 +1,7 @@
 import { Google, Sheet, SheetRow } from "./google";
 import { Color, Type } from "../koiInterfaces";
 import { KoiCommunitySpreadsheet } from "./koiCommunitySpreadsheet";
-import { Pattern } from "../db/db";
+import { Pattern } from "../db/pattern";
 
 export interface KoiProgress
 {
