@@ -33,6 +33,27 @@ export class UserKoiSpreadsheet extends KoiCommunitySpreadsheet {
         super();
     }
 
+    public isMissingKoi(patternName: string, colorName: string): boolean
+    {
+        const PATTERN_PROGRESS: PatternProgress | undefined = 
+            this._getPatternProgress(patternName);
+        if (!PATTERN_PROGRESS)
+        {
+            throw new Error(`Pattern ${patternName} does not exist.`);
+        }
+
+        for (const KOI_PROGRESS of [...PATTERN_PROGRESS.common, ...PATTERN_PROGRESS.rare])
+        {
+            if (KOI_PROGRESS.name.toLowerCase() == colorName.toLowerCase())
+            {
+                return !KOI_PROGRESS.owned;
+            }
+        }
+        
+        // if this is reached, this pattern does not include this color
+        throw new Error(`Pattern ${patternName} does not have color ${colorName}.`);
+    }
+
     public getMissingKois(patternName: string): KoisProgress | undefined
     {
         // get list of all koi from this pattern

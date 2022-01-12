@@ -16,13 +16,23 @@ class GoogleCommand extends Command
     {
         await interaction.deferReply({ ephemeral: true });
 
-        const SPREADSHEET_ID: string = this.getOptionValue(interaction, SPREADSHEET_OPTION);
+        const SPREADSHEET_ID: string = 
+            this.getOptionValue(interaction, SPREADSHEET_OPTION, false);
 
-        const USER: User | undefined = 
-            await User.setSpreadsheet(interaction.user.id, SPREADSHEET_ID);
-        if (!USER)
+        try
         {
-            await interaction.editReply(`Someone else has spreadsheet ${SPREADSHEET_ID} already.`);
+            await User.setSpreadsheet(
+                interaction.user.id, interaction.user.username, SPREADSHEET_ID
+            );
+        }
+        catch(error)
+        {
+            if (error.message)
+            {
+                await this.replyWithError(interaction, error.message)
+                return;
+            }
+            await this.replyWithVagueError(interaction, error);
             return;
         }
 
