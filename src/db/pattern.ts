@@ -1,7 +1,13 @@
 import { DataTypes, Model } from "sequelize";
 import { KoiCommunitySpreadsheet } from "../google/koiCommunitySpreadsheet";
 import { Color, Type, PatternAttributes } from "../koiInterfaces";
+import { Rarity } from "../structures/command/koiCommand";
 import sequelize from "./sequelize";
+
+export interface Koi
+{
+    rarity: Rarity;
+}
 
 export class Pattern extends Model<PatternAttributes> implements PatternAttributes
 {
@@ -25,6 +31,41 @@ export class Pattern extends Model<PatternAttributes> implements PatternAttribut
             return undefined;
         }
         return PATTERN;
+    }
+
+    public static async getKoi(patternName: string, colorName: string): Promise<Koi>
+    {
+        // get the pattern
+        const PATTERN: Pattern | null = await Pattern.findOne({
+            where: {
+                name: capitalizeFirstLetter(patternName)
+            }
+        });
+        if (!PATTERN)
+        {
+            throw new Error(`Pattern ${patternName} does not exist.`);
+        }
+        
+        // find the koi in this pattern
+        colorName = colorName.toLowerCase();
+        for (const BASE_COLOR of PATTERN.baseColors)
+        {
+            if (colorName.startsWith(BASE_COLOR.name.toLowerCase()))
+            {
+                // found the base color!
+                // now to find the highlight color
+                const KOI: Koi | undefined = 
+                    _getKoi(colorName, BASE_COLOR, PATTERN.commonColors, Rarity.Common) ||
+                    _getKoi(colorName, BASE_COLOR, PATTERN.rareColors, Rarity.Rare);
+                if (KOI)
+                {
+                    return KOI;
+                }
+            }
+        }
+
+        // if this is reached, the color does not exist in this pattern
+        throw new Error(`Pattern ${patternName} does not have color ${colorName}.`);
     }
 }
 
@@ -68,6 +109,21 @@ export async function initPattern()
     await Pattern.sync({ force: true });
 
     populatePatterns();
+}
+
+function _getKoi(colorToFind: string, baseColor: Color, highlightColors: Color[], rarity: Rarity): Koi | undefined
+{
+    for (const HIGHLIGHT_COLOR of highlightColors)
+    {
+        if (colorToFind == (baseColor.name + HIGHLIGHT_COLOR.name).toLowerCase())
+        {
+            // found the highlight color!
+            return { rarity };
+        }
+    }
+
+    // could not find koi
+    return;
 }
 
 function capitalizeFirstLetter(text: string): string
