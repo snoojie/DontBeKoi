@@ -32,7 +32,6 @@ export class User extends Model<UserAttributes> implements UserAttributes
         }
         catch(error)
         {
-            console.log("failed");
             throw new Error(
                 `Spreadsheet ID ${spreadsheetId} is not valid. Consider sample spreadsheet ` + 
                 `<https://docs.google.com/spreadsheets/d/1cUG1W7nqyLyZyeXRp_OH9Q-rIjjLTaSdftedK56-4U0> ` +
@@ -124,12 +123,9 @@ export async function initUser()
     );
 
     // create User table if it doesn't exist
-    //await User.sync();
-
-    // create User table if it doesn't exist
-    //await User.sync();
+    await User.sync();
 
     // drop and recreate User table
-    await User.sync({force: true});
+    //await User.sync({force: true});
 
 }

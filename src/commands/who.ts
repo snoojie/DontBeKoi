@@ -31,7 +31,6 @@ class WhoCommand extends KoiCommand
         }
         catch (error)
         {
-            console.log("No koi");
             await this._handleError(interaction, error);
             return;
         }
@@ -43,7 +42,6 @@ class WhoCommand extends KoiCommand
         }
         catch (error)
         {
-            console.log("No needed by");
             await this._handleError(interaction, error);
             return;
         }

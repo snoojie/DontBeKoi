@@ -85,7 +85,6 @@ class ListCommand extends KoiCommand
                     PATTERN[0].toUpperCase() + PATTERN.slice(1) + "_" + // ex: usagi -> Usagi
                     koiRequest!.rarity + "_" + 
                     (1+(Math.floor(koiRequest!.index/4)%4)); // file number between [1,4]
-                console.log(IMAGE_KEY);
                 
                 // return the url of this image
                 // note the url data attribute gives something like
