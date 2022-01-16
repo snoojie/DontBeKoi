@@ -1,9 +1,9 @@
-import * as dotenv from "dotenv";
+//import * as dotenv from "dotenv";
+import { ExtendedClient } from "./extendedClient";
 
 // init environment variables
-dotenv.config();
+//dotenv.config();
 
-import { ExtendedClient } from "./structures/client/extendedClient";
-
-let client = new ExtendedClient();
-client.start();
+let client: ExtendedClient = ExtendedClient.getInstance();
+client.start()
+    .catch(console.error);
