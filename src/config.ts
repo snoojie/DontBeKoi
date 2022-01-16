@@ -5,6 +5,11 @@ dotenv.config();
 
 export class Config
 {
+
+    /**
+     * @returns Discord bot token.
+     * @throws If bot token is not configured.
+     */
     public static getBotToken(): string
     {
         const TOKEN: string = process.env.BOT_TOKEN;

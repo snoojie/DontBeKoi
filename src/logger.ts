@@ -7,12 +7,21 @@ const logMessage = chalk.green;
 
 export class Logger
 {
+    /**
+     * Replacement to console.log
+     * @param message message to print
+     */
     public static log(message: string): void
     {
         console.log(logMessage(message));
     }
 
-    public static error(message: string, error?: Error): void
+    /**
+     * Replacement to console.error
+     * @param message Quick message to describe the error
+     * @param error Error itself
+     */
+    public static error(message: string, error: Error): void
     {
         console.log(errorMessage(message));
         if (error)

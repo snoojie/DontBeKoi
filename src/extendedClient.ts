@@ -11,6 +11,11 @@ export class ExtendedClient extends Client
         super({ intents: [Intents.FLAGS.GUILDS] });
     }
 
+    /**
+     * ExtendedClient is a singleton object.
+     * Call getInstance() instead of new ExtendedClient().
+     * @returns Instance of extended client
+     */
     public static getInstance(): ExtendedClient 
     {
         if (!ExtendedClient.instance) 
@@ -21,6 +26,9 @@ export class ExtendedClient extends Client
         return ExtendedClient.instance;
     }
 
+    /**
+     * Login to discord.
+     */
     public async start(): Promise<void>
     {
         let botToken: string;
