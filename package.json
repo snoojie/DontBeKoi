@@ -1,7 +1,10 @@
 {
     "name": "dontbekoi",
     "scripts": {
-        "dev": "rm -rf build/ && tsc && node -r source-map-support/register build/index.js"
+        "buildwatch": "tsc -w",
+        "jsdev": "nodemon -r source-map-support/register build/index.js",
+        "dev": "tsnd --respawn src/index.ts",
+        "prod": "rm -rf build/ && tsc && node -r source-map-support/register build/index.js"
     },
     "dependencies": {
         "chalk": "4.1.2",
