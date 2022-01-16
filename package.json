@@ -4,6 +4,7 @@
         "dev": "rm -rf build/ && tsc && node build/index.js"
     },
     "dependencies": {
-        "discord.js": "^13.6.0"
+        "chalk": "4.1.2",
+        "discord.js": "13.6.0"
     }
 }

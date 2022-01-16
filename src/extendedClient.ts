@@ -1,4 +1,5 @@
 import { Client, Intents } from "discord.js";
+import { Logger } from "./logging";
 
 export class ExtendedClient extends Client
 {
@@ -21,6 +22,14 @@ export class ExtendedClient extends Client
 
     public async start(): Promise<void>
     {
-        await this.login(process.env.BOT_TOKEN);
+        //await this.login(process.env.BOT_TOKEN);
+        const TOKEN: string = "OTE2ODM3OTI2MzE3NDg2MTcy.Yav92w.zsUg08aedA2C885eJoiQRBfBU8Y!";
+        return this.login(TOKEN)
+            .then(function() { 
+                Logger.log("Bot ready!");
+            })
+            .catch(function(error) {
+                Logger.error(`Invalid bot token ${TOKEN}`, error);
+            });
     }
 }
