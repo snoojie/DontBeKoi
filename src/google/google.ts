@@ -133,6 +133,7 @@ export class Google
         }
         catch(err)
         {
+            console.error(err);
             throw "Failed to retrieve the google spreadsheet: " + err;
         }
 
