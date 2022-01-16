@@ -10,6 +10,8 @@
         "module": "CommonJS",
 
         // dump all js files to ./build
-        "outDir": "build"
-    },
+        "outDir": "build",
+
+        "sourceMap": true
+    }
 }
