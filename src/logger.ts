@@ -24,9 +24,6 @@ export class Logger
     public static error(message: string, error: Error): void
     {
         console.log(errorMessage(message));
-        if (error)
-        {
-            console.log(stacktrace(error.stack)); // greyish red
-        }
+        console.log(stacktrace(error.stack)); // greyish red
     }
 }

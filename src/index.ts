@@ -1,5 +1,6 @@
-import { ExtendedClient } from "./extendedClient";
+import { DontBeKoiBot } from "./dontBeKoiBot";
+import { Logger } from "./logger";
 
-let client: ExtendedClient = ExtendedClient.getInstance();
-client.start()
-    .catch(console.error);
+let bot: DontBeKoiBot = DontBeKoiBot.getInstance();
+bot.start()
+    .catch(error => Logger.error("Uncaught error", error));
