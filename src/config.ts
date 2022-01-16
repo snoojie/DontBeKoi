@@ -1,4 +1,7 @@
-import { Logger } from "./logger";
+import * as dotenv from "dotenv";
+
+// init environment variables
+dotenv.config();
 
 export class Config
 {

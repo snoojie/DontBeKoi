@@ -12,6 +12,7 @@
         // dump all js files to ./build
         "outDir": "build",
 
+        // allows ts line numbers in error stacktracing
         "sourceMap": true
     }
 }
