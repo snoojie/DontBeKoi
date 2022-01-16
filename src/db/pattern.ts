@@ -110,9 +110,9 @@ export async function initPattern()
     );
 
     // remove the pattern table
-    await Pattern.sync({ force: true });
+    await Pattern.sync({ force: true });    
 
-    populatePatterns();
+    await populatePatterns();
 }
 
 function _isRarity(colorToFind: string, baseColor: Color, highlightColors: Color[], rarity: Rarity): boolean

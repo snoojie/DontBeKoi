@@ -14,12 +14,10 @@ export class KoiCommunitySpreadsheet {
         CollectorsNZ: "N-Z: Collectors"
     };
 
-    protected sheets: {
-        Overview: Sheet;
-        Progressive: Sheet;
-        CollectorAM: Sheet;
-        CollectorNZ: Sheet;
-    };
+    protected overviewSheet: Sheet;
+    protected progressiveSheet: Sheet;
+    protected collectorAMSheet: Sheet;
+    protected collectorNZSheet: Sheet;
 
     public constructor() 
     { 
@@ -41,12 +39,24 @@ export class KoiCommunitySpreadsheet {
             ]
         );
 
-        this.sheets = {
-            Overview: SHEETS[0],
-            Progressive: SHEETS[1],
-            CollectorAM: SHEETS[2],
-            CollectorNZ: SHEETS[3],
-        };
+        for (const SHEET of SHEETS)
+        {
+            switch (SHEET.properties?.title)
+            {
+                case KoiCommunitySpreadsheet.SHEET_NAMES.Overview:
+                    this.overviewSheet = SHEET;
+                    break;
+                case KoiCommunitySpreadsheet.SHEET_NAMES.Progressives:
+                    this.progressiveSheet = SHEET;
+                    break;
+                case KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsAM:
+                    this.collectorAMSheet = SHEET;
+                    break;
+                case KoiCommunitySpreadsheet.SHEET_NAMES.CollectorsNZ:
+                    this.collectorNZSheet = SHEET;
+                    break;
+            }
+        }
     }
 
     public getPatternsAttributes(): PatternAttributes[]
@@ -55,15 +65,15 @@ export class KoiCommunitySpreadsheet {
 
         // get progressive patterns
         patterns.push(...this._getPatternsAttributesFromSheet(
-            this.sheets.Progressive, Type.Progressive
+            this.progressiveSheet, Type.Progressive
         ));
 
         // get the collector patterns
         // note there's two sheets for this
         let collectorPatterns: PatternAttributes[] = 
-            this._getPatternsAttributesFromSheet(this.sheets.CollectorAM, Type.Collector);
+            this._getPatternsAttributesFromSheet(this.collectorAMSheet, Type.Collector);
         collectorPatterns.push(
-            ...this._getPatternsAttributesFromSheet(this.sheets.CollectorNZ, Type.Collector)
+            ...this._getPatternsAttributesFromSheet(this.collectorNZSheet, Type.Collector)
         );
         
         // get the hatch times for collectors
@@ -72,7 +82,7 @@ export class KoiCommunitySpreadsheet {
         // generally, the overview sheet is sorted by pattern name
         // but there was at least one pattern that wasn't....
         let hatchTimes: { [key:string] : number } = {};
-        for (let overviewRow of this.GOOGLE.getSheetRows(this.sheets.Overview))
+        for (let overviewRow of this.GOOGLE.getSheetRows(this.overviewSheet))
         {
             const PATTERN_NAME = this.GOOGLE.getCellText(overviewRow, 0);
 
@@ -193,8 +203,8 @@ export class KoiCommunitySpreadsheet {
     protected _getSheetWithPattern(patternName: string): Sheet
     {
         return  patternName[0].toLowerCase()<"m" 
-            ? this.sheets.CollectorAM
-            : this.sheets.CollectorNZ;
+            ? this.collectorAMSheet
+            : this.collectorNZSheet;
     }
 
     protected _getSheetNameWithPattern(patternName: string): string

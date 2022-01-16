@@ -127,5 +127,4 @@ export async function initUser()
 
     // drop and recreate User table
     //await User.sync({force: true});
-
 }
