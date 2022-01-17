@@ -4,7 +4,7 @@ import { Logger } from "./util/logger";
 try
 {
     //Logger.log(Config.getBotToken());
-    Logger.log("Hello there");
+    Logger.log("Hello there!");
 }
 catch (error)
 {
