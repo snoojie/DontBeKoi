@@ -1,9 +1,10 @@
 import { Logger } from "./util/logger";
-import { Config } from "./util/config";
+//import { Config } from "./util/config";
 
 try
 {
-    Logger.log(Config.getBotToken());
+    //Logger.log(Config.getBotToken());
+    Logger.log("Hello there");
 }
 catch (error)
 {

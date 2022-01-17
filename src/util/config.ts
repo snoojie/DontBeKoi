@@ -1,4 +1,4 @@
-import * as dotenv from "dotenv";
+/*import * as dotenv from "dotenv";
 
 // init environment variables
 dotenv.config();
@@ -9,7 +9,7 @@ export class Config
     /**
      * @returns Discord bot token.
      * @throws If bot token is not configured.
-     */
+     *
     public static getBotToken(): string
     {
         const TOKEN: string | undefined = process.env.BOT_TOKEN;
@@ -19,4 +19,4 @@ export class Config
         }
         return TOKEN;
     }
-}
+}*/
