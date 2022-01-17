@@ -4,7 +4,8 @@
         "node": "16.13.1"
     },
     "scripts": {
-        "start": "node src/tmp.js"
+        "start": "node build/index.js",
+        "build": "npx tsc"
     },
     "dependencies": {
         "dotenv": "14.1.1",
