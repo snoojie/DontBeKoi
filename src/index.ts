@@ -1,5 +1,11 @@
 import { Logger } from "./util/logger";
+import { Config } from "./util/config";
 
-Logger.log("Hello!\nstill green?");
-Logger.error("errory message", new Error("blegh"));
-//console.trace();
+try
+{
+    Logger.log(Config.getBotToken());
+}
+catch (error)
+{
+    Logger.error("Config failed to get bot token", error);
+}

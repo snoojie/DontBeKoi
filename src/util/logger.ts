@@ -31,7 +31,7 @@ export class Logger
      * @param message Quick message to describe the error
      * @param error Error itself
      */
-    public static error(message: string, error: Error): void
+    public static error(message: string, error: any): void
     {
         console.log(Theme.ERROR, message);
         console.log(Theme.STACKTRACE, error.stack);

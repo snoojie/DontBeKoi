@@ -9,9 +9,11 @@
         "heroku": "heroku local --raw"
     },
     "dependencies": {
+        "dotenv": "14.1.1",
         "typescript": "4.5.4"
     },
     "devDependencies": {
+        "@types/node": "17.0.9",
         "source-map-support": "0.5.21",
         "ts-node-dev": "1.1.8"
     }
