@@ -1,6 +1,7 @@
-import { DontBeKoiBot } from "./dontBeKoiBot";
+/*import { DontBeKoiBot } from "./dontBeKoiBot";
 import { Logger } from "./logger";
 
 let bot: DontBeKoiBot = DontBeKoiBot.getInstance();
 bot.start()
-    .catch(error => Logger.error("Uncaught error", error));
+    .catch(error => Logger.error("Uncaught error", error));*/
+    console.log("HI");
