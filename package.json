@@ -4,9 +4,6 @@
         "node": "16.13.1"
     },
     "scripts": {
-        "start": "rm -rf build/ && npx tsc && node -r source-map-support/register build/index.js",
-        "dev": "npx ts-node-dev --respawn src/index.ts",
-        "heroku": "heroku local --raw"
     },
     "dependencies": {
         "dotenv": "14.1.1",
