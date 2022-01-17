@@ -1,1 +1,1 @@
-web: node src/tmp.js
+web: npx tsc && node build/index.js
