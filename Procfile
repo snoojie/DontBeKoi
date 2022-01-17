@@ -1,1 +1,1 @@
-web: npx tsc && node build/index.js
+web: npx tsc && node -r source-map-support/register build/index.js
