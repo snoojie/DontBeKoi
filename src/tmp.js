@@ -1,1 +1,1 @@
-console.log("I r in build time");
+console.log("tmpytmp");
