@@ -34,6 +34,9 @@ export class Logger
     public static error(message: string, error: any): void
     {
         console.log(Theme.ERROR, message);
-        console.log(Theme.STACKTRACE, error.stack);
+        for (let step of error.stack.split("\n"))
+        {
+            console.log(Theme.STACKTRACE, step);
+        }
     }
 }
