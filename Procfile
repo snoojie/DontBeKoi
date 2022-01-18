@@ -1,1 +1,1 @@
-web: npx tsc
+web: npx tsc && node build/index.js
