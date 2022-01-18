@@ -31,12 +31,17 @@ export class Logger
      * @param message Quick message to describe the error
      * @param error Error itself
      */
-    public static error(message: string, error: any): void
+    public static error(error: Error): void
     {
-        console.log(Theme.ERROR, message);
-        for (let step of error.stack.split("\n"))
+        if (error.stack)
         {
-            console.log(Theme.STACKTRACE, step);
+            for (const STEP of error.stack.split("\n"))
+            {
+                const THEME: Theme = STEP.startsWith("    at ") 
+                    ? Theme.STACKTRACE 
+                    : Theme.ERROR;
+                console.log(THEME, STEP);
+            }
         }
     }
 }

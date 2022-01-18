@@ -1,11 +1,23 @@
-import {Logger} from "./util/logger";
+import { Logger } from "./util/logger";
+import { RethrownError } from "./util/rethrownError";
 
-Logger.log("I'm a happy log");
-Logger.error("I r error!!!!", new Error("omg i'm thrown"));
-console.log("post");
+console.log("===============");
+console.log("===============");
+console.log("===============");
+console.log("===============");
 
-/*console.log("\x1b[38;5;130m%s\x1b[0m", "zero");
-console.log("\x1b[38;5;131m%s\x1b[0m", "one");
-console.log("\x1b[38;5;132m%s\x1b[0m", "two");
+function connect() {
+    throw new Error("No API token");
+}
+function getGoogleSpreadsheet() {
+    try { connect(); }
+    catch (error) { throw new RethrownError("Couldn't connect to google", error); }
+}
+function getMyFish(){
+    try { getGoogleSpreadsheet() }
+    catch(error) { throw new RethrownError("Couldn't get spreadsheet", error); }
+}
+try{ getMyFish(); }
+catch(error) { Logger.error(error); }
 
-"\033[38;5;130mzero\033[0m"*/
+Logger.log("Done!");
