@@ -31,9 +31,10 @@ export class Logger
      * @param message Quick message to describe the error
      * @param error Error itself
      */
-    public static error(error: Error): void
+    public static error(error: any): void
     {
-        if (error.stack)
+        // generally, error will be of type Error
+        if (error instanceof Error && error.stack)
         {
             for (const STEP of error.stack.split("\n"))
             {
@@ -42,6 +43,12 @@ export class Logger
                     : Theme.ERROR;
                 console.log(THEME, STEP);
             }
+        }
+
+        // if error isn't of type Error, it's likely a string
+        else
+        {
+            console.log(Theme.ERROR, error);
         }
     }
 }
