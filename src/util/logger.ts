@@ -17,6 +17,7 @@ enum Theme
 
 export class Logger
 {
+    
     /**
      * Replacement to console.log
      * @param message message to print

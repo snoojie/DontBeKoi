@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 
 // init environment variables
-console.log("setting config");
 dotenv.config();
 
 export class Config

@@ -4,7 +4,7 @@ declare global
     {
         interface ProcessEnv 
         {
-            BOT_TOKEN: string;
+            BOT_TOKEN: string | undefined;
         }
     }
 }

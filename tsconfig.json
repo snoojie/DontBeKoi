@@ -9,6 +9,10 @@
         // will display typescript line numbers for any errors
         "sourceMap": true,
 
+        // jest warns we should set this true
+        // it seems like a good idea anyway
+        "esModuleInterop": true,
+
         // type checking
         "allowUnreachableCode": false,
         "strict": true,
@@ -17,5 +21,8 @@
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-    }
+    },
+
+    // exclude the tests/ directory from appearing in build/
+    "include": ["src/**/*"],
 }
