@@ -1,24 +1,30 @@
 import { Logger } from "./util/logger";
 import { RethrownError } from "./util/rethrownError";
+import { Config } from "./util/config";
 
-
 console.log("===============");
 console.log("===============");
 console.log("===============");
 console.log("===============");
 
-function connect() {
-    throw new Error("No API token");
+function logToken()
+{
+    try 
+    {
+        let token = Config.getBotToken();
+        Logger.log(`token: ${token}`);
+    }
+    catch(error)
+    {
+        throw new RethrownError("Failed to get token", error);
+    }
 }
-function getGoogleSpreadsheet() {
-    try { connect(); }
-    catch (error) { throw new RethrownError("Couldn't connect to google", error); }
-}
-function getMyFish(){
-    try { getGoogleSpreadsheet() }
-    catch(error) { throw new RethrownError("Couldn't get spreadsheet", error); }
-}
-try{ getMyFish(); }
-catch(error) { Logger.error(error); }
 
-Logger.log("Done!");
+try
+{
+    logToken();
+}
+catch (error)
+{
+    Logger.error(error);
+}
