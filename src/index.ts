@@ -1,30 +1,15 @@
-import { Logger } from "./util/logger";
-import { RethrownError } from "./util/rethrownError";
-import { Config } from "./util/config";
+import { DontBeKoiBot } from "./dontBeKoiBot";
 
 console.log("===============");
 console.log("===============");
 console.log("===============");
 console.log("===============");
 
-function logToken()
-{
-    try 
-    {
-        let token = Config.getBotToken();
-        Logger.log(`token: ${token}`);
-    }
-    catch(error)
-    {
-        throw new RethrownError("Failed to get token", error);
-    }
+async function stuff() {
+    let bot = DontBeKoiBot.getInstance();
+    await bot.start();
+    bot.stop();
+    await bot.start();
+    bot.stop();
 }
-
-try
-{
-    logToken();
-}
-catch (error)
-{
-    Logger.error(error);
-}
+stuff().catch(console.log);
