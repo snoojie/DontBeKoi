@@ -1,98 +1,108 @@
-import { Client, Intents } from "discord.js";
+import { Client } from "discord.js";
 import { Config } from "./util/config";
 import { Logger } from "./util/logger";
 import { RethrownError } from "./util/rethrownError";
 
-export class DontBeKoiBot
+let discord: Client = getNewDiscordClient();
+
+/**
+ * @returns new discord client
+ */
+function getNewDiscordClient(): Client
 {
-    private static instance: DontBeKoiBot;
-    private discord!: Client;
+    return new Client({ intents: [] });
+}
 
-    private constructor()
-    {
-        this.createDiscordClient();
-    }
+/**
+ * Log in to discord.
+ * @throws if failed to login.
+ */
+async function login(): Promise<void>
+{
 
-    private createDiscordClient()
+    // get the bot token
+    let botToken: string;
+    try
     {
-        this.discord = new Client({ intents: [Intents.FLAGS.GUILDS] });
+        botToken = Config.getBotToken();
     }
+    catch (error)
+    {
+        throw new RethrownError(
+            "Could not login to discord due to failing to get the bot token.", error
+        );
+    }
+    
+    // login to discord
+    await discord.login(botToken)
+        .catch(error => {
+            throw new RethrownError(
+                `Could not login to discord. We could be offline, or the bot token may be invalid: ${botToken}`, 
+                error
+            )
+        });
+}
+
+let bot = {
+
+    tmp: 5,
 
     /**
      * Start the bot.
      * Prereq: Set BOT_TOKEN in environment.
      * @throws if the bot could not be started.
      */
-     public async start(): Promise<void>
-     {
-         await this.login()
-            .then(_ => Logger.log("Logged into discord."))
-            .catch(error => { 
-                throw new RethrownError(
-                    "Could not start the bot because there was an issue logging into discord.", 
-                    error
-                ); 
-        });
-     }
-
-     /**
-     * Stops the bot.
-     */
-      public stop(): void
-      {
-          // discord.destroy should work, but, 
-          // if we try to login again after a destroy then stop again
-          // it hangs.
-          // Weird things happen basically.
-          // So, after destroy, let's recreate the discord instance.
-          this.discord.destroy();
-          this.createDiscordClient();
-          Logger.log("Logged out of discord.");
-      }
-
-    /**
-      * Log in to discord.
-      * @throws if failed to login.
-      */
-     private async login(): Promise<void>
-     {
-
-        // get the bot token
-        let botToken: string;
-        try
+    start: async function(): Promise<void>
+    {
+        // if the bot is already running, there is nothing to do
+        if (discord.isReady())
         {
-            botToken = Config.getBotToken();
-        }
-        catch (error)
-        {
-            throw new RethrownError(
-                "Could not login to discord due to failing to get the bot token.", error
+            throw new Error(
+                "Cannot start the bot; it is already running. " +
+                "Did you forget to call bot.stop() first? "
             );
         }
-        
-        // login to discord
-        await this.discord.login(botToken)
-            .catch(error => {
-                throw new RethrownError(
-                    `Could not login to discord. We could be offline, or the bot token may be invalid: ${botToken}`, 
-                    error
-                )
+
+        Logger.log("Starting bot....");
+
+        // Once logged into the client, the bot is not necessarily ready, 
+        // so we need to delay returning this function until the bot is ready.
+        // We know it is ready via the ready event.
+        // To wait for the ready event, we return a promise.
+        return new Promise((resolve, reject) => {
+
+            // set up the ready event before we log in
+            discord.once("ready", _ => {
+                Logger.log("Bot is ready!");
+                resolve();
             });
-     }
+
+            // log in
+            login()
+                .then(_ => Logger.log("Logged into discord."))
+                .catch(error => { 
+                    reject(new RethrownError(
+                        "Could not start the bot because there was an issue logging into discord.", 
+                        error
+                    ));
+                });
+
+        });
+    },
 
     /**
-     * DontBeKoiBot is a singleton object.
-     * Call getInstance() instead of new DontBeKoiBot().
-     * @returns Instance of DontBeKoiBot
+     * Stop the bot.
      */
-    public static getInstance(): DontBeKoiBot 
+    stop: function(): void
     {
-        if (!DontBeKoiBot.instance) 
-        {
-            DontBeKoiBot.instance = new DontBeKoiBot();
-        }
-
-        return DontBeKoiBot.instance;
+        // discord.destroy should alone work, but, 
+        // if we try to login again after a destroy then stop again it hangs.
+        // Weird things happen basically.
+        // So, after destroy, let's recreate the discord client.
+        discord.destroy()
+        discord = getNewDiscordClient();
+        Logger.log("Bot stopped.");
     }
+};
 
-}
+export default bot;

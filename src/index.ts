@@ -1,12 +1,13 @@
-import { DontBeKoiBot } from "./dontBeKoiBot";
+import { Logger } from "./util/logger";
+import bot from "./dontBeKoiBot";
 
 console.log("===============");
 console.log("===============");
 console.log("===============");
 console.log("===============");
 
-async function stuff() {
-    let bot = DontBeKoiBot.getInstance();
-    await bot.start();
-}
-stuff().catch(console.log);
+bot.start()
+.catch(error => {
+    Logger.error(error);
+    bot.stop();
+});
