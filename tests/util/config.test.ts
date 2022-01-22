@@ -1,4 +1,4 @@
-import { Config } from "../../src/util/config";
+import Config from "../../src/util/config";
 
 const ORIGINAL_ENV: NodeJS.ProcessEnv = process.env;
 
@@ -7,6 +7,8 @@ beforeEach(() => {
     // remove environment variables
     process.env = { ...ORIGINAL_ENV };
     delete process.env.BOT_TOKEN;
+    delete process.env.CLIENT_ID;
+    delete process.env.GUILD_ID;
 
 });
   
@@ -25,4 +27,24 @@ test("get the bot token when it is set as an environment variable", () => {
 
 test("getting the bot token throws error when it is not set as an environment variable", () => {
     expect(() => Config.getBotToken()).toThrow();
+});
+
+test("get the bot client ID when it is set as an environment variable", () => {
+    const CLIENT_ID = "someid";
+    process.env.CLIENT_ID = CLIENT_ID;
+    expect(Config.getClientId()).toBe(CLIENT_ID);
+});
+
+test("getting the bot client ID throws error when it is not set as an environment variable", () => {
+    expect(() => Config.getClientId()).toThrow();
+});
+
+test("get the guild ID when it is set as an environment variable", () => {
+    const GUILD_ID = "someid";
+    process.env.GUILD_ID = GUILD_ID;
+    expect(Config.getGuildId()).toBe(GUILD_ID);
+});
+
+test("getting the guild ID throws error when it is not set as an environment variable", () => {
+    expect(() => Config.getGuildId()).toThrow();
 });

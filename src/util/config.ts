@@ -3,22 +3,46 @@ import * as dotenv from "dotenv";
 // init environment variables
 dotenv.config();
 
-export class Config
+function get(key: string): string
 {
+    const VALUE: string | undefined = process.env[key];
+    if (!VALUE)
+    {
+        throw new Error(
+            `Did you forget to set ${key} as an environment variable?`
+        );
+    }
+    return VALUE;
+}
 
+let Config = {
+    
     /**
      * @returns Discord bot token.
-     * @throws If bot token is not configured.
+     * @throws If BOT_TOKEN is not set as an environment variable.
      */
-    public static getBotToken(): string
-    {
-        const TOKEN: string | undefined = process.env.BOT_TOKEN;
-        if (!TOKEN)
-        {
-            throw new Error(
-                "Did you forget to set BOT_TOKEN as an environment variable?"
-            );
-        }
-        return TOKEN;
+    getBotToken: function(): string 
+    { 
+        return get("BOT_TOKEN");
+    },
+
+    /**
+     * @returns Client ID of the bot.
+     * @throws If CLIENT_ID is not set as an environment variable
+     */
+    getClientId: function(): string 
+    { 
+        return get("CLIENT_ID");
+    },
+
+    /**
+     * @returns Guild ID of the discord server the bot is in.
+     * @throws If GUILD_ID is not set as an environment variable
+     */
+    getGuildId: function(): string 
+    { 
+        return get("GUILD_ID");
     }
 }
+
+export default Config;

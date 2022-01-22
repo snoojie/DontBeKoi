@@ -22,7 +22,7 @@ export class Logger
      * Replacement to console.log
      * @param message message to print
      */
-    public static log(message: string): void
+    public static log(message: any): void
     {
         console.log(Theme.LOG, message);
     }

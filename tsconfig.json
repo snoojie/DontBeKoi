@@ -16,6 +16,9 @@
         // without this, we get errors in @discordjs/rest
         "skipLibCheck": true,
 
+        // allows for [key, value] in map loops
+        "downlevelIteration": true,
+
         // type checking
         "allowUnreachableCode": false,
         "strict": true,
