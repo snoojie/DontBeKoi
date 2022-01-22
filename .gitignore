@@ -3,5 +3,6 @@ node_modules/
 build/
 .env
 *.code-workspace
+.vscode/
 *.db
 src/google/token.json
