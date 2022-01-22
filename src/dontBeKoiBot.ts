@@ -62,6 +62,7 @@ function setupEvents(): void
         if (!interaction.isCommand()) return;
         if (interaction.commandName == "ping") 
         {
+            Logger.log("Got a ping!");
             await interaction.reply("pong");
         }        
     });
