@@ -7,7 +7,11 @@
         "dev": "npx ts-node-dev --respawn src/index.ts",
         "devnowatch": "npx ts-node-dev src/index.ts",
         "prod": "rm -rf build/ && npx tsc && node -r source-map-support/register build/index.js",
-        "test": "jest"
+        "test": "jest",
+        "serverrestart": "heroku ps:restart worker",
+        "serveroff": "heroku ps:scale worker=0",
+        "serveron": "heroku ps:scale worker=1",
+        "serverlogs": "heroku logs --tail"
     },
     "dependencies": {
         "@discordjs/rest": "0.2.0-canary.0",
