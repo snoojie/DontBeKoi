@@ -1,8 +1,10 @@
 import bot from "../src/DontBeKoiBot";
 
 // the first time a bot is started, it takes about half a second
-// but, the second, third, etc, time a bot is started, it takes 10-11 seconds
-const TIMEOUT = 20000;
+// but the following starts up are longer. 
+// The max recorded so far is just shy of a minute;
+// So, let's allow each startup to run for 1.5 minutes.
+const TIMEOUT = 90000;
 
 // after each test, 
 // stop the bot just in case a test fails. 
@@ -29,7 +31,6 @@ test("The bot can be started and stopped multiple times.", async () => {
     await bot.start();
     bot.stop();
 }, 2 * TIMEOUT);
-
 
 describe("No bot token in env", () => {
 

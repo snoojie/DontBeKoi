@@ -13,6 +13,9 @@
         // it seems like a good idea anyway
         "esModuleInterop": true,
 
+        // without this, we get errors in @discordjs/rest
+        "skipLibCheck": true,
+
         // type checking
         "allowUnreachableCode": false,
         "strict": true,

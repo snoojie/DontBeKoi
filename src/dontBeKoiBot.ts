@@ -1,9 +1,20 @@
 import { Client } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { REST } from "@discordjs/rest"
+import { Routes } from "discord-api-types/v9";
 import { Config } from "./util/config";
 import { Logger } from "./util/logger";
 import { RethrownError } from "./util/rethrownError";
+import { sleep } from "./util/util";
 
 let discord: Client = getNewDiscordClient();
+
+// We record whether the bot is on or not to prevent trying to start 
+// the bot when it was recently already started.
+// If we instead rely on discord.isReady(),
+// it is possible that discord.isReady() would return false while
+// another bot.start() call is being made.
+let isBotOn: boolean = false;
 
 /**
  * @returns new discord client
@@ -43,9 +54,31 @@ async function login(): Promise<void>
         });
 }
 
-let bot = {
+function setupEvents(): void
+{
+    discord.once("ready", _ => Logger.log("...Ready event fired."));
 
-    tmp: 5,
+    discord.on('interactionCreate', async interaction => {
+        if (!interaction.isCommand()) return;
+        if (interaction.commandName == "ping") 
+        {
+            await interaction.reply("pong");
+        }        
+    });
+}
+
+async function setupCommands(): Promise<void>
+{
+    let commands = [new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!')].map(command => command.toJSON());
+    const rest = new REST({ version: '9' }).setToken(Config.getBotToken());
+
+    let clientId = "767207619210248222";
+    let guildId = "766828632948736002";
+    await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+        .catch(console.error);
+}
+
+let bot = {
 
     /**
      * Start the bot.
@@ -55,7 +88,7 @@ let bot = {
     start: async function(): Promise<void>
     {
         // if the bot is already running, there is nothing to do
-        if (discord.isReady())
+        if (isBotOn)
         {
             throw new Error(
                 "Cannot start the bot; it is already running. " +
@@ -63,31 +96,32 @@ let bot = {
             );
         }
 
-        Logger.log("Starting bot....");
+        isBotOn = true;
+        Logger.log("Starting bot...");
 
-        // Once logged into the client, the bot is not necessarily ready, 
-        // so we need to delay returning this function until the bot is ready.
-        // We know it is ready via the ready event.
-        // To wait for the ready event, we return a promise.
-        return new Promise((resolve, reject) => {
-
-            // set up the ready event before we log in
-            discord.once("ready", _ => {
-                Logger.log("Bot is ready!");
-                resolve();
-            });
-
-            // log in
-            login()
-                .then(_ => Logger.log("Logged into discord."))
-                .catch(error => { 
-                    reject(new RethrownError(
-                        "Could not start the bot because there was an issue logging into discord.", 
-                        error
-                    ));
-                });
-
+        setupEvents();
+        Logger.log("...Events set up.");
+            
+        await login().catch(error => { 
+            throw new RethrownError(
+                "Could not start the bot because there was an issue logging into discord.", 
+                error
+            );
         });
+        Logger.log("...Logged into discord.");
+
+        await setupCommands();
+        Logger.log("...Commands set up.");
+
+        // wait until discord is ready
+        // this is not immediate after logging in, but is soon after
+        if (!discord.isReady())
+        {
+            Logger.log("...Waiting to be ready.");
+            await sleep(100);
+        }
+
+        Logger.log("Bot is ready!");
     },
 
     /**
@@ -101,6 +135,7 @@ let bot = {
         // So, after destroy, let's recreate the discord client.
         discord.destroy()
         discord = getNewDiscordClient();
+        isBotOn = false;
         Logger.log("Bot stopped.");
     }
 };
