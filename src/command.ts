@@ -6,7 +6,7 @@ import { Logger } from "./util/logger";
 import * as fs from "fs";
 import { RethrownError } from "./util/rethrownError";
 import Config from "./util/config";
-import { isDefinedString } from "./util/util";
+import { isDefinedString } from "./util/common";
 
 export interface Command
 {
