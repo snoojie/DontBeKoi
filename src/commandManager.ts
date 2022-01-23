@@ -7,7 +7,7 @@ import * as fs from "fs";
 import { RethrownError } from "./util/rethrownError";
 import Config from "./util/config";
 
-export interface Command
+interface Command
 {
     name: string;
     description: string;

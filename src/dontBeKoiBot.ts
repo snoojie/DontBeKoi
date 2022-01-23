@@ -3,7 +3,7 @@ import Config from "./util/config";
 import { Logger } from "./util/logger";
 import { RethrownError } from "./util/rethrownError";
 import { sleep } from "./util/util";
-import { CommandManager } from "./command";
+import { CommandManager } from "./commandManager";
 
 let discord: Client = getNewDiscordClient();
 
