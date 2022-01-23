@@ -1,5 +1,5 @@
 import { CommandInteraction } from "discord.js";
-import { Command } from "../commandManager";
+import { Command } from "../command";
 
 let ping: Command = {
 
