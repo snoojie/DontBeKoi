@@ -93,7 +93,7 @@ let bot = {
                 );
             });
         discord.on("interactionCreate", async (interaction: Interaction) => { 
-            commandManager.handleInteraction(interaction);
+            commandManager.executeCommand(interaction);
         });
         Logger.log("...Commands set up.");
 

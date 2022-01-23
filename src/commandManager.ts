@@ -6,6 +6,7 @@ import { Logger } from "./util/logger";
 import * as fs from "fs";
 import { RethrownError } from "./util/rethrownError";
 import Config from "./util/config";
+import { isDefinedString } from "./util/util";
 
 export interface Command
 {
@@ -23,6 +24,77 @@ export class CommandManager
     constructor()
     {
         this.commands = new Map();
+    }
+
+    /**
+     * Deploys commands from commands/ directory to the discord server.
+     * @throws if commands could not be deployed.
+     */
+    public async run(): Promise<void>
+    {
+        await this.init()
+            .catch(error => {
+                throw new RethrownError(
+                    "Cannot run CommandManager. There was an issue initializing " +
+                    "the commands.", 
+                    error
+                );
+            })
+
+        await this.deploy()
+            .catch(error => {
+                throw new RethrownError(
+                    "Cannot run CommandManager. There was an issue deploying commands.",
+                    error
+                );
+            })
+    }
+
+    /**
+     * Executes the command defined by the interaction.
+     * Errors are logged instead of thrown.
+     * @param interaction Interaction the command took place in.
+     */
+    public async executeCommand(interaction: Interaction): Promise<void>
+    {
+        // ignore non commands
+        // though this shouldn't happen
+        if (!interaction.isCommand())
+        {
+            Logger.error("Cannot respond to interaction because it is not a command.");
+            Logger.error(interaction);
+            return;
+        }
+
+        // ignore unknown commands 
+        // though this shouldn't happen
+        if (!this.commands.has(interaction.commandName))
+        {
+            Logger.error(
+                "Cannot respond to interaction because it is an unknown command: " +
+                interaction.commandName
+            );
+            return;
+        }
+
+        // we know this is a valid command,
+        // so get it
+        const COMMAND: Command = this.commands.get(interaction.commandName)!;
+
+        // execute the command
+        const REPLY: string = await COMMAND.execute(interaction)
+            .catch(error => {
+                // todo
+                Logger.error(error);
+                return "Uh oh. Something went wrong.";
+            });
+
+        // reply 
+        await interaction.reply(REPLY)
+            //todo
+            //DiscordAPIError: Unknown interaction
+            //happens when bot logged in elsewhere
+            .catch(Logger.error); 
     }
 
     /**
@@ -96,6 +168,10 @@ export class CommandManager
         }
     }
 
+    /**
+     * Deploys commands to the discord server.
+     * @throws if commands could not be deployed.
+     */
     private async deploy(): Promise<void>
     {
         // get config variables bot token, client ID, and guild ID
@@ -175,84 +251,22 @@ export class CommandManager
             });
     }
 
-    public async run(): Promise<void>
-    {
-        await this.init()
-            .catch(error => {
-                throw new RethrownError(
-                    "Cannot run CommandManager. There was an issue initializing " +
-                    "the commands.", 
-                    error
-                );
-            })
-
-        await this.deploy()
-            .catch(error => {
-                throw new RethrownError(
-                    "Cannot run CommandManager. There was an issue deploying commands.",
-                    error
-                );
-            })
-    }
-
+    /**
+     * Checks if the provided object is an instance of Command
+     * @param object object to check if it is an instance of Command
+     * @returns boolean
+     */
     private isCommand(object: any): object is Command 
     {
         const COMMAND = object as Command;
 
         // name must be a defined string with no spaces
-        return this.isDefinedString(COMMAND.name) && COMMAND.name.indexOf(" ") < 0 &&
+        return isDefinedString(COMMAND.name) && COMMAND.name.indexOf(" ") < 0 &&
 
                // description must be a defined string
-               this.isDefinedString(COMMAND.description) &&
+               isDefinedString(COMMAND.description) &&
 
                // execute must be a defined function
                COMMAND.execute !== undefined && typeof COMMAND.execute === "function"
-    }
-
-    private isDefinedString(object: string): boolean
-    {
-        return object !== undefined && typeof object === "string" && object !== "";
-    }
-
-    public async handleInteraction(interaction: Interaction): Promise<void>
-    {
-        // ignore non commands
-        // though this shouldn't happen
-        if (!interaction.isCommand())
-        {
-            Logger.error("Cannot respond to interaction because it is not a command.");
-            Logger.error(interaction);
-            return;
-        }
-
-        // ignore unknown commands 
-        // though this shouldn't happen
-        if (!this.commands.has(interaction.commandName))
-        {
-            Logger.error(
-                "Cannot respond to interaction because it is an unknown command: " +
-                interaction.commandName
-            );
-            return;
-        }
-
-        // we know this is a valid command,
-        // so get it
-        const COMMAND: Command = this.commands.get(interaction.commandName)!;
-
-        // execute the command
-        const REPLY: string = await COMMAND.execute(interaction)
-            .catch(error => {
-                // todo
-                Logger.error(error);
-                return "Uh oh. Something went wrong.";
-            });
-
-        // reply 
-        await interaction.reply(REPLY)
-            //todo
-            //DiscordAPIError: Unknown interaction
-            //happens when bot logged in elsewhere
-            .catch(Logger.error); 
     }
 }
