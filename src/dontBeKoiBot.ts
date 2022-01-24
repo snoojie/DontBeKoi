@@ -73,29 +73,39 @@ let bot = {
         isBotOn = true;
         Logger.log("Starting bot...");
 
+        let awaitingOn: Promise<any>[] = [];
+
+        // log when discord is ready
         discord.once("ready", _ => Logger.log("...Ready event fired."));
-            
-        await login()
+        
+        // login
+        awaitingOn.push(login()
+            .then(_ => Logger.log("...Logged into discord."))
             .catch(error => { 
                 throw new RethrownError(
                     "Could not start the bot. There was an issue logging into discord.", 
                     error
                 );
-            });
-        Logger.log("...Logged into discord.");
+            })
+        );        
 
+        // set up commands
         let commandManager: CommandManager = new CommandManager();
-        await commandManager.run()
+        discord.on("interactionCreate", async (interaction: Interaction) => { 
+            commandManager.executeCommand(interaction);
+        });
+        awaitingOn.push(commandManager.run()
+            .then(_ => Logger.log("...Commands set up."))
             .catch(error => {
                 throw new RethrownError(
                     "Could not start the bot. There was an issue setting up the commands.",
                     error
                 );
-            });
-        discord.on("interactionCreate", async (interaction: Interaction) => { 
-            commandManager.executeCommand(interaction);
-        });
-        Logger.log("...Commands set up.");
+            })
+        );
+
+        // wait for everything we are waiting on (login and set up commands)
+        await Promise.all(awaitingOn);
 
         // Wait until discord is ready.
         // This is not immediate after logging in, but is soon after.
