@@ -141,7 +141,7 @@ let bot = {
         // if we try to login again after a destroy then stop again it hangs.
         // Weird things happen basically.
         // So, after destroy, let's recreate the discord client.
-        discord.destroy()
+        discord.destroy();
         discord = getNewDiscordClient();
         isBotOn = false;
         Logger.log("Bot stopped.");

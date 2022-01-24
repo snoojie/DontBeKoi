@@ -31,7 +31,18 @@ let db = {
         {
             sequelize = new Sequelize(
                 dbUrl,
-                { logging: false } // prevent sql queries in console
+                { 
+                    // prevent sql queries in console
+                    logging: false,
+
+                    // needed for heroku
+                    dialectOptions: {
+                        ssl: {
+                            require: true,
+                            rejectUnauthorized: false
+                        }
+                      }
+                 }
             );
 
             // we run authetnicate because creating a sequelize instance
