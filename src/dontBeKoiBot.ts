@@ -4,6 +4,7 @@ import { Logger } from "./util/logger";
 import { RethrownError } from "./util/rethrownError";
 import { sleep } from "./util/common";
 import { CommandManager } from "./command";
+import db from "./db/db";
 
 let discord: Client = getNewDiscordClient();
 
@@ -104,7 +105,18 @@ let bot = {
             })
         );
 
-        // wait for everything we are waiting on (login and set up commands)
+        // set up database
+        awaitingOn.push(db.init()
+            .then(_ => Logger.log("...Database set up."))
+            .catch(error => {
+                throw new RethrownError(
+                    "Could not start the bot. There was an issue with the database.",
+                    error
+                );
+            })
+        );
+
+        // wait for everything we are waiting on (login, set up commands, database)
         await Promise.all(awaitingOn);
 
         // Wait until discord is ready.
