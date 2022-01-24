@@ -42,6 +42,15 @@ let Config = {
     getGuildId: function(): string 
     { 
         return get("GUILD_ID");
+    },
+
+    /**
+     * @returns The database URL.
+     * @throws If DATABASE_URL is not set as an environment variable
+     */
+    getDatabaseUrl: function(): string 
+    { 
+        return get("DATABASE_URL");
     }
 }
 

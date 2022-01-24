@@ -7,6 +7,7 @@ declare global
             BOT_TOKEN: string | undefined;
             CLIENT_ID: string | undefined;
             GUILD_ID: string | undefined;
+            DATABASE_URL: string | undefined;
         }
     }
 }
