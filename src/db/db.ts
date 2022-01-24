@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import { Options, Sequelize } from "sequelize";
 import Config from "../util/config";
 import { RethrownError } from "../util/rethrownError";
 import UserDal from "./user";
@@ -29,21 +29,25 @@ let db = {
         let sequelize: Sequelize;
         try
         {
-            sequelize = new Sequelize(
-                dbUrl,
-                { 
-                    // prevent sql queries in console
-                    logging: false,
+            
+            // prevent sql queries in console
+            let options: Options = {   
+                logging: false,
+            };
 
-                    // needed for heroku
-                    dialectOptions: {
-                        ssl: {
-                            require: true,
-                            rejectUnauthorized: false
-                        }
-                      }
-                 }
-            );
+            // if using heroku, use ssl
+            if (dbUrl.indexOf("@localhost") < 0)
+            {
+                options.dialectOptions = {
+                    ssl: {
+                        require: true,
+                        rejectUnauthorized: false
+                    }
+                }
+            }
+
+            // create sequelize instance
+            sequelize = new Sequelize(dbUrl, options);
 
             // we run authetnicate because creating a sequelize instance
             // does not check if user, database name, etc, are valid
