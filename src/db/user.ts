@@ -18,6 +18,11 @@ class User extends Model<UserAttributes> implements UserAttributes
 // User DAL
 export default {
     
+    /**
+     * Initializes the User table.
+     * @param sequelize Database connection
+     * @throws if the User table could not be initialized.
+     */
     init: async function(sequelize: Sequelize): Promise<void>
     {
 
