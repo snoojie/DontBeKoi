@@ -15,24 +15,23 @@ enum Theme
     STACKTRACE = Color.RED_GREY
 };
 
-export class Logger
-{
+export const Logger = {
     
     /**
      * Replacement to console.log
      * @param message message to print
      */
-    public static log(message: any): void
+    log: function(message: any): void
     {
         console.log(Theme.LOG, message);
-    }
+    },
 
     /**
      * Replacement to console.error
      * @param message Quick message to describe the error
      * @param error Error itself
      */
-    public static error(error: any): void
+    error: function(error: any): void
     {
         // generally, error will be of type Error
         if (error instanceof Error && error.stack)

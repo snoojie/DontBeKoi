@@ -1,4 +1,4 @@
-const Config = require("../../src/util/config").default;
+const { Config } = require("../../src/util/config");
 
 const ORIGINAL_ENV = process.env;
 
@@ -26,14 +26,9 @@ function testEnvironmentVariable(readableName, envKey)
     describe(`${readableName} environment variable`, () => {
 
         // remove the environment variable before every test
-        // when all tests are done, revert environment variables
         beforeEach(() => {
-            process.env = { ...ORIGINAL_ENV };
             delete process.env[ENV_KEY];
         });
-        afterAll(() => {
-            process.env = ORIGINAL_ENV;
-        })
 
         test("Can get the environment variable when it is set.", () => {
             const value = "some Value";

@@ -15,7 +15,7 @@ function get(key: string): string
     return VALUE;
 }
 
-let Config = {
+export const Config = {
     
     /**
      * @returns Discord bot token.
@@ -53,5 +53,3 @@ let Config = {
         return get("DATABASE_URL");
     }
 }
-
-export default Config;
