@@ -3,7 +3,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
-import { RethrownError } from "./util/rethrownError";
+import RethrownError from "./util/rethrownError";
 import Config from "./util/config";
 import { isDefinedString } from "./util/common";
 import * as fs from "fs";

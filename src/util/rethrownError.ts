@@ -1,4 +1,4 @@
-export class RethrownError extends Error
+export default class RethrownError extends Error
 {
     constructor(message: string, error: any)
     {

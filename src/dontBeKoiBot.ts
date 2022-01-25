@@ -1,7 +1,7 @@
 import { Client, Interaction } from "discord.js";
 import Config from "./util/config";
 import Logger from "./util/logger";
-import { RethrownError } from "./util/rethrownError";
+import RethrownError from "./util/rethrownError";
 import { sleep } from "./util/common";
 import { CommandManager } from "./command";
 import db from "./db/db";

@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import { RethrownError } from "../util/rethrownError";
+import RethrownError from "../util/rethrownError";
 
 interface UserAttributes
 {
