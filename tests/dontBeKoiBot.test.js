@@ -1,4 +1,4 @@
-import bot from "../src/DontBeKoiBot";
+const bot = require("../src/DontBeKoiBot").default;
 
 // the first time a bot is started, it takes about half a second
 // but the following starts up are longer. 
@@ -34,16 +34,7 @@ test("The bot can be started and stopped multiple times.", async () => {
 
 describe("No bot token in env", () => {
 
-    const ORIGINAL_ENV: NodeJS.ProcessEnv = process.env;
-
-    beforeAll(() => {
-        process.env = { ...ORIGINAL_ENV };
-        delete process.env.BOT_TOKEN;
-    })
-
-    afterAll(() => {
-        process.env = ORIGINAL_ENV;
-    })
+    beforeAll(() => delete process.env.BOT_TOKEN);
     
     test("Starting a bot without a token errors.", async () =>  {
         await expect(bot.start()).rejects.toThrow();
