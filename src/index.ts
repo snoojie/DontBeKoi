@@ -10,7 +10,7 @@ console.log("===============");
 bot.start()
 .catch(error => {
     Logger.error(error);
-    bot.stop();
+    return bot.stop();
 });
 
 /*db.init()

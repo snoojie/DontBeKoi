@@ -10,10 +10,12 @@ Logger.log = jest.fn();
 // So, let's allow each startup to run for 1.5 minutes.
 const TIMEOUT = 90000;
 
+const ORIGINAL_ENV = process.env;
+
 // after each test, 
 // stop the bot just in case a test fails. 
 // otherwise, the bot may hang
-afterEach(() => bot.stop());
+afterEach(async () => await bot.stop());
 
 test("The bot can be started and stopped.", async () => {
     await bot.start();
@@ -38,7 +40,11 @@ test("The bot can be started and stopped multiple times.", async () => {
 
 describe("No bot token in env", () => {
 
-    beforeAll(() => delete process.env.BOT_TOKEN);
+    beforeAll(() => {
+        process.env = { ...ORIGINAL_ENV };
+        delete process.env.BOT_TOKEN
+    });
+    afterAll(() => process.env = ORIGINAL_ENV);
     
     test("Starting a bot without a token errors.", async () =>  {
         await expect(bot.start()).rejects.toThrow();
@@ -48,5 +54,19 @@ describe("No bot token in env", () => {
         process.env.BOT_TOKEN = "I am not valid";
         await expect(bot.start()).rejects.toThrow();
     });
+
+});
+
+describe("No database URL in env", () => {
+
+    beforeAll(() => {
+        process.env = { ...ORIGINAL_ENV };
+        delete process.env.DATABASE_URL
+    });
+    afterAll(() => process.env = ORIGINAL_ENV);
+    
+    test("Starting a bot with a failed db connection errors.", async () =>  {
+        await expect(bot.start()).rejects.toThrow();
+    }, TIMEOUT);
 
 });

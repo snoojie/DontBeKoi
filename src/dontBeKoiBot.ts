@@ -80,15 +80,17 @@ let bot = {
         discord.once("ready", _ => Logger.log("...Ready event fired."));
         
         // login
-        awaitingOn.push(login()
+        // cannot do this at the same time as setting up database with awaitingOn
+        // for some reason, if the db fails, if we logged in at the same time,
+        // the program will hang
+        await login()
             .then(_ => Logger.log("...Logged into discord."))
             .catch(error => { 
                 throw new RethrownError(
                     "Could not start the bot. There was an issue logging into discord.", 
                     error
                 );
-            })
-        );        
+            });     
 
         // set up commands
         let commandManager: CommandManager = new CommandManager();
