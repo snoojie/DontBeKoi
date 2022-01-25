@@ -7,7 +7,7 @@ test("Can create an instance of CommandManager.", () => {
 test("No error when deploying commands to discord server.", async () => {
     let commandManager = new CommandManager();
     await commandManager.run();
-})
+}, 30000)
 
 describe("Missing environment variables", () => {
 

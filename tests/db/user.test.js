@@ -4,21 +4,17 @@ const { dropAllTables, DATABASE_URL } = require("../_setup/db");
 
 let sequelize;
 
-// before a test runs, drop all tables
+// before a test runs, drop all tables and initialize sequelize to be used in tests
 beforeEach(async() => {
     await dropAllTables();
     sequelize = new Sequelize(DATABASE_URL, { logging: false });
 });
 
 // after each test, close sequelize so the connection isn't hanging
-afterEach(async() => {
-    sequelize.close();
-})
+afterEach(async() => await sequelize.close());
 
 // after all tests have run, drop all tables
-afterAll(async () => {
-    await dropAllTables();
-})
+afterAll(async () => await dropAllTables());
 
 test("Initializing users will create Users table when it does not already exist.", async () => {
     await UserDal.init(sequelize);
@@ -27,15 +23,12 @@ test("Initializing users will create Users table when it does not already exist.
 
 describe("Create user table", () => {
 
-    beforeEach(async() => {
-        await createUserTable();
-    });
+    beforeEach(async() => await createUserTable());
 
     test("Initializing users will not create Users table when it already exists.", async () => {
         await UserDal.init(sequelize);
         await expectUserTableExists();
     });
-    
     
     test("Initializing users will not destroy data in Users table.", async () => {
         

@@ -1,4 +1,8 @@
 const bot = require("../src/DontBeKoiBot").default;
+const Logger = require("../src/util/logger").default;
+
+// mute logger
+Logger.log = jest.fn();
 
 // the first time a bot is started, it takes about half a second
 // but the following starts up are longer. 

@@ -26,9 +26,7 @@ function testEnvironmentVariable(readableName, envKey)
     describe(`${readableName} environment variable`, () => {
 
         // remove the environment variable before every test
-        beforeEach(() => {
-            delete process.env[ENV_KEY];
-        });
+        beforeEach(() => delete process.env[ENV_KEY]);
 
         test("Can get the environment variable when it is set.", () => {
             const value = "some Value";
