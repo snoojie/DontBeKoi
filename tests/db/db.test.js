@@ -18,11 +18,8 @@ beforeEach(async() => {
 // after each test, stop the database in case a test doesn't
 afterEach(async() => await Database.stop());
 
-// after all tests have run,
-// revert the environment variables, and
-// drop all tables
+// after all tests have run, drop all tables
 afterAll(async () => {
-    process.env = ORIGINAL_ENV;
     await dropAllTables();
 })
 
@@ -45,4 +42,11 @@ test("The database can be started and stopped multiple times.", async () => {
     await Database.stop();
     await Database.start();
     await Database.stop();
+});
+
+describe("Missing environment variables.", () => {
+    beforeEach(() => delete process.env.DATABASE_URL);
+    test("The database throws an error when the database URL is not set in environment variables..", async () => {
+        await expect(Database.start()).rejects.toThrow();
+    });
 });
