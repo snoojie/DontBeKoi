@@ -54,7 +54,7 @@ async function login(): Promise<void>
         });
 }
 
-let bot = {
+const Bot = {
 
     /**
      * Start the bot.
@@ -155,4 +155,4 @@ let bot = {
     }
 };
 
-export default bot;
+export default Bot;
