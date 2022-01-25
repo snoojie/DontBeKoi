@@ -1,5 +1,5 @@
-import db from "../../src/db/db";
-import { dropAllTables, DATABASE_URL } from "../_setup/db";
+const Database = require("../../src/db/db").default;
+const { dropAllTables, DATABASE_URL } = require("../_setup/db");
 
 const ORIGINAL_ENV = process.env;
 
@@ -16,7 +16,7 @@ beforeEach(async() => {
 })
 
 // after each test, stop the database in case a test doesn't
-afterEach(async() => await db.stop());
+afterEach(async() => await Database.stop());
 
 // after all tests have run,
 // revert the environment variables, and
@@ -27,22 +27,22 @@ afterAll(async () => {
 })
 
 test("The database can be started and stopped.", async () => {
-    await db.start();
-    await db.stop();
+    await Database.start();
+    await Database.stop();
 });
 
 test("The database can be safely stopped even if it has not started.", async () => {
-    await db.stop();
+    await Database.stop();
 });
 
 test("Starting the database when it is already running causes an error.", async () => {
-    await db.start();
-    await expect(db.start()).rejects.toThrow();
+    await Database.start();
+    await expect(Database.start()).rejects.toThrow();
 });
 
 test("The database can be started and stopped multiple times.", async () => {
-    await db.start();
-    await db.stop();
-    await db.start();
-    await db.stop();
+    await Database.start();
+    await Database.stop();
+    await Database.start();
+    await Database.stop();
 });
