@@ -1,7 +1,7 @@
 import { Options, Sequelize } from "sequelize";
 import { Config } from "../util/config";
 import { RethrownError } from "../util/rethrownError";
-import UserDal from "./user";
+import { UserDal } from "./user";
 
 let sequelize: Sequelize | undefined;
 

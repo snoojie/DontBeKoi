@@ -16,7 +16,7 @@ class User extends Model<UserAttributes> implements UserAttributes
 }
 
 // User DAL
-export default {
+export const UserDal = {
     
     /**
      * Initializes the User table.

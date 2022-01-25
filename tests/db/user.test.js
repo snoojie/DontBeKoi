@@ -1,8 +1,8 @@
-import { DataTypes, QueryTypes, Sequelize } from "sequelize";
-import UserDal from "../../src/db/user";
-import { dropAllTables, DATABASE_URL } from "../_setup/db";
+const { DataTypes, QueryTypes, Sequelize } = require("sequelize");
+const { UserDal } = require("../../src/db/user");
+const { dropAllTables, DATABASE_URL } = require("../_setup/db");
 
-let sequelize: Sequelize;
+let sequelize;
 
 // before a test runs, drop all tables
 beforeEach(async() => {
@@ -46,7 +46,7 @@ describe("Create user table", () => {
         await UserDal.init(sequelize);
     
         // make sure Users did not change
-        let users: any[] | null = await sequelize.query(
+        let users = await sequelize.query(
             'SELECT name FROM "Users"',
             { 
                 type: QueryTypes.SELECT,
@@ -75,7 +75,7 @@ test("Users table has a spreadsheet ID column.", async () => {
 
 async function expectUserTableExists()
 {
-    let tables: any[] | null = await sequelize.query(
+    let tables = await sequelize.query(
         "SELECT table_name FROM information_schema.tables WHERE table_name='Users'",
         { 
             type: QueryTypes.SELECT, 
@@ -83,10 +83,10 @@ async function expectUserTableExists()
             raw: true 
         }
     );
-    expect(tables!.length).toBe(1);
+    expect(tables.length).toBe(1);
 }
 
-async function expectUserTableHasColumn(column: string)
+async function expectUserTableHasColumn(column)
 {
     let columns = Object.keys(await sequelize.getQueryInterface().describeTable("Users"))
     expect(columns).toContain(column);
