@@ -15,8 +15,7 @@ class User extends Model<UserAttributes> implements UserAttributes
     public spreadsheetId!: string;
 }
 
-// User DAL
-export const UserDal = {
+const UserDal = {
     
     /**
      * Initializes the User table.
@@ -60,3 +59,5 @@ export const UserDal = {
         }
     }
 }
+
+export default UserDal;

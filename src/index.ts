@@ -1,4 +1,4 @@
-import { Logger } from "./util/logger";
+import Logger from "./util/logger";
 import bot from "./dontBeKoiBot";
 //import db from "./db/db";
 

@@ -15,7 +15,7 @@ enum Theme
     STACKTRACE = Color.RED_GREY
 };
 
-export const Logger = {
+const Logger = {
     
     /**
      * Replacement to console.log
@@ -52,3 +52,5 @@ export const Logger = {
         }
     }
 }
+
+export default Logger;

@@ -1,4 +1,4 @@
-const { Config } = require("../../src/util/config");
+const Config = require("../../src/util/config").default;
 
 const ORIGINAL_ENV = process.env;
 

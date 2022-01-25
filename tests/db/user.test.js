@@ -1,5 +1,5 @@
 const { DataTypes, QueryTypes, Sequelize } = require("sequelize");
-const { UserDal } = require("../../src/db/user");
+const UserDal = require("../../src/db/user").default;
 const { dropAllTables, DATABASE_URL } = require("../_setup/db");
 
 let sequelize;
