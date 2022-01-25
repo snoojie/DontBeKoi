@@ -1,6 +1,4 @@
-import { CommandManager } from "../src/command"
-
-// todo
+const { CommandManager } = require("../src/command");
 
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
@@ -13,15 +11,14 @@ test("No error when deploying commands to discord server.", async () => {
 
 describe("Missing environment variables", () => {
 
-    const ORIGINAL_ENV: NodeJS.ProcessEnv = process.env;
+    const ORIGINAL_ENV = process.env;
 
-    beforeAll(() => {
+    // after each test, 
+    // restore environment variables
+    // as they will be individually removed in each test
+    afterEach(() => {
         process.env = { ...ORIGINAL_ENV };
-    })
-
-    afterAll(() => {
-        process.env = ORIGINAL_ENV;
-    })
+    });
 
     test("Error when deploying commands without a bot token in environment variables.", async () => {
         delete process.env.BOT_TOKEN;
