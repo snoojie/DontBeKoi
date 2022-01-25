@@ -1,69 +1,79 @@
+import { DataTypes, QueryTypes, Sequelize } from "sequelize";
 import UserDal from "../../src/db/user";
-import { DataTypes, QueryInterface, QueryTypes, Sequelize } from "sequelize";
+import { dropAllTables, DATABASE_URL } from "../_setup/db";
 
 let sequelize: Sequelize;
-let queryInterface: QueryInterface;
 
-beforeEach(async () => {
-    sequelize = new Sequelize(
-        "postgres://postgres:478963@localhost:5432/dontbekoitest", { logging: false }
-    );
-    queryInterface = sequelize.getQueryInterface();
-    await queryInterface.dropAllTables();
+// before a test runs, drop all tables
+beforeEach(async() => {
+    await dropAllTables();
+    sequelize = new Sequelize(DATABASE_URL, { logging: false });
 });
 
-afterEach(async () => {
-    if (sequelize)
-    {
-        await queryInterface.dropAllTables();
-        await sequelize.close();
-    }
+// after each test, close sequelize so the connection isn't hanging
+afterEach(async() => {
+    sequelize.close();
+})
+
+// after all tests have run, drop all tables
+afterAll(async () => {
+    await dropAllTables();
 })
 
 test("Initializing users will create Users table when it does not already exist.", async () => {
     await UserDal.init(sequelize);
-    await expectUsersTableExists();
+    await expectUserTableExists();
 });
 
-test("Users table has a name column.", async () => {
-    await UserDal.init(sequelize);
-    let columns = await getColumns();
-    expect(columns).toContain("name");
-});
+describe("Create user table", () => {
 
-test("Users table has a discord ID column.", async () => {
-    await UserDal.init(sequelize);
-    let columns = await getColumns();
-    expect(columns).toContain("discordId");
-});
-
-test("Users table has a spreadsheet ID column.", async () => {
-    await UserDal.init(sequelize);
-    let columns = await getColumns();
-    expect(columns).toContain("spreadsheetId");
-});
-
-describe("Create User table", () => {
-
-    beforeEach(async () => {
-        await queryInterface.createTable("Users", { "name" : DataTypes.STRING });
-    })
+    beforeEach(async() => {
+        await createUserTable();
+    });
 
     test("Initializing users will not create Users table when it already exists.", async () => {
         await UserDal.init(sequelize);
-        await expectUsersTableExists();
+        await expectUserTableExists();
     });
-
+    
+    
     test("Initializing users will not destroy data in Users table.", async () => {
-        await queryInterface.bulkInsert("Users", [{ name: "somename" }]);
+        
+        // insert data into the table
+        await sequelize.getQueryInterface().bulkInsert("Users", [{ name: "somename" }]);
+    
+        // function to test
         await UserDal.init(sequelize);
-        let users = await getUsers();
+    
+        // make sure Users did not change
+        let users: any[] | null = await sequelize.query(
+            'SELECT name FROM "Users"',
+            { 
+                type: QueryTypes.SELECT,
+                raw: true 
+            }
+        );
         expect(users.length).toBe(1);
         expect(users[0].name).toBe("somename");
     });
 });
 
-async function expectUsersTableExists()
+test("Users table has a name column.", async () => {
+    await UserDal.init(sequelize);
+    await expectUserTableHasColumn("name");
+});
+
+test("Users table has a discord ID column.", async () => {
+    await UserDal.init(sequelize);
+    await expectUserTableHasColumn("discordId");
+});
+
+test("Users table has a spreadsheet ID column.", async () => {
+    await UserDal.init(sequelize);
+    await expectUserTableHasColumn("spreadsheetId");
+});
+
+async function expectUserTableExists()
 {
     let tables: any[] | null = await sequelize.query(
         "SELECT table_name FROM information_schema.tables WHERE table_name='Users'",
@@ -76,24 +86,15 @@ async function expectUsersTableExists()
     expect(tables!.length).toBe(1);
 }
 
-async function getUsers(): Promise<any[]>
+async function expectUserTableHasColumn(column: string)
 {
-    let users: any[] = [];
-    let tables: any[] | null = await sequelize.query(
-        'SELECT name FROM "Users"',
-        { 
-            type: QueryTypes.SELECT,
-            raw: true 
-        }
-    );
-    if (tables)
-    {
-        users = tables;
-    }
-    return users;
+    let columns = Object.keys(await sequelize.getQueryInterface().describeTable("Users"))
+    expect(columns).toContain(column);
 }
 
-async function getColumns()
+async function createUserTable()
 {
-    return Object.keys(await queryInterface.describeTable("Users"));
+    await sequelize.getQueryInterface().createTable(
+        "Users", { "name" : DataTypes.STRING }
+    );
 }

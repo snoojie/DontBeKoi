@@ -7,7 +7,7 @@
         "dev": "npx ts-node-dev --respawn src/index.ts",
         "devnowatch": "npx ts-node-dev src/index.ts",
         "prod": "rm -rf build/ && npx tsc && node -r source-map-support/register build/index.js",
-        "test": "jest --coverage && rm -rf coverage/",
+        "test": "jest --coverage --runInBand && rm -rf coverage/",
         "serverrestart": "heroku ps:restart worker",
         "serveroff": "heroku ps:scale worker=0",
         "serveron": "heroku ps:scale worker=1",

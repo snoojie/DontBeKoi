@@ -52,7 +52,7 @@ export default {
         // create the table if it doesn't exist yet
         try
         {
-            await User.sync();
+            await User.sync()
         }
         catch(error)
         {

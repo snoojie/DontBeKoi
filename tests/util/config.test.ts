@@ -9,6 +9,7 @@ beforeEach(() => {
     delete process.env.BOT_TOKEN;
     delete process.env.CLIENT_ID;
     delete process.env.GUILD_ID;
+    delete process.env.DATABASE_URL;
 
 });
   
@@ -47,4 +48,14 @@ test("get the guild ID when it is set as an environment variable", () => {
 
 test("getting the guild ID throws error when it is not set as an environment variable", () => {
     expect(() => Config.getGuildId()).toThrow();
+});
+
+test("get the database URL when it is set as an environment variable", () => {
+    const DATABASE_URL = "someurl";
+    process.env.DATABASE_URL = DATABASE_URL;
+    expect(Config.getDatabaseUrl()).toBe(DATABASE_URL);
+});
+
+test("getting the database URL throws error when it is not set as an environment variable", () => {
+    expect(() => Config.getDatabaseUrl()).toThrow();
 });

@@ -106,7 +106,7 @@ let bot = {
         );
 
         // set up database
-        awaitingOn.push(db.init()
+        awaitingOn.push(db.start()
             .then(_ => Logger.log("...Database set up."))
             .catch(error => {
                 throw new RethrownError(
@@ -135,7 +135,7 @@ let bot = {
     /**
      * Stop the bot.
      */
-    stop: function(): void
+    stop: async function(): Promise<void>
     {
         // discord.destroy should alone work, but, 
         // if we try to login again after a destroy then stop again it hangs.
@@ -143,7 +143,12 @@ let bot = {
         // So, after destroy, let's recreate the discord client.
         discord.destroy();
         discord = getNewDiscordClient();
+
+        await db.stop();
+
         isBotOn = false;
+
+
         Logger.log("Bot stopped.");
     }
 };

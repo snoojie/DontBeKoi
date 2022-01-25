@@ -13,11 +13,11 @@ afterEach(() => bot.stop());
 
 test("The bot can be started and stopped.", async () => {
     await bot.start();
-    bot.stop();
+    await bot.stop();
 }, TIMEOUT);
 
-test("The bot can be safely stopped even if it has not started.", () => {
-    bot.stop();
+test("The bot can be safely stopped even if it has not started.", async () => {
+    await bot.stop();
 });
 
 test("Starting the bot when it is already running causes an error.", async () => {
@@ -27,9 +27,9 @@ test("Starting the bot when it is already running causes an error.", async () =>
 
 test("The bot can be started and stopped multiple times.", async () => {
     await bot.start();
-    bot.stop();
+    await bot.stop();
     await bot.start();
-    bot.stop();
+    await bot.stop();
 }, 2 * TIMEOUT);
 
 describe("No bot token in env", () => {

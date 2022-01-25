@@ -3,13 +3,24 @@ import Config from "../util/config";
 import { RethrownError } from "../util/rethrownError";
 import UserDal from "./user";
 
+let sequelize: Sequelize | undefined;
+
 let db = {
 
     /**
      * Initialize the database.
      */
-    init: async function(): Promise<void>
+    start: async function(): Promise<void>
     {
+        // if the db is already running,
+        // there is nothing to do
+        if (sequelize)
+        {
+            throw new Error(
+                "The database has already started. To restart it, call stop() first."
+            );
+        }
+
         // get the database URL
         let dbUrl: string;
         try
@@ -26,7 +37,6 @@ let db = {
         }
 
         // connect to database
-        let sequelize: Sequelize;
         try
         {
             
@@ -75,6 +85,15 @@ let db = {
             );
         }
         
+    },
+
+    stop: async function() 
+    {
+        if (sequelize)
+        {
+            await sequelize.close();
+            sequelize = undefined;
+        }
     }
 }
 
