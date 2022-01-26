@@ -1,51 +1,44 @@
 const { DataTypes, QueryTypes, Sequelize } = require("sequelize");
 const UserDal = require("../../src/db/user").default;
-const { dropAllTables, DATABASE_URL } = require("../_setup/db");
+const { dropAllTables, initSequelize } = require("../_setup/db");
 
 let sequelize;
 
-// before a test runs, drop all tables and initialize sequelize to be used in tests
+// Start every test with no user table in the database.
+// Drop the user table after the last test.
+// Start a sequelize connection to be used before each test,
+// and close that connection after each test.
 beforeEach(async() => {
     await dropAllTables();
-    sequelize = new Sequelize(
-        DATABASE_URL, 
-        { 
-            logging: false, 
-            quoteIdentifiers: false 
-        }
-    );
+    sequelize = initSequelize();
 });
-
-// after each test, close sequelize so the connection isn't hanging
 afterEach(async() => await sequelize.close());
-
-// after all tests have run, drop all tables
-//afterAll(async () => await dropAllTables());
+afterAll(async () => await dropAllTables());
 
 
 // ===================
 // =====test init=====
 // ===================
 
-test("Initializing users will create Users table when it does not already exist.", async () => {
+test("Initializing users creates Users table when it did not exist prior.", async () => {
     await UserDal.init(sequelize);
     await expectUserTableExists();
 });
 
-describe("Create user table", () => {
+describe("Create user table before test.", () => {
 
+    // Start each test with a User table with sample data
     beforeEach(async() => await createUserTable());
 
-    test("Initializing users will not create Users table when it already exists.", async () => {
+    test("Can initialize users when the table already exists.", async () => {
         await UserDal.init(sequelize);
         await expectUserTableExists();
     });
     
-    test("Initializing users will not destroy data in Users table.", async () => {
-        // function to test
+    test("Initializing users will not destroy data preexisting in the users table.", async () => {
         await UserDal.init(sequelize);
-    
-        // make sure Users did not change
+
+        // check users did not change
         let users = await getUsers();
         expect(users.length).toBe(1);
         expect(users[0].name).toBe("Name One");
@@ -59,12 +52,12 @@ test("Users table has a name column.", async () => {
 
 test("Users table has a discord ID column.", async () => {
     await UserDal.init(sequelize);
-    await expectUserTableHasColumn("discordId");
+    await expectUserTableHasColumn("discordid");
 });
 
 test("Users table has a spreadsheet ID column.", async () => {
     await UserDal.init(sequelize);
-    await expectUserTableHasColumn("spreadsheetId");
+    await expectUserTableHasColumn("spreadsheetid");
 });
 
 // =============================
@@ -103,7 +96,7 @@ async function expectUserTableExists()
 async function expectUserTableHasColumn(column)
 {
     let columns = Object.keys(await sequelize.getQueryInterface().describeTable("users"))
-    expect(columns).toContain(column.toLowerCase());
+    expect(columns).toContain(column);
 }
 
 async function createUserTable()

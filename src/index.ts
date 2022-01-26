@@ -1,5 +1,6 @@
-import Logger from "./util/logger";
-import bot from "./dontBeKoiBot";
+//import Logger from "./util/logger";
+//import bot from "./dontBeKoiBot";
+import { DataTypes, Sequelize } from "sequelize";
 //import db from "./db/db";
 
 console.log("===============");
@@ -7,7 +8,18 @@ console.log("===============");
 console.log("===============");
 console.log("===============");
 
-bot.start()
+let sequelize = new Sequelize(
+    "postgres://postgres:478963@localhost:5432/playground",
+    { quoteIdentifiers: false }
+);
+sequelize.getQueryInterface().createTable(
+    "Users", 
+    { 
+        "name" : DataTypes.STRING,
+    }
+);
+
+/*bot.start()
 .catch(error => {
     Logger.error(error);
     return bot.stop();
