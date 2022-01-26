@@ -15,7 +15,6 @@ beforeEach(async() => {
 afterEach(async() => await sequelize.close());
 afterAll(async () => await dropAllTables());
 
-
 // ===================
 // =====test init=====
 // ===================
@@ -25,16 +24,27 @@ test("Initializing users creates Users table when it did not exist prior.", asyn
     await expectUserTableExists();
 });
 
-describe("Create user table before test.", () => {
+describe("Create user table beforehand.", () => {
 
     // Start each test with a User table with sample data
-    beforeEach(async() => await createUserTable());
+    beforeEach(async() => {
+        let queryInterface = sequelize.getQueryInterface();
+        await queryInterface.createTable(
+            "users", 
+            { 
+                "name" : DataTypes.STRING, 
+                "discord_id": DataTypes.STRING, 
+                "spreadsheet_id": DataTypes.STRING
+            }
+        );
+        await queryInterface.bulkInsert("users", [{ name: "Name One" }]);
+    });
 
     test("Can initialize users when the table already exists.", async () => {
         await UserDal.init(sequelize);
         await expectUserTableExists();
     });
-    
+
     test("Initializing users will not destroy data preexisting in the users table.", async () => {
         await UserDal.init(sequelize);
 
@@ -44,41 +54,6 @@ describe("Create user table before test.", () => {
         expect(users[0].name).toBe("Name One");
     });
 });
-
-test("Users table has a name column.", async () => {
-    await UserDal.init(sequelize);
-    await expectUserTableHasColumn("name");
-});
-
-test("Users table has a discord ID column.", async () => {
-    await UserDal.init(sequelize);
-    await expectUserTableHasColumn("discord_id");
-});
-
-test("Users table has a spreadsheet ID column.", async () => {
-    await UserDal.init(sequelize);
-    await expectUserTableHasColumn("spreadsheet_id");
-});
-
-// =============================
-// =====test setSpreadsheet=====
-// =============================
-
-test("Create new user record when setting spreadsheet and User table is empty.", async() => {
-    await UserDal.init(sequelize);
-    await UserDal.setSpreadsheet("someId", "Some Name", "someSpreadsheet");
-    let users = await getUsers();
-    expect(users.length).toBe(1);
-    let user = users[0];
-    console.log(user);
-    expect(user.name).toBe("Some Name");
-    expect(user.discord_id).toBe("someId");
-    expect(user.spreadsheet_id).toBe("someSpreadsheet");
-});
-
-// ==========================
-// =====helper functions=====
-// ==========================
 
 async function expectUserTableExists()
 {
@@ -93,28 +68,66 @@ async function expectUserTableExists()
     expect(tables.length).toBe(1);
 }
 
-async function expectUserTableHasColumn(column)
+testColumnExists("name");
+testColumnExists("discord_id");
+testColumnExists("spreadsheet_id");
+
+// helper functions for init
+
+function testColumnExists(column)
 {
-    let columns = Object.keys(await sequelize.getQueryInterface().describeTable("users"))
-    expect(columns).toContain(column);
+    test(`Initializing a new users table creates a ${column} column.`, async () => {
+        await UserDal.init(sequelize);        
+        let columns = Object.keys(
+            await sequelize.getQueryInterface().describeTable("users")
+        );
+        expect(columns).toContain(column);
+    });
 }
 
-async function createUserTable()
+// ======================
+// =====test addUser=====
+// ======================
+
+describe("Initialize UserDal beforehand.", () => {
+    
+    beforeEach(async() => await UserDal.init(sequelize));
+
+    test("Can add a new record to an empty user table", async () => {
+        await UserDal.setUser("some discord id", "Some Name", "some spreadsheet ID");
+        let users = await getUsers();
+        expect(users.length).toBe(1);
+    });
+
+    testAddingNewUserSavesField("name");
+    testAddingNewUserSavesField("discord ID");
+    testAddingNewUserSavesField("spreadsheet ID");
+});
+
+// helper functions for setUser
+
+function testAddingNewUserSavesField(readableColumn)
 {
-    let queryInterface = sequelize.getQueryInterface();
-    await queryInterface.createTable(
-        "users", 
-        { 
-            "name" : DataTypes.STRING,
-            "discord_id": DataTypes.STRING,
-            "spreadsheet_id": DataTypes.STRING
-        }
-    );
-    await queryInterface.bulkInsert(
-        "users", 
-        [ { name: "Name One", discord_id: "id1", spreadsheet_id: "spreadsheet1" } ]
-    );
+    // change readableColumn to what is shown in the database
+    // ex discord ID -> discord_id
+    let column = readableColumn.toLowerCase().replace(" ", "_");
+
+    let data = {
+        discord_id: "some discord id",
+        name: "Some Name",
+        spreadsheet_id: "some spreadsheet ID"
+    };
+
+    test(`Adding a new user saves their ${readableColumn} in the user table.`, async () => {
+        await UserDal.setUser(data.discord_id, data.name, data.spreadsheet_id);
+        let users = await getUsers();
+        expect(users[0][column]).toBe(data[column]);
+    });
 }
+
+// ==========================
+// =====helper functions=====
+// ==========================
 
 async function getUsers()
 {

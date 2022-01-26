@@ -59,14 +59,16 @@ const UserDal = {
         }
     },
 
-    setSpreadsheet: async function(
+    setUser: async function(
         discordId: string, name: string, spreadsheetId: string
     ): Promise<void>
     {
-        // if the user already exists in the database, update their spreadsheet ID
+        // if the user already exists in the database, 
+        // update their name and spreadsheet ID
         let user: User | null = await User.findOne({ where: { discordId } });
         if (user)
         {
+            user.name = name;
             user.spreadsheetId = spreadsheetId;
         }
 
