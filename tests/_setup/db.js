@@ -8,7 +8,8 @@ function initSequelize()
         DATABASE_URL, 
         { 
             logging: false,
-            quoteIdentifiers: false
+            quoteIdentifiers: false,
+            define: { underscored: true } 
         }
     );
 }

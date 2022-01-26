@@ -49,6 +49,7 @@ const db = {
                 // prevent needing quotes on table names
                 quoteIdentifiers: false,
                 
+                define: { underscored: true }
             };
 
             // if using heroku, use ssl

@@ -52,12 +52,12 @@ test("Users table has a name column.", async () => {
 
 test("Users table has a discord ID column.", async () => {
     await UserDal.init(sequelize);
-    await expectUserTableHasColumn("discordid");
+    await expectUserTableHasColumn("discord_id");
 });
 
 test("Users table has a spreadsheet ID column.", async () => {
     await UserDal.init(sequelize);
-    await expectUserTableHasColumn("spreadsheetid");
+    await expectUserTableHasColumn("spreadsheet_id");
 });
 
 // =============================
@@ -72,8 +72,8 @@ test("Create new user record when setting spreadsheet and User table is empty.",
     let user = users[0];
     console.log(user);
     expect(user.name).toBe("Some Name");
-    expect(user.discordid).toBe("someId");
-    expect(user.spreadsheetid).toBe("someSpreadsheet");
+    expect(user.discord_id).toBe("someId");
+    expect(user.spreadsheet_id).toBe("someSpreadsheet");
 });
 
 // ==========================
@@ -103,32 +103,27 @@ async function createUserTable()
 {
     let queryInterface = sequelize.getQueryInterface();
     await queryInterface.createTable(
-        "Users", 
+        "users", 
         { 
             "name" : DataTypes.STRING,
-            "discordId": DataTypes.STRING,
-            "spreadsheetId": DataTypes.STRING
+            "discord_id": DataTypes.STRING,
+            "spreadsheet_id": DataTypes.STRING
         }
     );
     await queryInterface.bulkInsert(
-        "Users", 
-        [ { name: "Name One", discordId: "id1", spreadsheetId: "spreadsheet1" } ]
+        "users", 
+        [ { name: "Name One", discord_id: "id1", spreadsheet_id: "spreadsheet1" } ]
     );
 }
 
 async function getUsers()
 {
     let users = await sequelize.query(
-        "SELECT name, discordId, spreadsheetId FROM Users",
+        "SELECT name, discord_id, spreadsheet_id FROM users",
         { 
             type: QueryTypes.SELECT,
             raw: true 
         }
     );
     return users;
-}/*
-
-async function addUser(name, discordId, spreadsheetId)
-{
-    await sequelize.getQueryInterface().bulkInsert("Users", [{ name, discordId, spreadsheetId }]);
-}*/
+}
