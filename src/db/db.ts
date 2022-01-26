@@ -42,7 +42,13 @@ const db = {
             
             // prevent sql queries in console
             let options: Options = {   
+
+                // prevent logging sql queries to the console
                 logging: false,
+
+                // prevent needing quotes on table names
+                quoteIdentifiers: false,
+                
             };
 
             // if using heroku, use ssl
