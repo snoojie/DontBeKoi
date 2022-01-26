@@ -19,6 +19,12 @@
         // allows for [key, value] in map loops
         "downlevelIteration": true,
 
+        // needed for sequelize
+        // https://stackoverflow.com/questions/66315022/typeerror-class-constructor-model-cannot-be-invoked-without-new
+        "target": "ES2021", 
+        "moduleResolution": "Node",
+        "module": "CommonJS",
+
         // type checking
         "allowUnreachableCode": false,
         "strict": true,

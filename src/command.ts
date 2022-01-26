@@ -8,11 +8,20 @@ import Config from "./util/config";
 import { isDefinedString } from "./util/common";
 import * as fs from "fs";
 
+
+export interface Option
+{
+    name: string;
+    description: string;
+}
+
 export interface Command
 {
     name: string;
     description: string;
     execute: (interaction: CommandInteraction) => Promise<string>;
+    options?: Option[];
+    isPrivate?: boolean;
 }
 
 type CommandCollection = Map<string, Command>;
@@ -81,6 +90,11 @@ export class CommandManager
         // so get it
         const COMMAND: Command = this.commands.get(interaction.commandName)!;
 
+        // defer the reply
+        await interaction.deferReply({
+            ephemeral: COMMAND.isPrivate
+        });
+
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
             .catch(error => {
@@ -90,7 +104,7 @@ export class CommandManager
             });
 
         // reply 
-        await interaction.reply(REPLY)
+        await interaction.editReply(REPLY)
             //todo
             //DiscordAPIError: Unknown interaction
             //happens when bot logged in elsewhere
@@ -222,7 +236,18 @@ export class CommandManager
             {
                 commandBuilder = new SlashCommandBuilder()
                     .setName(COMMAND_NAME)
-                    .setDescription(COMMAND.description)
+                    .setDescription(COMMAND.description);
+                if (COMMAND.options)
+                {
+                    for (const OPTION of COMMAND.options)
+                    {
+                        commandBuilder.addStringOption(option => 
+                            option.setName(OPTION.name)
+                                .setDescription(OPTION.description)
+                                .setRequired(true)
+                        );
+                    }
+                }
             }
             catch(error)
             {

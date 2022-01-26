@@ -57,6 +57,27 @@ const UserDal = {
         {
             throw new RethrownError("Could not initialize the User table.", error);
         }
+    },
+
+    setSpreadsheet: async function(
+        discordId: string, name: string, spreadsheetId: string
+    ): Promise<void>
+    {
+        // if the user already exists in the database, update their spreadsheet ID
+        let user: User | null = await User.findOne({ where: { discordId } });
+        if (user)
+        {
+            user.spreadsheetId = spreadsheetId;
+        }
+
+        // otherwise, create a new user
+        else
+        {
+            user = User.build({ discordId, name, spreadsheetId });
+        }
+
+        // save the user in the database
+        await user.save();
     }
 }
 
