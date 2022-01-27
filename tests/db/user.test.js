@@ -99,7 +99,7 @@ describe("Initialize users beforehand.", () => {
     beforeEach(async() => await UserDal.init(sequelize));
 
     test("Can add a new user.", async () => {
-        await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID);
+        await UserDal.saveUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID);
         let users = await getUsers();
         expect(users.length).toBe(1);
         expect(users[0].discord_id).toBe(FIRST_DISCORD_ID);
@@ -108,8 +108,8 @@ describe("Initialize users beforehand.", () => {
     });
 
     test("Can add several new users.", async () => {
-        await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
-        await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID);
+        await UserDal.saveUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
+        await UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID);
 
         let users = await getUsers();
         expect(users.length).toBe(2);
@@ -129,11 +129,11 @@ describe("Initialize users beforehand.", () => {
     describe("Load a user in the user table.", () => {
 
         beforeEach(async() => 
-            await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
+            await UserDal.saveUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
         );
 
         test("Can update a user's name.", async () => {
-            await UserDal.setUser(FIRST_DISCORD_ID, "New Name", FIRST_SPREADSHEET_ID);
+            await UserDal.saveUser(FIRST_DISCORD_ID, "New Name", FIRST_SPREADSHEET_ID);
             let users = await getUsers();
             expect(users.length).toBe(1);
             expect(users[0].name).toBe("New Name");
@@ -142,7 +142,7 @@ describe("Initialize users beforehand.", () => {
         });
 
         test("Can update a user's spreadsheet ID.", async () => {
-            await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, "new spreadsheet ID");
+            await UserDal.saveUser(FIRST_DISCORD_ID, FIRST_NAME, "new spreadsheet ID");
             let users = await getUsers();
             expect(users.length).toBe(1);
             expect(users[0].name).toBe(FIRST_NAME);
@@ -151,7 +151,7 @@ describe("Initialize users beforehand.", () => {
         });
 
         test("Can update both a user's name and spreadsheet ID.", async () => {
-            await UserDal.setUser(FIRST_DISCORD_ID, "New Name", "new spreadsheet ID");
+            await UserDal.saveUser(FIRST_DISCORD_ID, "New Name", "new spreadsheet ID");
             let users = await getUsers();
             expect(users.length).toBe(1);
             expect(users[0].name).toBe("New Name");
@@ -160,7 +160,7 @@ describe("Initialize users beforehand.", () => {
         });
 
         test("Can add two users with the same name.", async () => {
-            await UserDal.setUser(SECOND_DISCORD_ID, FIRST_NAME, SECOND_SPREADSHEET_ID);
+            await UserDal.saveUser(SECOND_DISCORD_ID, FIRST_NAME, SECOND_SPREADSHEET_ID);
             let users = await getUsers();
             expect(users.length).toBe(2);
 
@@ -178,7 +178,7 @@ describe("Initialize users beforehand.", () => {
 
         test("Adding a second user with a duplicate spreadsheet ID causes an error.", async () => {
             await expect(
-                UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, FIRST_SPREADSHEET_ID)
+                UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, FIRST_SPREADSHEET_ID)
             ).rejects.toThrow();
             let users = await getUsers();
             expect(users.length).toBe(1);
@@ -186,11 +186,11 @@ describe("Initialize users beforehand.", () => {
 
         describe("Load a second user in the user table.", () => {
             beforeEach(async() => 
-                await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID)
+                await UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID)
             );
 
             test("Updating a user's name does not change other users.", async () => {
-                await UserDal.setUser(SECOND_DISCORD_ID, "New Name", SECOND_SPREADSHEET_ID);
+                await UserDal.saveUser(SECOND_DISCORD_ID, "New Name", SECOND_SPREADSHEET_ID);
 
                 let users = await getUsers();
 
@@ -207,7 +207,7 @@ describe("Initialize users beforehand.", () => {
             });
 
             test("Updating a user's spreadsheet ID does not change other users.", async () => {
-                await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, "New spreadsheet ID");
+                await UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, "New spreadsheet ID");
 
                 let users = await getUsers();
 

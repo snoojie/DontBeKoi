@@ -59,13 +59,24 @@ const UserDal = {
         }
     },
 
-    setUser: async function(
+    saveUser: async function(
         discordId: string, name: string, spreadsheetId: string
     ): Promise<void>
     {
         // if the user already exists in the database, 
         // update their name and spreadsheet ID
-        let user: User | null = await User.findOne({ where: { discordId } });
+        let user: User | null;
+        try {
+            user = await User.findOne({ where: { discordId } });
+        }
+        catch(error)
+        {
+            throw new RethrownError(
+                "Could not query User table by discord ID. " +
+                "Could the table be set up incorrectly?",
+                error
+            );
+        }
         if (user)
         {
             user.name = name;
@@ -79,7 +90,23 @@ const UserDal = {
         }
 
         // save the user in the database
-        await user.save();
+        try
+        {
+            await user.save();
+        }
+        catch(error)
+        {
+            throw new RethrownError(
+                `Could not save the user ` +
+                `{ ` +
+                    `discord ID: ${discordId}, ` +
+                    `name: ${name}, ` +
+                    `spreadsheet ID: ${spreadsheetId }` +
+                `} ` +
+                `in the database. Could the spreadsheet ID be a duplicate? `,
+                error
+            );
+        }
     }
 }
 
