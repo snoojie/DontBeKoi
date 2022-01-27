@@ -57,7 +57,7 @@ describe("Create user table beforehand.", () => {
 
 async function expectUserTableExists()
 {
-    let tables = await sequelize.query(
+    const TABLES = await sequelize.query(
         "SELECT table_name FROM information_schema.tables WHERE table_name='users'",
         { 
             type: QueryTypes.SELECT, 
@@ -65,15 +65,12 @@ async function expectUserTableExists()
             raw: true 
         }
     );
-    expect(tables.length).toBe(1);
+    expect(TABLES.length).toBe(1);
 }
 
 testColumnExists("name");
 testColumnExists("discord_id");
 testColumnExists("spreadsheet_id");
-
-// helper functions for init
-
 function testColumnExists(column)
 {
     test(`Initializing a new users table creates a ${column} column.`, async () => {
@@ -89,41 +86,145 @@ function testColumnExists(column)
 // =====test addUser=====
 // ======================
 
-describe("Initialize UserDal beforehand.", () => {
+describe("Initialize users beforehand.", () => {
+
+    const FIRST_DISCORD_ID = "first discord id";
+    const FIRST_NAME = "One Name";
+    const FIRST_SPREADSHEET_ID = "1 spreadsheet ID";
+
+    const SECOND_DISCORD_ID = "SEcond discord id";
+    const SECOND_NAME = "secondname";
+    const SECOND_SPREADSHEET_ID = "twospreadsheets";
     
     beforeEach(async() => await UserDal.init(sequelize));
 
-    test("Can add a new record to an empty user table", async () => {
-        await UserDal.setUser("some discord id", "Some Name", "some spreadsheet ID");
+    test("Can add a new user.", async () => {
+        await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID);
         let users = await getUsers();
         expect(users.length).toBe(1);
+        expect(users[0].discord_id).toBe(FIRST_DISCORD_ID);
+        expect(users[0].name).toBe(FIRST_NAME);
+        expect(users[0].spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
     });
 
-    testAddingNewUserSavesField("name");
-    testAddingNewUserSavesField("discord ID");
-    testAddingNewUserSavesField("spreadsheet ID");
-});
+    test("Can add several new users.", async () => {
+        await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
+        await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID);
 
-// helper functions for setUser
-
-function testAddingNewUserSavesField(readableColumn)
-{
-    // change readableColumn to what is shown in the database
-    // ex discord ID -> discord_id
-    let column = readableColumn.toLowerCase().replace(" ", "_");
-
-    let data = {
-        discord_id: "some discord id",
-        name: "Some Name",
-        spreadsheet_id: "some spreadsheet ID"
-    };
-
-    test(`Adding a new user saves their ${readableColumn} in the user table.`, async () => {
-        await UserDal.setUser(data.discord_id, data.name, data.spreadsheet_id);
         let users = await getUsers();
-        expect(users[0][column]).toBe(data[column]);
+        expect(users.length).toBe(2);
+
+        let firstUser = users[0];
+        let secondUser = users[1];
+
+        expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+        expect(firstUser.name).toBe(FIRST_NAME);
+        expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+        expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+        expect(secondUser.name).toBe(SECOND_NAME);
+        expect(secondUser.spreadsheet_id).toBe(SECOND_SPREADSHEET_ID);
     });
-}
+
+    describe("Load a user in the user table.", () => {
+
+        beforeEach(async() => 
+            await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID)
+        );
+
+        test("Can update a user's name.", async () => {
+            await UserDal.setUser(FIRST_DISCORD_ID, "New Name", FIRST_SPREADSHEET_ID);
+            let users = await getUsers();
+            expect(users.length).toBe(1);
+            expect(users[0].name).toBe("New Name");
+            expect(users[0].discord_id).toBe(FIRST_DISCORD_ID);
+            expect(users[0].spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+        });
+
+        test("Can update a user's spreadsheet ID.", async () => {
+            await UserDal.setUser(FIRST_DISCORD_ID, FIRST_NAME, "new spreadsheet ID");
+            let users = await getUsers();
+            expect(users.length).toBe(1);
+            expect(users[0].name).toBe(FIRST_NAME);
+            expect(users[0].discord_id).toBe(FIRST_DISCORD_ID);
+            expect(users[0].spreadsheet_id).toBe("new spreadsheet ID");
+        });
+
+        test("Can update both a user's name and spreadsheet ID.", async () => {
+            await UserDal.setUser(FIRST_DISCORD_ID, "New Name", "new spreadsheet ID");
+            let users = await getUsers();
+            expect(users.length).toBe(1);
+            expect(users[0].name).toBe("New Name");
+            expect(users[0].discord_id).toBe(FIRST_DISCORD_ID);
+            expect(users[0].spreadsheet_id).toBe("new spreadsheet ID");
+        });
+
+        test("Can add two users with the same name.", async () => {
+            await UserDal.setUser(SECOND_DISCORD_ID, FIRST_NAME, SECOND_SPREADSHEET_ID);
+            let users = await getUsers();
+            expect(users.length).toBe(2);
+
+            let firstUser = users[0];
+            let secondUser = users[1];
+
+            expect(firstUser.name).toBe(FIRST_NAME);
+            expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+            expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+            expect(secondUser.name).toBe(FIRST_NAME);
+            expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+            expect(secondUser.spreadsheet_id).toBe(SECOND_SPREADSHEET_ID);
+        });
+
+        test("Adding a second user with a duplicate spreadsheet ID causes an error.", async () => {
+            await expect(
+                UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, FIRST_SPREADSHEET_ID)
+            ).rejects.toThrow();
+            let users = await getUsers();
+            expect(users.length).toBe(1);
+        });
+
+        describe("Load a second user in the user table.", () => {
+            beforeEach(async() => 
+                await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, SECOND_SPREADSHEET_ID)
+            );
+
+            test("Updating a user's name does not change other users.", async () => {
+                await UserDal.setUser(SECOND_DISCORD_ID, "New Name", SECOND_SPREADSHEET_ID);
+
+                let users = await getUsers();
+
+                let firstUser = users[0];
+                let secondUser = users[1];
+
+                expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+                expect(firstUser.name).toBe(FIRST_NAME);
+                expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+                expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+                expect(secondUser.name).toBe("New Name");
+                expect(secondUser.spreadsheet_id).toBe(SECOND_SPREADSHEET_ID);
+            });
+
+            test("Updating a user's spreadsheet ID does not change other users.", async () => {
+                await UserDal.setUser(SECOND_DISCORD_ID, SECOND_NAME, "New spreadsheet ID");
+
+                let users = await getUsers();
+
+                let firstUser = users[0];
+                let secondUser = users[1];
+
+                expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+                expect(firstUser.name).toBe(FIRST_NAME);
+                expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+                expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+                expect(secondUser.name).toBe(SECOND_NAME);
+                expect(secondUser.spreadsheet_id).toBe("New spreadsheet ID");
+            });
+        });
+    });
+});
 
 // ==========================
 // =====helper functions=====
@@ -132,7 +233,7 @@ function testAddingNewUserSavesField(readableColumn)
 async function getUsers()
 {
     let users = await sequelize.query(
-        "SELECT name, discord_id, spreadsheet_id FROM users",
+        "SELECT name, discord_id, spreadsheet_id FROM users ORDER BY discord_id ASC",
         { 
             type: QueryTypes.SELECT,
             raw: true 
