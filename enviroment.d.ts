@@ -8,6 +8,7 @@ declare global
             CLIENT_ID: string | undefined;
             GUILD_ID: string | undefined;
             DATABASE_URL: string | undefined;
+            GOOGLE_API_KEY: string | undefined;
         }
     }
 }

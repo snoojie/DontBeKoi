@@ -8,9 +8,6 @@ export default class RethrownError extends Error
         
         if (this.stack)
         {
-            console.log("=================");
-            console.log(this.stack);
-            console.log("=================");
             
             // Sorcery is happening.
             // Previously, the following statement was true....

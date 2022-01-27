@@ -2,10 +2,11 @@ const Config = require("../../src/util/config").default;
 
 const ORIGINAL_ENV = process.env;
 
-testEnvironmentVariable("Bot token");
+/*testEnvironmentVariable("Bot token");
 testEnvironmentVariable("Client ID");
 testEnvironmentVariable("Guild ID");
-testEnvironmentVariable("Database URL");
+testEnvironmentVariable("Database URL");*/
+testEnvironmentVariable("Google API key");
 
 function testEnvironmentVariable(readableName, envKey)
 {
@@ -13,7 +14,8 @@ function testEnvironmentVariable(readableName, envKey)
 
     // get the environment key
     // in our example, it would be "CLIENT_ID"
-    const ENV_KEY = readableName.toUpperCase().replace(" ", "_");
+    const ENV_KEY = readableName.toUpperCase().replaceAll(" ", "_");
+    console.log("env key: " + ENV_KEY);
 
     // get the method name
     // in our example, it would be "getClientId"
@@ -22,6 +24,7 @@ function testEnvironmentVariable(readableName, envKey)
     {
         methodName += word[0].toUpperCase() + word.slice(1).toLowerCase();
     }
+    console.log("method name: " + methodName);
 
     describe(`${readableName} environment variable`, () => {
 

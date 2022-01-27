@@ -51,6 +51,15 @@ const Config = {
     getDatabaseUrl: function(): string 
     { 
         return get("DATABASE_URL");
+    },
+
+    /**
+     * @returns The database URL.
+     * @throws If DATABASE_URL is not set as an environment variable
+     */
+    getGoogleApiKey: function(): string 
+    { 
+        return get("GOOGLE_API_KEY");
     }
 }
 
