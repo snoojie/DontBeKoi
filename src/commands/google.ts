@@ -21,9 +21,14 @@ const Google: Command = {
         const SPREADSHEET_ID: string = interaction.options.getString("spreadsheet") || "";
 
         // save this user with the spreadsheet ID in the database
-        await UserDal.saveUser(
-            interaction.user.id, interaction.user.username, SPREADSHEET_ID
-        );
+        try {
+            await UserDal.saveUser(
+                interaction.user.id, interaction.user.username, SPREADSHEET_ID
+            );
+        } catch(error)
+        {
+            return "todo";
+        }
 
         return `Updated your spreadsheet to ${SPREADSHEET_ID}`;
     }

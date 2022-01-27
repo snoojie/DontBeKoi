@@ -12,12 +12,13 @@ console.log("===============");
     "postgres://postgres:478963@localhost:5432/playground", 
     { 
         quoteIdentifiers: false,
+        logging: false,
         define: { underscored: true } 
     }
 );
 UserDal.init(sequelize)
 .then(_ => console.log("============initialized============"))
-.then(_ => UserDal.saveUser("did", "my name", "sid") )
+.then(_ => UserDal.saveUser("did8", "my name", "sid8") )
 .then(_ => console.log("============User 1 added============"))
 .then(_ => sequelize.close())
 .then(_ => console.log("============closed============"))
