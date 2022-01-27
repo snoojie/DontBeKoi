@@ -8,7 +8,13 @@ export default class RethrownError extends Error
         
         if (this.stack)
         {
+            console.log("=================");
+            console.log(this.stack);
+            console.log("=================");
             
+            // Sorcery is happening.
+            // Previously, the following statement was true....
+            //
             // by default, the stacktrace will look something like
             // RethrownError: Couldn't get spreadsheet
             //     at new RethrownError (...\dontbekoi\src\util\rethrownError.ts:5:9)
@@ -16,8 +22,14 @@ export default class RethrownError extends Error
             //     at doStuff (...\dontbekoi\src\index.ts:19:6)
             //     ...continue stacktrace here...
             // we want to remove the "at new MyError" line because why is it even there!?
+            //
+            // ....but now, the stacktrace doesn't include the "at new RethrownError"
+            // why? Maybe a change to tsconfig? 
+            // No clue. Either way, commenting out the code that removes the first line
+            // since apparently it isn't needed anymore.
+
             let steps: string[] = this.stack.split("\n");
-            steps.splice(1, 1);
+            //steps.splice(1, 1);
 
             // keep only the first two lines so we have
             // RethrownError: Couldn't get spreadsheet
