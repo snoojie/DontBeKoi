@@ -31,7 +31,7 @@ const GoogleCommand: Command = {
             {
                 return `Spreadsheet ID ${SPREADSHEET_ID} is not valid. ` +
                     `You can find the ID in the URL. For example, spreadsheet ` +
-                    `https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing ` +
+                    `<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> ` +
                     `has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo`;
             }
         }
@@ -51,7 +51,9 @@ const GoogleCommand: Command = {
             );
         } catch(error)
         {
-            throw new RethrownError("Issue saving user.", error);
+            throw new RethrownError(
+                "Could not register spreadsheet due to issue saving user.", error
+            );
         }
 
         return `Updated your spreadsheet to ${SPREADSHEET_ID}`;
