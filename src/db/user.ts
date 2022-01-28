@@ -39,8 +39,7 @@ const UserDal = {
                 },
                 spreadsheetId: {
                     type: DataTypes.STRING,
-                    allowNull: false,
-                    unique: true
+                    allowNull: false
                 }
             },
             {
@@ -100,23 +99,7 @@ const UserDal = {
         }
 
         // save the user in the database
-        try
-        {
-            await user.save();
-        }
-        catch(error)
-        {
-            throw new RethrownError(
-                `Could not save the user ` +
-                `{ ` +
-                    `discord ID: ${discordId}, ` +
-                    `name: ${name}, ` +
-                    `spreadsheet ID: ${spreadsheetId }` +
-                `} ` +
-                `in the database. Could the spreadsheet ID be a duplicate? `,
-                error
-            );
-        }
+        await user.save();
     }
 }
 

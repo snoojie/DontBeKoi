@@ -176,12 +176,38 @@ describe("Initialize users beforehand.", () => {
             expect(secondUser.spreadsheet_id).toBe(SECOND_SPREADSHEET_ID);
         });
 
-        test("Adding a second user with a duplicate spreadsheet ID causes an error.", async () => {
-            await expect(
-                UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, FIRST_SPREADSHEET_ID)
-            ).rejects.toThrow();
+        test("Can add two users with the same spreadsheet ID.", async () => {
+            await UserDal.saveUser(SECOND_DISCORD_ID, SECOND_NAME, FIRST_SPREADSHEET_ID);
             let users = await getUsers();
-            expect(users.length).toBe(1);
+            expect(users.length).toBe(2);
+
+            let firstUser = users[0];
+            let secondUser = users[1];
+
+            expect(firstUser.name).toBe(FIRST_NAME);
+            expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+            expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+            expect(secondUser.name).toBe(SECOND_NAME);
+            expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+            expect(secondUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+        });
+
+        test("Can add two users with both the same name and same spreadsheet ID.", async () => {
+            await UserDal.saveUser(SECOND_DISCORD_ID, FIRST_NAME, FIRST_SPREADSHEET_ID);
+            let users = await getUsers();
+            expect(users.length).toBe(2);
+
+            let firstUser = users[0];
+            let secondUser = users[1];
+
+            expect(firstUser.name).toBe(FIRST_NAME);
+            expect(firstUser.discord_id).toBe(FIRST_DISCORD_ID);
+            expect(firstUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
+
+            expect(secondUser.name).toBe(FIRST_NAME);
+            expect(secondUser.discord_id).toBe(SECOND_DISCORD_ID);
+            expect(secondUser.spreadsheet_id).toBe(FIRST_SPREADSHEET_ID);
         });
 
         describe("Load a second user in the user table.", () => {

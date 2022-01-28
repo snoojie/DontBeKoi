@@ -1,8 +1,10 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
 import UserDal from "../db/user";
+import Google from "../google/google";
+import RethrownError from "../util/rethrownError";
 
-const Google: Command = {
+const GoogleCommand: Command = {
 
     name: "google",
 
@@ -20,6 +22,28 @@ const Google: Command = {
         // get the value of the spreadsheet option
         const SPREADSHEET_ID: string = interaction.options.getString("spreadsheet") || "";
 
+        // make sure this is a valid spreadsheet
+        try 
+        {
+            const IS_SPREADSHEET_VALID: boolean = 
+                await Google.validateSpreadsheetId(SPREADSHEET_ID);
+            if (!IS_SPREADSHEET_VALID)
+            {
+                return `Spreadsheet ID ${SPREADSHEET_ID} is not valid. ` +
+                    `You can find the ID in the URL. For example, spreadsheet ` +
+                    `https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing ` +
+                    `has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo`;
+            }
+        }
+        catch(error)
+        {
+            throw new RethrownError(
+                "Could not register spreadsheet due to an issue when validating it: " +
+                SPREADSHEET_ID, 
+                error
+            );
+        }
+
         // save this user with the spreadsheet ID in the database
         try {
             await UserDal.saveUser(
@@ -27,7 +51,7 @@ const Google: Command = {
             );
         } catch(error)
         {
-            return "todo";
+            throw new RethrownError("Issue saving user.", error);
         }
 
         return `Updated your spreadsheet to ${SPREADSHEET_ID}`;
@@ -35,4 +59,4 @@ const Google: Command = {
 
 };
 
-export default Google;
+export default GoogleCommand;

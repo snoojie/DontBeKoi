@@ -40,17 +40,6 @@ const Google = {
                 {
                     return false;
                 }
-
-                // 400 should accompany error.message
-                // "API key not valid. Please pass a valid API key."
-                if (error.code == "400")
-                {
-                    throw new RethrownError(
-                        "Could not validate spreadsheet. " + 
-                        "Could Google API key be invalid?", 
-                        error
-                    );
-                }
             }
             
             // unknown error
