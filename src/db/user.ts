@@ -16,6 +16,8 @@ class User extends Model<UserAttributes> implements UserAttributes
 }
 
 const UserDal = {
+
+    name: "User",
     
     /**
      * Initializes the User table.
@@ -42,9 +44,7 @@ const UserDal = {
                     allowNull: false
                 }
             },
-            {
-                sequelize
-            }
+            { sequelize }
         );
 
         // create the table if it doesn't exist yet

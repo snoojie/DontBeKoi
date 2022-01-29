@@ -1,6 +1,7 @@
 import { Options, Sequelize } from "sequelize";
 import Config from "../util/config";
 import RethrownError from "../util/rethrownError";
+import PatternDal from "./pattern";
 import UserDal from "./user";
 
 let sequelize: Sequelize | undefined;
@@ -79,19 +80,23 @@ const db = {
             );
         }
 
-        // init the User model
-        try
+        // init the tables
+        for (const DAL of [UserDal, PatternDal])
         {
-            await UserDal.init(sequelize);
+            try
+            {
+                // note we already know sequelize is defined
+                // as this was set up in the caller function db.start()
+                await DAL.init(sequelize!);
+            }
+            catch(error)
+            {
+                throw new RethrownError(
+                    `Could not start the database. Error initiailizing ${DAL.name} table.`, 
+                    error
+                );
+            }
         }
-        catch(error)
-        {
-            throw new RethrownError(
-                "Could not initialize the database. Error initiailizing User table.", 
-                error
-            );
-        }
-        
     },
 
     stop: async function() 
