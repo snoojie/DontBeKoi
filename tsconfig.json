@@ -25,6 +25,11 @@
         "moduleResolution": "Node",
         "module": "CommonJS",
 
+        // Don't automatically include anything.
+        // Only include `@types` packages that we need to import.
+        // Taken from https://github.com/microsoft/TypeScript/wiki/Performance
+        "types" : [],
+
         // type checking
         "allowUnreachableCode": false,
         "strict": true,
@@ -32,7 +37,7 @@
         "noImplicitReturns": true,
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedParameters": true
     },
 
     // exclude the tests/ directory from appearing in build/
