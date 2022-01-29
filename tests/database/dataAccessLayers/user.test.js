@@ -1,6 +1,6 @@
 const { DataTypes, QueryTypes, Sequelize } = require("sequelize");
-const UserDal = require("../../src/db/user").default;
-const { dropAllTables, initSequelize } = require("../_setup/db");
+const UserDal = require("../../../src/database/dataAccessLayers/user").default;
+const { dropAllTables, initSequelize } = require("../../_setup/database");
 
 let sequelize;
 

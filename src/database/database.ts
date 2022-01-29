@@ -1,19 +1,18 @@
 import { Options, Sequelize } from "sequelize";
 import Config from "../util/config";
 import RethrownError from "../util/rethrownError";
-import PatternDal from "./pattern";
-import UserDal from "./user";
+import UserDal from "./dataAccessLayers/user";
 
 let sequelize: Sequelize | undefined;
 
-const db = {
+const Database = {
 
     /**
      * Initialize the database.
      */
     start: async function(): Promise<void>
     {
-        // if the db is already running,
+        // if the database is already running,
         // there is nothing to do
         if (sequelize)
         {
@@ -23,10 +22,10 @@ const db = {
         }
 
         // get the database URL
-        let dbUrl: string;
+        let url: string;
         try
         {
-            dbUrl = Config.getDatabaseUrl();
+            url = Config.getDatabaseUrl();
         }
         catch(error)
         {
@@ -54,7 +53,7 @@ const db = {
             };
 
             // if using heroku, use ssl
-            if (dbUrl.indexOf("@localhost") < 0)
+            if (url.indexOf("@localhost") < 0)
             {
                 options.dialectOptions = {
                     ssl: {
@@ -65,7 +64,7 @@ const db = {
             }
 
             // create sequelize instance
-            sequelize = new Sequelize(dbUrl, options);
+            sequelize = new Sequelize(url, options);
 
             // we run authetnicate because creating a sequelize instance
             // does not check if user, database name, etc, are valid
@@ -75,18 +74,18 @@ const db = {
         {
             throw new RethrownError(
                 `Could not connect to database. ` +
-                `Could the database URL be wrong? ${dbUrl}`, 
+                `Could the database URL be wrong? ${url}`, 
                 error
             );
         }
 
         // init the tables
-        for (const DAL of [UserDal, PatternDal])
+        for (const DAL of [UserDal])
         {
             try
             {
                 // note we already know sequelize is defined
-                // as this was set up in the caller function db.start()
+                // as this was set up in the caller function Database.start()
                 await DAL.init(sequelize!);
             }
             catch(error)
@@ -109,4 +108,4 @@ const db = {
     }
 }
 
-export default db;
+export default Database;

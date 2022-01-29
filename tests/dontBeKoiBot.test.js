@@ -65,7 +65,7 @@ describe("No database URL in env", () => {
     });
     afterAll(() => process.env = ORIGINAL_ENV);
     
-    test("Starting a bot with a failed db connection errors.", async () =>  {
+    test("Starting a bot with a failed database connection errors.", async () =>  {
         await expect(bot.start()).rejects.toThrow();
     }, TIMEOUT);
 

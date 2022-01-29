@@ -4,7 +4,7 @@ import Logger from "./util/logger";
 import RethrownError from "./util/rethrownError";
 import { sleep } from "./util/common";
 import { CommandManager } from "./command";
-import db from "./db/db";
+import Database from "./database/database";
 
 let discord: Client = getNewDiscordClient();
 
@@ -81,7 +81,7 @@ const Bot = {
         
         // login
         // cannot do this at the same time as setting up database with awaitingOn
-        // for some reason, if the db fails, if we logged in at the same time,
+        // for some reason, if the database fails, if we logged in at the same time,
         // the program will hang
         await login()
             .then(_ => Logger.log("...Logged into discord."))
@@ -108,7 +108,7 @@ const Bot = {
         );
 
         // set up database
-        awaitingOn.push(db.start()
+        awaitingOn.push(Database.start()
             .then(_ => Logger.log("...Database set up."))
             .catch(error => {
                 throw new RethrownError(
@@ -146,7 +146,7 @@ const Bot = {
         discord.destroy();
         discord = getNewDiscordClient();
 
-        await db.stop();
+        await Database.stop();
 
         isBotOn = false;
 

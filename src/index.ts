@@ -1,6 +1,6 @@
 import Logger from "./util/logger";
 import bot from "./dontBeKoiBot";
-//import UserDal from "./db/user";
+//import UserDal from "./database/dataAccessLayers/user";
 //import { Sequelize } from "sequelize";
 //import Google from "./google/google";
 

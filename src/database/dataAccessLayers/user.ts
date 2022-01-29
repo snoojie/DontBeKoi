@@ -1,19 +1,6 @@
-import { DataTypes, Model, Sequelize } from "sequelize";
-import RethrownError from "../util/rethrownError";
-
-interface UserAttributes
-{
-    discordId: string;
-    name: string;
-    spreadsheetId: string;
-}
-
-class User extends Model<UserAttributes> implements UserAttributes
-{
-    public discordId!: string;
-    public name!: string;
-    public spreadsheetId!: string;
-}
+import { Sequelize } from "sequelize";
+import RethrownError from "../../util/rethrownError";
+import { User, initModel } from "../models/user";
 
 const UserDal = {
 
@@ -28,24 +15,7 @@ const UserDal = {
     {
 
         // initialize the model
-        User.init(
-            {
-                discordId: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                    unique: true
-                },
-                name: {
-                    type: DataTypes.STRING,
-                    allowNull: false
-                },
-                spreadsheetId: {
-                    type: DataTypes.STRING,
-                    allowNull: false
-                }
-            },
-            { sequelize }
-        );
+        initModel(sequelize);
 
         // create the table if it doesn't exist yet
         try

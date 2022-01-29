@@ -1,11 +1,11 @@
-const Database = require("../../src/db/db").default;
-const { dropAllTables, DATABASE_URL } = require("../_setup/db");
+const Database = require("../../src/database/database").default;
+const { dropAllTables, DATABASE_URL } = require("../_setup/database");
 
 // before any test runs,
 // change the database URL in environment variable to a test database
 beforeAll(() => process.env.DATABASE_URL = DATABASE_URL);
 
-// for each test, make sure it starts with no tables in the db
+// for each test, make sure it starts with no tables in the database
 beforeEach(async() => await dropAllTables());
 
 // after each test, stop the database in case a test doesn't

@@ -1,6 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import UserDal from "../db/user";
+import UserDal from "../database/dataAccessLayers/user";
 import Google from "../google/google";
 import RethrownError from "../util/rethrownError";
 
