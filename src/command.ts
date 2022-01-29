@@ -118,25 +118,26 @@ export class CommandManager
     {
         // confirm the commands/ directory exists
         const DIRECTORY: string = "commands";
-        const DIRECTORY_RELATIVE_PATH: string = `./src/${DIRECTORY}`;
-        if (!fs.existsSync(DIRECTORY_RELATIVE_PATH))
+        const DIRECTORY_FULL_PATH: string = `${__dirname}/${DIRECTORY}`;
+        if (!fs.existsSync(DIRECTORY_FULL_PATH))
         {
             throw new Error(
                 "Cannot init commands. The commands directory is missing."
             );
         }
 
-        const FILES: string[] = fs.readdirSync(DIRECTORY_RELATIVE_PATH);
+        const FILES: string[] = fs.readdirSync(DIRECTORY_FULL_PATH);
         for (const FILE of FILES)
         {
-            // remove the .js extension
-            if (FILE.endsWith(".js") || FILE.length < 3)
+
+            // ignore non js files
+            // this could happen if there's a .js.map file
+            if (!FILE.endsWith(".js"))
             {
-                throw new Error(
-                    `Cannot init commands. The command directory has a file that ` +
-                    `isn't javascript: ${FILE}`
-                );
+                continue;
             }
+
+            // remove the .js extension
             const FILE_RELATIVE_PATH: string = `./${DIRECTORY}/${FILE.slice(0,-3)}`;
 
             // import the script
