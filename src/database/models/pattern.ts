@@ -27,7 +27,8 @@ export function initModel(sequelize: Sequelize): void
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                unique: true
+                unique: true,
+                primaryKey: true
             },
             hatchTime: {
                 type: DataTypes.INTEGER,

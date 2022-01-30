@@ -21,7 +21,7 @@ const PatternDal = {
         // create the tables if they don't exist yet
         try
         {
-            await Pattern.sync();
+            await Pattern.sync({ force: true });
         }
         catch(error)
         {

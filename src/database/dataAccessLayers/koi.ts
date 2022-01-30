@@ -35,7 +35,8 @@ const KoiDal = {
         {
             kois.push({
                 name: KOI.name,
-                rarity: KOI.rarity
+                rarity: KOI.rarity,
+                pattern: KOI.pattern
             });
         }
         await Koi.bulkCreate(kois, { ignoreDuplicates: true });

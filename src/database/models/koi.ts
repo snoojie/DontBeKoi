@@ -1,16 +1,20 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { Rarity } from "../../types";
+import { Pattern } from "./pattern";
 
 export interface KoiAttributes
 {
     name: string;
     rarity: Rarity;
+    pattern: string;
+
 }
 
 export class Koi extends Model<KoiAttributes> implements KoiAttributes
 {
     declare name: string;
     declare rarity: Rarity;
+    declare pattern: string;
 }
 
 /**
@@ -29,8 +33,15 @@ export function initModel(sequelize: Sequelize): void
             rarity: {
                 type: DataTypes.STRING,
                 allowNull: false
+            },
+            pattern: {
+                type: DataTypes.STRING,
+                allowNull: false
             }
         },
         { sequelize }
     );
+
+    Pattern.hasMany(Koi, { foreignKey: "pattern" });
+    Koi.belongsTo(Pattern);
 }
