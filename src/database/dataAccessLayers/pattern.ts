@@ -19,17 +19,16 @@ const PatternDal = {
         initModel(sequelize);
 
         // create the table if it doesn't exist yet
-        // todo
         try
         {
-            await Pattern.sync({force: true});
+            await Pattern.sync();
         }
         catch(error)
         {
             throw new RethrownError("Could not initialize the Pattern table.", error);
         }
 
-        // populate table with patterns
+        // add new patterns to the table
         const OVERVIEW_SHEET: Overview = await CommunitySpreadsheet.getOverview();
         let patterns: PatternAttributes[] = [];
         for (const ROW of OVERVIEW_SHEET)
@@ -40,7 +39,7 @@ const PatternDal = {
                 hatchTime: ROW.hatchTime == undefined ? null : ROW.hatchTime
             });
         }
-        await Pattern.bulkCreate(patterns);
+        await Pattern.bulkCreate(patterns, { ignoreDuplicates: true } );
     }
 }
 
