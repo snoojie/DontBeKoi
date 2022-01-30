@@ -3,6 +3,7 @@ import Config from "../util/config";
 import RethrownError from "../util/rethrownError";
 import PatternDal from "./dataAccessLayers/pattern";
 import UserDal from "./dataAccessLayers/user";
+import KoiDal from "./dataAccessLayers/koi";
 
 let sequelize: Sequelize | undefined;
 
@@ -81,7 +82,7 @@ const Database = {
         }
 
         // init the tables
-        for (const DAL of [UserDal, PatternDal])
+        for (const DAL of [UserDal, PatternDal, KoiDal])
         {
             try
             {

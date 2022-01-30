@@ -1,8 +1,7 @@
 import Logger from "./util/logger";
 import bot from "./dontBeKoiBot";
-//import UserDal from "./database/dataAccessLayers/user";
+//import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
 //import { Sequelize } from "sequelize";
-//import Spreadsheet from "./google/spreadsheet";
 
 console.log("===============");
 console.log("===============");
@@ -10,9 +9,11 @@ console.log("===============");
 console.log("===============");
 
 
-/*Spreadsheet.getValues("1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo", "Overview!A4:I")
-    .then((_) => { 
+/*CommunitySpreadsheet.getProgressives()
+    .then((data) => { 
         //Logger.log(JSON.stringify(data));
+        Logger.log(data[0]!.kois[17]);
+        //Logger.log(JSON.stringify(data!.get("Inazuma")));
         Logger.log("DONE");
     })
     .catch(Logger.error);*/
