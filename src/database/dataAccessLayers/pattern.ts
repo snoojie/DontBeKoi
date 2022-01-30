@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import { CommunitySpreadsheet, Overview } from "../../google/communitySpreadsheet";
 import RethrownError from "../../util/rethrownError";
-import { Pattern, initModel, Type, PatternAttributes } from "../models/pattern";
+import { Pattern, initModel, PatternAttributes } from "../models/pattern";
 
 const PatternDal = {
 
@@ -37,8 +37,8 @@ const PatternDal = {
         {
             patterns.push({
                 name: ROW.name, 
-                type: Type.Collector, 
-                hatchTime: ROW.hatchTime
+                type: ROW.type,
+                hatchTime: 10
             });
         }
         await Pattern.bulkCreate(patterns);

@@ -1,23 +1,20 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-
-export enum Type
-{
-    Progressive,
-    Collector
-}
+import { PatternType } from "../../types";
 
 export interface PatternAttributes
 {
     name: string;
+    type: PatternType;
     hatchTime: number;
-    type: Type;
 }
+
+//interface PatternCreationAttributes extends Optional<PatternAttributes, "hatchTime"> {}
 
 export class Pattern extends Model<PatternAttributes> implements PatternAttributes
 {
     public name!: string;
     public hatchTime!: number;
-    public type!: Type;
+    public type!: PatternType;
 }
 
 /**
