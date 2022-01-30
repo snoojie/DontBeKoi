@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import { CommunitySpreadsheet, Overview } from "../../google/communitySpreadsheet";
 import RethrownError from "../../util/rethrownError";
-import { Pattern, initModel, Type } from "../models/pattern";
+import { Pattern, initModel, Type, PatternAttributes } from "../models/pattern";
 
 const PatternDal = {
 
@@ -19,9 +19,10 @@ const PatternDal = {
         initModel(sequelize);
 
         // create the table if it doesn't exist yet
+        // todo
         try
         {
-            await Pattern.sync()
+            await Pattern.sync({force: true});
         }
         catch(error)
         {
@@ -31,16 +32,16 @@ const PatternDal = {
         // populate table with collector patterns
         const OVERVIEW_SHEET: Overview = await CommunitySpreadsheet.getOverview();
 
+        let patterns: PatternAttributes[] = [];
         for (const ROW of OVERVIEW_SHEET)
         {
-            //console.log(ROW);
-            await Pattern.create({
+            patterns.push({
                 name: ROW.name, 
                 type: Type.Collector, 
                 hatchTime: ROW.hatchTime
             });
         }
-
+        await Pattern.bulkCreate(patterns);
     }
 }
 

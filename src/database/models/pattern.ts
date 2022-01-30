@@ -6,7 +6,7 @@ export enum Type
     Collector
 }
 
-interface PatternAttributes
+export interface PatternAttributes
 {
     name: string;
     hatchTime: number;
