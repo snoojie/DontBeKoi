@@ -15,10 +15,12 @@ export const CommunitySpreadsheet = {
     
     getOverview: async function(): Promise<Overview>
     {
-        let collectorOverview: Overview = await getOverview(PatternType.Collector);
-        let progressiveOverview: Overview = await getOverview(PatternType.Progressive);
-        let overview: Overview = collectorOverview.concat(progressiveOverview);
-        return overview;
+        const OVERVIEW_PROMISES: Promise<Overview>[] = [
+            getOverview(PatternType.Collector),
+            getOverview(PatternType.Progressive)
+        ];
+        const OVERVIEW: Overview = (await Promise.all(OVERVIEW_PROMISES)).flat();
+        return OVERVIEW;
     }
 
 }

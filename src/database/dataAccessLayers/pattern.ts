@@ -29,9 +29,8 @@ const PatternDal = {
             throw new RethrownError("Could not initialize the Pattern table.", error);
         }
 
-        // populate table with collector patterns
+        // populate table with patterns
         const OVERVIEW_SHEET: Overview = await CommunitySpreadsheet.getOverview();
-
         let patterns: PatternAttributes[] = [];
         for (const ROW of OVERVIEW_SHEET)
         {
