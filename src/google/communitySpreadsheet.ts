@@ -10,6 +10,12 @@ export type OverviewEntry = {
 };
 export type Overview = OverviewEntry[];
 
+export type SpreadsheetKoi = {
+    name: string;
+    rarity: Rarity;
+    pattern: string;
+}
+
 export type Koi = {
     name: string;
     rarity: Rarity;
@@ -32,7 +38,7 @@ export const CommunitySpreadsheet = {
         return OVERVIEW;
     },
 
-    getProgressives: async function(): Promise<Pattern[]>
+    getProgressives: async function(): Promise<SpreadsheetKoi[]>
     {
         // get the values from the spreadsheet
         const TABLE: string[][] = 
@@ -46,16 +52,23 @@ export const CommunitySpreadsheet = {
         // Aka-    |        |       |      |       | |        |       |       |
         // Ku -    |        |       |      |       | |        |       |       |
 
-        // get the list of progressive pattern names
-        let names: string[] = [];
+        // get the list of progressive patterns
+        let patterns: string[] = [];
         for (let i=0; i<=TABLE.length; i+=7)
         {
-            const NAME: string = TABLE[i]![0] || "";
-            if (!NAME)
+            for (let j=0; j<3; j++)
             {
-                throw new Error("Missing name for progressive pattern in row " + i);
+                const COLUMN_INDEX: number = 11 * j;
+                const PATTERN: string = TABLE[i]![COLUMN_INDEX] || "";
+                if (!PATTERN)
+                {
+                    throw new Error(
+                        `Missing name for progressive pattern in (row, column) ` +
+                        `(${i}, ${COLUMN_INDEX}).`
+                    );
+                }
+                patterns.push(PATTERN);
             }
-            names.push(NAME);
         }
 
         // get the base colors
@@ -77,32 +90,34 @@ export const CommunitySpreadsheet = {
             baseColors.push(baseColor);
         }
 
-        // get the common kois
+        // get the highlight colors
         const HIGHLIGHT_ROW: string[] = TABLE[1]!;
-        const COMMON_KOIS: Koi[] = getKoiCollection(baseColors, HIGHLIGHT_ROW, Rarity.Common);
-
-        // get the rare kois
-        const RARE_KOIS: Koi[] = getKoiCollection(baseColors, HIGHLIGHT_ROW, Rarity.Rare);
-
-        // merge the common and rare kois into one list
-        const KOIS: Koi[] = COMMON_KOIS.concat(RARE_KOIS);
+        const COMMON_HIGHLIGHT_COLORS: string[] = 
+            getHighlightColors(HIGHLIGHT_ROW, Rarity.Common);
+        const RARE_HIGHLIGHT_COLORS: string[] = 
+            getHighlightColors(HIGHLIGHT_ROW, Rarity.Rare);
 
         // we have all the info about progressives!
-        let progressives: Pattern[] = [];
-        for (const NAME of names)
+        let progressives: SpreadsheetKoi[] = [];
+        for (const PATTERN of patterns)
         {
-            progressives.push({
-                name: NAME, 
-                kois: KOIS
-            });
+            for (const BASE_COLOR of baseColors)
+            {
+                progressives = progressives.concat(
+                    getKois(BASE_COLOR, COMMON_HIGHLIGHT_COLORS, Rarity.Common, PATTERN),
+                    getKois(BASE_COLOR, RARE_HIGHLIGHT_COLORS,   Rarity.Rare,   PATTERN)
+                );
+            }
         }
 
         return progressives;
-    }
+    },
+
+
 
 }
 
-function getKoiCollection(baseColors: string[], highlightRow: string[], rarity: Rarity): Koi[]
+function getHighlightColors(highlightRow: string[], rarity: Rarity): string[]
 {
     // common highlight colors are in columns 1-4
     // rare highlight colors are in columns 6-9
@@ -125,19 +140,21 @@ function getKoiCollection(baseColors: string[], highlightRow: string[], rarity: 
 
         highlightColors.push(highlightColor);
     }
+    
+    return highlightColors;
+}
 
-    let kois: Koi[] = [];
-    for (const BASE_COLOR of baseColors)
+function getKois(baseColor: string, highlightColors: string[], rarity: Rarity, pattern: string): SpreadsheetKoi[]
+{
+    let kois: SpreadsheetKoi[] = [];
+    for (const HIGHLIGHT_COLOR of highlightColors)
     {
-        for (const HIGHLIGHT_COLOR of highlightColors)
-        {
-            kois.push({
-                name: BASE_COLOR + HIGHLIGHT_COLOR,
-                rarity: rarity
-            });
-        }
+        kois.push({
+            name: baseColor + HIGHLIGHT_COLOR,
+            rarity: rarity,
+            pattern: pattern
+        });
     }
-
     return kois;
 }
 

@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import { CommunitySpreadsheet } from "../../google/communitySpreadsheet";
+import { CommunitySpreadsheet, SpreadsheetKoi } from "../../google/communitySpreadsheet";
 import RethrownError from "../../util/rethrownError";
 import { initModel, Koi, KoiAttributes } from "../models/koi";
 
@@ -21,24 +21,22 @@ const KoiDal = {
         // create the table if they don't exist yet
         try
         {
-            await Koi.sync();
+            await Koi.sync({ force: true });
         }
         catch(error)
         {
             throw new RethrownError("Could not initialize the Koi table.", error);
         }
 
-        const PROGRESSIVES = await CommunitySpreadsheet.getProgressives();
+        const PROGRESSIVES: SpreadsheetKoi[] = 
+            await CommunitySpreadsheet.getProgressives();
         let kois: KoiAttributes[] = [];
-        for (const PROGRESSIVE of PROGRESSIVES)
+        for (const KOI of PROGRESSIVES)
         {
-            for (const KOI of PROGRESSIVE.kois)
-            {
-                kois.push({
-                    name: KOI.name,
-                    rarity: KOI.rarity
-                });
-            }
+            kois.push({
+                name: KOI.name,
+                rarity: KOI.rarity
+            });
         }
         await Koi.bulkCreate(kois, { ignoreDuplicates: true });
 
