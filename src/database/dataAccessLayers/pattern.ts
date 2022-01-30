@@ -37,7 +37,7 @@ const PatternDal = {
             patterns.push({
                 name: ROW.name, 
                 type: ROW.type,
-                hatchTime: 10
+                hatchTime: ROW.hatchTime == undefined ? null : ROW.hatchTime
             });
         }
         await Pattern.bulkCreate(patterns);

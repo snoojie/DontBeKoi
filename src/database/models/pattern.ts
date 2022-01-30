@@ -5,16 +5,14 @@ export interface PatternAttributes
 {
     name: string;
     type: PatternType;
-    hatchTime: number;
+    hatchTime: number | null;
 }
-
-//interface PatternCreationAttributes extends Optional<PatternAttributes, "hatchTime"> {}
 
 export class Pattern extends Model<PatternAttributes> implements PatternAttributes
 {
-    public name!: string;
-    public hatchTime!: number;
-    public type!: PatternType;
+    declare name: string;
+    declare type: PatternType;
+    declare hatchTime: number | null;
 }
 
 /**

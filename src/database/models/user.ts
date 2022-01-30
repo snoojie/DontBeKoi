@@ -9,9 +9,9 @@ interface UserAttributes
 
 export class User extends Model<UserAttributes> implements UserAttributes
 {
-    public discordId!: string;
-    public name!: string;
-    public spreadsheetId!: string;
+    declare discordId: string;
+    declare name: string;
+    declare spreadsheetId: string;
 }
 
 /**
