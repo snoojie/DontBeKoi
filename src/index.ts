@@ -2,7 +2,7 @@ import Logger from "./util/logger";
 import bot from "./dontBeKoiBot";
 //import UserDal from "./database/dataAccessLayers/user";
 //import { Sequelize } from "sequelize";
-//import Google from "./google/google";
+//import Spreadsheet from "./google/spreadsheet";
 
 console.log("===============");
 console.log("===============");
@@ -10,8 +10,11 @@ console.log("===============");
 console.log("===============");
 
 
-/*Google.validateSpreadsheetId("1A98i8OxxBrYNfmgOaF638qcyA-K8HXQv3dZjhcjx7iM")
-    .then(Logger.log)
+/*Spreadsheet.getValues("1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo", "Overview!A4:I")
+    .then((_) => { 
+        //Logger.log(JSON.stringify(data));
+        Logger.log("DONE");
+    })
     .catch(Logger.error);*/
 
 

@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
+import { CommunitySpreadsheet, Overview } from "../../google/communitySpreadsheet";
 import RethrownError from "../../util/rethrownError";
-import { Pattern, initModel } from "../models/pattern";
+import { Pattern, initModel, Type } from "../models/pattern";
 
 const PatternDal = {
 
@@ -26,6 +27,20 @@ const PatternDal = {
         {
             throw new RethrownError("Could not initialize the Pattern table.", error);
         }
+
+        // populate table with collector patterns
+        const OVERVIEW_SHEET: Overview = await CommunitySpreadsheet.getOverview();
+
+        for (const ROW of OVERVIEW_SHEET)
+        {
+            //console.log(ROW);
+            await Pattern.create({
+                name: ROW.name, 
+                type: Type.Collector, 
+                hatchTime: ROW.hatchTime
+            });
+        }
+
     }
 }
 

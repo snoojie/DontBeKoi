@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-enum Type
+export enum Type
 {
     Progressive,
     Collector
