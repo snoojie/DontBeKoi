@@ -102,6 +102,7 @@ const DataAccessLayer = {
             const HAS_KOI: boolean = await UserSpreadsheet.hasKoi(
                 USER.spreadsheetId, koiName, patternName, PATTERN.type
             );
+            console.log(HAS_KOI);
             if (!HAS_KOI)
             {
                 discordUsers.push(USER.discordId);

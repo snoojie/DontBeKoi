@@ -28,7 +28,7 @@ bot.start()
 });*/
 
 Database.start()
-    .then(_ => DataAccessLayer.getDiscordUsersMissingKoi("Shigin", "Aishite"))
+    .then(_ => DataAccessLayer.getDiscordUsersMissingKoi("neshiro", "natsu"))
     .then(Logger.log)
     .then(_ => Database.stop())
     .catch(Logger.error);
