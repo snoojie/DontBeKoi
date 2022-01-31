@@ -48,6 +48,38 @@ const DataAccessLayer = {
         await user.save();
     },
 
+    validatePattern: async function(patternName: string): Promise<boolean>
+    {
+        const PATTERN: Pattern | null = await Pattern.findOne({ 
+            where: { name: patternName }
+        });
+
+        return PATTERN != null;
+    },
+
+    validateKoi: async function(koiName: string, patternName: string): Promise<boolean>
+    {
+        const PATTERN: Pattern | null = await Pattern.findOne({ 
+            where: { name: patternName },
+            include: [ Pattern.associations.kois ]
+        });
+        
+        // confirm pattern exists
+        if (!PATTERN)
+        {
+            return false;
+        }
+
+        // confirm the color for this pattern exists
+        if (!PATTERN.kois?.find(koi => koi.name == koiName))
+        {
+            return false;
+        }
+
+        // this koi exists
+        return true;
+    },
+
     getDiscordUsersMissingKoi: async function(
         koiName: string, patternName: string
     ): Promise<string[]>

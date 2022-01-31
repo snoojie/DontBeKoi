@@ -1,7 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-//import KoiDal from "../database/dataAccessLayers/koi";
-//import PatternDal from "../database/dataAccessLayers/pattern";
+import DataAccessLayer from "../database/dataAccessLayer";
 
 const WhoCommand: Command = {
 
@@ -20,9 +19,20 @@ const WhoCommand: Command = {
         const COLOR: string = interaction.options.getString("color") || "";
         const PATTERN: string = interaction.options.getString("pattern") || "";
 
+        // validate the pattern and color
+        if (!(await DataAccessLayer.validatePattern(PATTERN)))
+        {
+            return `Pattern ${PATTERN} does not exist.`;
+        }
+        if (!(await DataAccessLayer.validateKoi(COLOR, PATTERN)))
+        {
+            return `Pattern ${PATTERN} does not have color ${COLOR}.`;
+        }
         
-        
-        return COLOR + ": " + PATTERN;
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getDiscordUsersMissingKoi(COLOR, PATTERN);
+
+        return "Users: " + USERS_MISSING_KOI.join(",");
     }
 
 };

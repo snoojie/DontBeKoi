@@ -1,7 +1,7 @@
-import DataAccessLayer from "./database/dataAccessLayer";
-import Database from "./database/database";
+//import DataAccessLayer from "./database/dataAccessLayer";
+//import Database from "./database/database";
 import Logger from "./util/logger";
-//import bot from "./dontBeKoiBot";
+import bot from "./dontBeKoiBot";
 //import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
 //import { Sequelize } from "sequelize";
 
@@ -21,11 +21,11 @@ console.log("===============");
     .catch(Logger.error);*/
 
 
-/*bot.start()
+bot.start()
 .catch(error => {
     Logger.error(error);
     return bot.stop();
-});*/
+});
 
 /*let sequelize = new Sequelize(
     "postgres://postgres:478963@localhost:5432/playground", 
@@ -42,13 +42,10 @@ UserDal.init(sequelize)
 .then(_ => sequelize.close())
 .then(_ => console.log("============closed============"))
 .catch(Logger.error);*/
-
+/*
 Database.start()
     .then(_ => DataAccessLayer.getDiscordUsersMissingKoi("Shigin", "Aishite"))
     .then(Logger.log)
     .then(_ => Database.stop())
     .catch(Logger.error);
-
-/*import dostuff from "./tmp";
-
-dostuff();*/
+*/
