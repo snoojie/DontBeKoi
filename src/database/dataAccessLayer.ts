@@ -1,33 +1,8 @@
-import { Sequelize } from "sequelize";
-import RethrownError from "../../util/rethrownError";
-import { User, initModel } from "../models/user";
+import RethrownError from "../util/rethrownError";
+import { User } from "./models/user";
 
-const UserDal = {
-
-    name: "User",
+const DataAccessLayer = {
     
-    /**
-     * Initializes the User table.
-     * @param sequelize Database connection
-     * @throws if the User table could not be initialized.
-     */
-    init: async function(sequelize: Sequelize): Promise<void>
-    {
-
-        // initialize the model
-        initModel(sequelize);
-
-        // create the table if it doesn't exist yet
-        try
-        {
-            await User.sync()
-        }
-        catch(error)
-        {
-            throw new RethrownError("Could not initialize the User table.", error);
-        }
-    },
-
     /**
      * Saves the user to the database. 
      * If discord ID is already in the database, 
@@ -38,7 +13,7 @@ const UserDal = {
      * @param spreadsheetId Google spreadsheet ID 
      * @throws if the user could not be saved to the database.
      */
-    saveUser: async function(
+     saveUser: async function(
         discordId: string, name: string, spreadsheetId: string
     ): Promise<void>
     {   
@@ -73,4 +48,4 @@ const UserDal = {
     }
 }
 
-export default UserDal;
+export default DataAccessLayer;

@@ -1,6 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import UserDal from "../database/dataAccessLayers/user";
+import DataAccessLayer from "../database/dataAccessLayer";
 import Spreadsheet from "../google/spreadsheet";
 import RethrownError from "../util/rethrownError";
 
@@ -46,7 +46,7 @@ const GoogleCommand: Command = {
 
         // save this user with the spreadsheet ID in the database
         try {
-            await UserDal.saveUser(
+            await DataAccessLayer.saveUser(
                 interaction.user.id, interaction.user.username, SPREADSHEET_ID
             );
         } catch(error)
