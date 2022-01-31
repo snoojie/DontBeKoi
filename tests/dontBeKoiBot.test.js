@@ -1,5 +1,6 @@
-const bot = require("../src/DontBeKoiBot").default;
+const Bot = require("../src/DontBeKoiBot").default;
 const Logger = require("../src/util/logger").default;
+const ErrorMessages = require("../src/util/errorMessages").default;
 
 // mute logger
 Logger.log = jest.fn();
@@ -15,58 +16,63 @@ const ORIGINAL_ENV = process.env;
 // after each test, 
 // stop the bot just in case a test fails. 
 // otherwise, the bot may hang
-afterEach(async () => await bot.stop());
+afterEach(async () => await Bot.stop());
+
+// ================================
+// =====GENERAL START AND STOP=====
+// ================================
 
 test("The bot can be started and stopped.", async () => {
-    await bot.start();
-    await bot.stop();
+    await Bot.start();
+    await Bot.stop();
 }, TIMEOUT);
 
 test("The bot can be safely stopped even if it has not started.", async () => {
-    await bot.stop();
+    await Bot.stop();
 });
 
 test("Starting the bot when it is already running causes an error.", async () => {
-    await bot.start();
-    await expect(bot.start()).rejects.toThrow();
+    await Bot.start();
+    await expect(Bot.start()).rejects.toThrow(ErrorMessages.BOT.ALREADY_RUNNING);
 }, 2 * TIMEOUT);
 
 test("The bot can be started and stopped multiple times.", async () => {
-    await bot.start();
-    await bot.stop();
-    await bot.start();
-    await bot.stop();
+    await Bot.start();
+    await Bot.stop();
+    await Bot.start();
+    await Bot.stop();
 }, 2 * TIMEOUT);
 
-describe("No bot token in env", () => {
+// ===============
+// =====LOGIN=====
+// ===============
 
-    beforeAll(() => {
+describe("Test login with invalid bot token.", () => {
+
+    beforeEach(() => {
         process.env = { ...ORIGINAL_ENV };
         delete process.env.BOT_TOKEN
     });
     afterAll(() => process.env = ORIGINAL_ENV);
     
     test("Starting a bot without a token errors.", async () =>  {
-        await expect(bot.start()).rejects.toThrow();
+        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
+        
     });
 
     test("Starting a bot with an incorrect token errors.", async () =>  {
         process.env.BOT_TOKEN = "I am not valid";
-        await expect(bot.start()).rejects.toThrow();
+        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
     });
 
-});
+    test("Can start the bot after a failed login attempt.", async () => {
 
-describe("No database URL in env", () => {
+        // purposely fail the start
+        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
 
-    beforeAll(() => {
-        process.env = { ...ORIGINAL_ENV };
-        delete process.env.DATABASE_URL
-    });
-    afterAll(() => process.env = ORIGINAL_ENV);
-    
-    test("Starting a bot with a failed database connection errors.", async () =>  {
-        await expect(bot.start()).rejects.toThrow();
-    }, TIMEOUT);
+        // run the bot successfully
+        process.env = ORIGINAL_ENV;
+        await Bot.start();
+    }, 2 * TIMEOUT);
 
 });

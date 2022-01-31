@@ -5,6 +5,7 @@ import RethrownError from "./util/rethrownError";
 import { sleep } from "./util/common";
 import { CommandManager } from "./command";
 import Database from "./database/database";
+import ErrorMessages from "./util/errorMessages";
 
 let discord: Client = getNewDiscordClient();
 
@@ -31,27 +32,10 @@ function getNewDiscordClient(): Client
 async function login(): Promise<void>
 {    
     // get bot token
-    let token: string;
-    try {
-        token = Config.getBotToken();
-    }
-    catch(error) 
-    {
-        throw new RethrownError(
-            "Could not login to discord. The bot token is not availble.", 
-            error
-        );
-    }
+    const TOKEN: string = Config.getBotToken();
 
     // login to discord
-    await discord.login(token)
-        .catch(error => {
-            throw new RethrownError(
-                `Could not login to discord. ` +
-                `We could be offline or the bot token may be invalid: ${token}`, 
-                error
-            )
-        });
+    await discord.login(TOKEN);
 }
 
 const Bot = {
@@ -65,73 +49,56 @@ const Bot = {
         // if the bot is already running, there is nothing to do
         if (isBotOn)
         {
-            throw new Error(
-                "Cannot start the bot. It is already running. " +
-                "Did you forget to call bot.stop() first? "
-            );
+            throw new Error(ErrorMessages.BOT.ALREADY_RUNNING);
         }
 
         isBotOn = true;
         Logger.log("Starting bot...");
 
-        let awaitingOn: Promise<any>[] = [];
-
-        // log when discord is ready
-        discord.once("ready", _ => Logger.log("...Ready event fired."));
-        
-        // login
-        // cannot do this at the same time as setting up database with awaitingOn
-        // for some reason, if the database fails, if we logged in at the same time,
-        // the program will hang
-        await login()
-            .then(_ => Logger.log("...Logged into discord."))
-            .catch(error => { 
-                throw new RethrownError(
-                    "Could not start the bot. There was an issue logging into discord.", 
-                    error
-                );
-            });     
-
-        // set up commands
-        let commandManager: CommandManager = new CommandManager();
-        discord.on("interactionCreate", async (interaction: Interaction) => { 
-            commandManager.executeCommand(interaction);
-        });
-        awaitingOn.push(commandManager.run()
-            .then(_ => Logger.log("...Commands set up."))
-            .catch(error => {
-                throw new RethrownError(
-                    "Could not start the bot. There was an issue setting up the commands.",
-                    error
-                );
-            })
-        );
-
-        // set up database
-        awaitingOn.push(Database.start()
-            .then(_ => Logger.log("...Database set up."))
-            .catch(error => {
-                throw new RethrownError(
-                    "Could not start the bot. There was an issue with the database.",
-                    error
-                );
-            })
-        );
-
-        // wait for everything we are waiting on (login, set up commands, database)
-        await Promise.all(awaitingOn);
-
-        // Wait until discord is ready.
-        // This is not immediate after logging in, but is soon after.
-        // We most likely do not need to wait though due to the time 
-        // it takes to set up commands.
-        if (!discord.isReady())
+        try
         {
-            Logger.log("...Waiting to be ready.");
-            await sleep(100);
-        }
+            // log when discord is ready
+            discord.once("ready", _ => Logger.log("...Ready event fired."));
+            
+            // login
+            // cannot do this at the same time as setting up database with awaitingOn
+            // for some reason, if the database fails, if we logged in at the same time,
+            // the program will hang
+            await login()
+                .then(_ => Logger.log("...Logged into discord."))
+                .catch(async error => {
+                    throw new RethrownError(ErrorMessages.BOT.INVALID_TOKEN, error);
+                });
 
-        Logger.log("Bot is ready!");
+            // set up commands
+            let commandManager: CommandManager = new CommandManager();
+            discord.on("interactionCreate", async (interaction: Interaction) => { 
+                commandManager.executeCommand(interaction);
+            });
+            await commandManager.run()
+                .then(_ => Logger.log("...Commands set up."));
+
+            // set up database
+            await Database.start()
+                .then(_ => Logger.log("...Database set up."));
+
+            // Wait until discord is ready.
+            // This is not immediate after logging in, but is soon after.
+            // We most likely do not need to wait though due to the time 
+            // it takes to set up commands.
+            if (!discord.isReady())
+            {
+                Logger.log("...Waiting to be ready.");
+                await sleep(100);
+            }
+
+            Logger.log("Bot is ready!");
+        }
+        catch(error)
+        {
+            await Bot.stop();
+            throw error;
+        }
     },
 
     /**
