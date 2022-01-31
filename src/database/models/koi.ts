@@ -1,6 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { Rarity } from "../../types";
-import { Pattern } from "./pattern";
 
 export interface KoiAttributes
 {
@@ -43,7 +42,4 @@ export function initModel(sequelize: Sequelize): void
         },
         { sequelize }
     );
-
-    Pattern.hasMany(Koi, { foreignKey: "pattern" });
-    Koi.belongsTo(Pattern);
 }

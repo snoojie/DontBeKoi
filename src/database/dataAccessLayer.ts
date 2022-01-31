@@ -1,4 +1,5 @@
 import RethrownError from "../util/rethrownError";
+import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
 
 const DataAccessLayer = {
@@ -13,7 +14,7 @@ const DataAccessLayer = {
      * @param spreadsheetId Google spreadsheet ID 
      * @throws if the user could not be saved to the database.
      */
-     saveUser: async function(
+    saveUser: async function(
         discordId: string, name: string, spreadsheetId: string
     ): Promise<void>
     {   
@@ -45,6 +46,32 @@ const DataAccessLayer = {
 
         // save the user in the database
         await user.save();
+    },
+
+    getDiscordUsersMissingKoi: async function(
+        koiName: string, patternName: string
+    ): Promise<string[]>
+    {
+        const PATTERN: Pattern | null = await Pattern.findOne({ 
+            where: { name: patternName },
+            include: [ Pattern.associations.kois ]
+        });
+        
+        // confirm pattern exists
+        if (!PATTERN)
+        {
+            throw new Error(`Pattern ${patternName} does not exist.`);
+        }
+
+        // confirm the color for this pattern exists
+        if (!PATTERN.kois?.find(koi => koi.name == koiName))
+        {
+            throw new Error(`Pattern ${patternName} does not have color ${koiName}.`);
+        }
+
+        
+        let discordUsers: string[] = [];
+        return discordUsers;
     }
 }
 
