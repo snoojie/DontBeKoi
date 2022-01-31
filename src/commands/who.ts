@@ -27,7 +27,23 @@ const WhoCommand: Command = {
             return RESPONSE.error;
         }
 
-        return "Users: " + RESPONSE.data!.discordIds;
+        const DATA = RESPONSE.data!;
+
+        const KOI_DESCRIPTOR: string = 
+            `${DATA.rarity.toLowerCase()} ${COLOR} ${PATTERN}`;
+
+        if (DATA.discordIds.length == 0)
+        {
+            return `Nobody needs ${KOI_DESCRIPTOR}.`;
+        }
+
+        let mentions: string[] = [];
+        for (const DISCORD_ID of DATA.discordIds)
+        {
+            mentions.push(`<@${DISCORD_ID}>`);
+        }
+
+        return `Needing ${KOI_DESCRIPTOR}:\n${mentions.join(", ")}`;
     }
 
 };

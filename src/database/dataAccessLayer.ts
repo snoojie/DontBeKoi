@@ -1,12 +1,16 @@
+import { Op } from "sequelize";
 import { UserSpreadsheet } from "../google/userSpreadsheet";
+import { Rarity } from "../types";
 import RethrownError from "../util/rethrownError";
+import { Koi } from "./models/koi";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
 
 export type UsersMissingKoiResponse = {
     error?: string;
     data?: {
-        discordIds: string[]
+        discordIds: string[];
+        rarity: Rarity;
     };
 }
 
@@ -61,14 +65,33 @@ export const DataAccessLayer = {
     ): Promise<UsersMissingKoiResponse>
     {
 
-        // confirm the pattern and color exist
-        const PATTERN: Pattern | null = 
-            await Pattern.findByCaseInsensitiveName(patternName, true);
+        // find the pattern and confirm it's valid
+        const PATTERN: Pattern | null = await Pattern.findOne({
+             where: { name: { [Op.iLike]: patternName } },
+             include: [ Pattern.associations.kois ]
+        });
         if (!PATTERN)
         {
             return { error: `Pattern ${patternName} does not exist.` };
         }
-        if (!doesPatternHaveKoi(PATTERN, koiName))
+        if (!PATTERN.kois)
+        {
+            throw new Error(`Pattern ${patternName} has no colors.`);
+        }
+
+        // find the koi and confirm it's valid
+        let koi: Koi | undefined;
+        const KOI_NAME_LOWERCASE: string = koiName.toLowerCase();
+        for (const KOI of PATTERN.kois)
+        {
+            if (KOI.name.toLowerCase() == KOI_NAME_LOWERCASE)
+            {
+                // found it!
+                koi = KOI;
+                break;
+            }
+        }
+        if (!koi)
         {
             return { error : `Pattern ${patternName} does not have color ${koiName}.` };
         }
@@ -87,16 +110,9 @@ export const DataAccessLayer = {
             }
         }
         
-        return { data: { discordIds: discordUsers } };
+        return { data: { 
+            discordIds: discordUsers,
+            rarity: koi.rarity
+        } };
     }
-}
-
-function doesPatternHaveKoi(pattern: Pattern, koiName: string): boolean
-{
-    const KOI_NAME_LOWERCASE: string = koiName.toLowerCase();
-    if (!pattern.kois?.find(koi => koi.name.toLowerCase() == KOI_NAME_LOWERCASE))
-    {
-        return false;
-    }
-    return true;
 }
