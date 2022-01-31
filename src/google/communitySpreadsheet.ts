@@ -16,14 +16,10 @@ export type SpreadsheetKoi = {
     pattern: string;
 }
 
-export type Koi = {
-    name: string;
-    rarity: Rarity;
-}
-
-export type Pattern = {
-    name: string;
-    kois: Koi[];
+type PatternColors = {
+    base: string[];
+    common: string[];
+    rare: string[];
 }
 
 export const CommunitySpreadsheet = {
@@ -38,12 +34,9 @@ export const CommunitySpreadsheet = {
         return OVERVIEW;
     },
 
-    getProgressives: async function(): Promise<SpreadsheetKoi[]>
+    getKois: async function(): Promise<SpreadsheetKoi[]>
     {
-        // get the values from the spreadsheet
-        const TABLE: string[][] = 
-            await Google.getValues(SPREADSHEET_ID, "Progressives!I2:AN70");
-
+        // for the progressive and collector sheets,
         // every seven rows there's a pattern that looks like:
         // Inazuma |        |       |      |       | |        |       |       |
         //         | -shiro | -ukon | -dai | -kuro | | -pinku | -mura | -mido | -buru
@@ -52,73 +45,146 @@ export const CommunitySpreadsheet = {
         // Aka-    |        |       |      |       | |        |       |       |
         // Ku -    |        |       |      |       | |        |       |       |
 
-        // get the list of progressive patterns
-        let patterns: string[] = [];
-        for (let i=0; i<=TABLE.length; i+=7)
-        {
-            for (let j=0; j<3; j++)
-            {
-                const COLUMN_INDEX: number = 11 * j;
-                const PATTERN: string = TABLE[i]![COLUMN_INDEX] || "";
-                if (!PATTERN)
-                {
-                    throw new Error(
-                        `Missing name for progressive pattern in (row, column) ` +
-                        `(${i}, ${COLUMN_INDEX}).`
-                    );
-                }
-                patterns.push(PATTERN);
-            }
-        }
-
-        // get the base colors
-        let baseColors: string[] = [];
-        for (let i=2; i<6; i++)
-        {
-            let baseColor: string = TABLE[i]![0] || "";
-            if (!baseColor)
-            {
-                throw new Error("Can't get progressive base colors.");
-            }
-
-            // strip the dash if there is one
-            if (baseColor.endsWith("-"))
-            {
-                baseColor = baseColor.slice(0, -1);
-            }
-
-            baseColors.push(baseColor);
-        }
-
-        // get the highlight colors
-        const HIGHLIGHT_ROW: string[] = TABLE[1]!;
-        const COMMON_HIGHLIGHT_COLORS: string[] = 
-            getHighlightColors(HIGHLIGHT_ROW, Rarity.Common);
-        const RARE_HIGHLIGHT_COLORS: string[] = 
-            getHighlightColors(HIGHLIGHT_ROW, Rarity.Rare);
-
-        // we have all the info about progressives!
-        let progressives: SpreadsheetKoi[] = [];
-        for (const PATTERN of patterns)
-        {
-            for (const BASE_COLOR of baseColors)
-            {
-                progressives = progressives.concat(
-                    getKois(BASE_COLOR, COMMON_HIGHLIGHT_COLORS, Rarity.Common, PATTERN),
-                    getKois(BASE_COLOR, RARE_HIGHLIGHT_COLORS,   Rarity.Rare,   PATTERN)
-                );
-            }
-        }
-
-        return progressives;
-    },
-
-
+        const PROGRESSIVES: SpreadsheetKoi[] = await getProgressives();
+        const COLLECTORS: SpreadsheetKoi[] = await getCollectors();
+        return PROGRESSIVES.concat(COLLECTORS);
+    }
 
 }
 
-function getHighlightColors(highlightRow: string[], rarity: Rarity): string[]
+async function getProgressives(): Promise<SpreadsheetKoi[]>
 {
+    // get the values from the spreadsheet
+    const TABLE: string[][] = 
+        await Google.getValues(SPREADSHEET_ID, "Progressives!I2:AN70");
+
+    // get the list of progressive patterns
+    let patterns: string[] = [];
+    for (let i=0; i<=TABLE.length; i+=7)
+    {
+        for (let j=0; j<3; j++)
+        {
+            const COLUMN_INDEX: number = 11 * j;
+            const PATTERN: string = TABLE[i]![COLUMN_INDEX] || "";
+            if (!PATTERN)
+            {
+                throw new Error(
+                    `Missing name for progressive pattern in (row, column) ` +
+                    `(${i}, ${COLUMN_INDEX}).`
+                );
+            }
+            patterns.push(PATTERN);
+        }
+    }
+
+    // get the colors
+    const COLORS = getColors(TABLE, 0);
+
+    // we have all the info about progressives!
+    let progressives: SpreadsheetKoi[] = [];
+    for (const PATTERN of patterns)
+    {
+        progressives = progressives.concat(getKoisOfPattern(COLORS, PATTERN));
+    }
+
+    return progressives;
+}
+
+async function getCollectors(): Promise<SpreadsheetKoi[]>
+{
+    // get the values from the spreadsheet
+    const TABLE: string[][] = 
+        await Google.getValues(SPREADSHEET_ID, "A-M: Collectors!B2:K");
+    if (!TABLE) { return [];}
+
+    console.log(TABLE.length);
+
+    let collectors: SpreadsheetKoi[] = [];
+
+    for (let i=0; i<TABLE.length; i+=7)
+    {
+        // get the pattern name
+        const PATTERN: string = TABLE[i]![0] || "";
+        if (!PATTERN)
+        {
+            // must have reached near the end of the sheet
+            break;
+        }
+
+        // get the colors
+        const COLORS: PatternColors = getColors(TABLE, i);
+
+        // we have the colors and pattern name
+        // get the list of kois of this pattern
+        collectors = collectors.concat(getKoisOfPattern(COLORS, PATTERN));
+    }
+
+    return collectors;
+}
+
+function getKoisOfPattern(colors: PatternColors, pattern: string): SpreadsheetKoi[]
+{
+    let kois: SpreadsheetKoi[] = [];
+    for (const BASE_COLOR of colors.base)
+    {
+        kois = kois.concat(
+            getKoisOfRarity(BASE_COLOR, colors.common, Rarity.Common, pattern),
+            getKoisOfRarity(BASE_COLOR, colors.rare,   Rarity.Rare,   pattern)
+        );
+    }
+    return kois;
+}
+
+function getKoisOfRarity(baseColor: string, highlightColors: string[], rarity: Rarity, pattern: string): SpreadsheetKoi[]
+{
+    let kois: SpreadsheetKoi[] = [];
+    for (const HIGHLIGHT_COLOR of highlightColors)
+    {
+        kois.push({
+            name: baseColor + HIGHLIGHT_COLOR,
+            rarity: rarity,
+            pattern: pattern
+        });
+    }
+    return kois;
+}
+
+function getColors(table: string[][], patternNameRowIndex: number): PatternColors
+{
+    return {
+        base: getBaseColors(table, patternNameRowIndex),
+        common: getHighlightColors(table, patternNameRowIndex, Rarity.Common),
+        rare: getHighlightColors(table, patternNameRowIndex, Rarity.Rare)
+    };
+}
+
+function getBaseColors(table: string[][], patternNameRowIndex: number): string[]
+{
+    let baseColors: string[] = [];
+    for (let i=2; i<6; i++)
+    {
+        const ROW_INDEX: number = patternNameRowIndex + i;
+        let baseColor: string = table[ROW_INDEX]![0] || "";
+        if (!baseColor)
+        {
+            throw new Error(`Can't get base colors at row ${ROW_INDEX}.`);
+        }
+
+        // strip the dash if there is one
+        if (baseColor.endsWith("-"))
+        {
+            baseColor = baseColor.slice(0, -1);
+        }
+
+        baseColors.push(baseColor);
+    }
+    return baseColors;
+}
+
+function getHighlightColors(table: string[][], patternNameRowIndex: number, rarity: Rarity): string[]
+{
+    const HIGHLIGHT_ROW: string[] = table[patternNameRowIndex + 1]!;
+
     // common highlight colors are in columns 1-4
     // rare highlight colors are in columns 6-9
     const OFFSET: number = rarity == Rarity.Common ? 1 : 6;
@@ -126,7 +192,7 @@ function getHighlightColors(highlightRow: string[], rarity: Rarity): string[]
     let highlightColors: string[] = [];
     for (let i=0; i<4; i++)
     {
-        let highlightColor: string = highlightRow[i + OFFSET] || "";
+        let highlightColor: string = HIGHLIGHT_ROW[i + OFFSET] || "";
         if (!highlightColor)
         {
             throw new Error(`Can't get ${rarity} progressive highlight colors.`);
@@ -142,20 +208,6 @@ function getHighlightColors(highlightRow: string[], rarity: Rarity): string[]
     }
     
     return highlightColors;
-}
-
-function getKois(baseColor: string, highlightColors: string[], rarity: Rarity, pattern: string): SpreadsheetKoi[]
-{
-    let kois: SpreadsheetKoi[] = [];
-    for (const HIGHLIGHT_COLOR of highlightColors)
-    {
-        kois.push({
-            name: baseColor + HIGHLIGHT_COLOR,
-            rarity: rarity,
-            pattern: pattern
-        });
-    }
-    return kois;
 }
 
 async function getOverview(type: PatternType): Promise<Overview>

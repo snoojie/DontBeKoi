@@ -18,10 +18,10 @@ const PatternDal = {
         // initialize the model
         initModel(sequelize);
 
-        // create the tables if they don't exist yet
+        // create the tables if it don't exist yet
         try
         {
-            await Pattern.sync({ force: true });
+            await Pattern.sync();
         }
         catch(error)
         {

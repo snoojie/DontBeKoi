@@ -18,20 +18,19 @@ const KoiDal = {
         // initialize the model
         initModel(sequelize);
 
-        // create the table if they don't exist yet
+        // create the table if it doesn't exist yet
         try
         {
-            await Koi.sync({ force: true });
+            await Koi.sync();
         }
         catch(error)
         {
             throw new RethrownError("Could not initialize the Koi table.", error);
         }
 
-        const PROGRESSIVES: SpreadsheetKoi[] = 
-            await CommunitySpreadsheet.getProgressives();
+        const KOIS: SpreadsheetKoi[] = await CommunitySpreadsheet.getKois();
         let kois: KoiAttributes[] = [];
-        for (const KOI of PROGRESSIVES)
+        for (const KOI of KOIS)
         {
             kois.push({
                 name: KOI.name,
