@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import RethrownError from "../util/rethrownError";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
@@ -51,7 +52,7 @@ const DataAccessLayer = {
     validatePattern: async function(patternName: string): Promise<boolean>
     {
         const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: patternName }
+            where: { name: { [Op.iLike]: patternName } }
         });
 
         return PATTERN != null;
@@ -60,7 +61,7 @@ const DataAccessLayer = {
     validateKoi: async function(koiName: string, patternName: string): Promise<boolean>
     {
         const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: patternName },
+            where: { name: { [Op.iLike]: patternName } },
             include: [ Pattern.associations.kois ]
         });
         
@@ -71,7 +72,7 @@ const DataAccessLayer = {
         }
 
         // confirm the color for this pattern exists
-        if (!PATTERN.kois?.find(koi => koi.name == koiName))
+        if (!doesPatternHaveKoi(PATTERN, koiName))
         {
             return false;
         }
@@ -84,19 +85,16 @@ const DataAccessLayer = {
         koiName: string, patternName: string
     ): Promise<string[]>
     {
+        // confirm the pattern and color exist
         const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: patternName },
+            where: { name: { [Op.iLike]: patternName } },
             include: [ Pattern.associations.kois ]
         });
-        
-        // confirm pattern exists
         if (!PATTERN)
         {
             throw new Error(`Pattern ${patternName} does not exist.`);
         }
-
-        // confirm the color for this pattern exists
-        if (!PATTERN.kois?.find(koi => koi.name == koiName))
+        if (!doesPatternHaveKoi(PATTERN, koiName))
         {
             throw new Error(`Pattern ${patternName} does not have color ${koiName}.`);
         }
@@ -108,3 +106,13 @@ const DataAccessLayer = {
 }
 
 export default DataAccessLayer;
+
+function doesPatternHaveKoi(pattern: Pattern, koiName: string): boolean
+{
+    const KOI_NAME_LOWERCASE: string = koiName.toLowerCase();
+    if (!pattern.kois?.find(koi => koi.name.toLowerCase() == KOI_NAME_LOWERCASE))
+    {
+        return false;
+    }
+    return true;
+}
