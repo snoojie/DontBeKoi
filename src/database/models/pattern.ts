@@ -1,4 +1,4 @@
-import { Association, DataTypes, Model, Sequelize } from "sequelize";
+import { Association, DataTypes, FindOptions, Model, Op, Sequelize } from "sequelize";
 import { PatternType } from "../../types";
 import { Koi } from "./koi";
 
@@ -20,6 +20,18 @@ export class Pattern extends Model<PatternAttributes> implements PatternAttribut
     declare static associations: {
       kois: Association<Pattern, Koi>;
     };
+
+    public static async findByCaseInsensitiveName(
+        name: string, includeKois: boolean
+    ): Promise<Pattern | null>
+    {
+        let options: FindOptions<PatternAttributes> = { where: { name: { [Op.iLike]: name } } };
+        if (includeKois)
+        {
+            options.include = [ Pattern.associations.kois ];
+        }
+        return Pattern.findOne(options);
+    }
 }
 
 /**

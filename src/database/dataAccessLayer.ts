@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { UserSpreadsheet } from "../google/userSpreadsheet";
 import RethrownError from "../util/rethrownError";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
@@ -51,19 +51,16 @@ const DataAccessLayer = {
 
     validatePattern: async function(patternName: string): Promise<boolean>
     {
-        const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: { [Op.iLike]: patternName } }
-        });
+        const PATTERN: Pattern | null = 
+            await Pattern.findByCaseInsensitiveName(patternName, false);
 
         return PATTERN != null;
     },
 
     validateKoi: async function(koiName: string, patternName: string): Promise<boolean>
     {
-        const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: { [Op.iLike]: patternName } },
-            include: [ Pattern.associations.kois ]
-        });
+        const PATTERN: Pattern | null = 
+            await Pattern.findByCaseInsensitiveName(patternName, true);
         
         // confirm pattern exists
         if (!PATTERN)
@@ -86,10 +83,8 @@ const DataAccessLayer = {
     ): Promise<string[]>
     {
         // confirm the pattern and color exist
-        const PATTERN: Pattern | null = await Pattern.findOne({ 
-            where: { name: { [Op.iLike]: patternName } },
-            include: [ Pattern.associations.kois ]
-        });
+        const PATTERN: Pattern | null = 
+            await Pattern.findByCaseInsensitiveName(patternName, true);
         if (!PATTERN)
         {
             throw new Error(`Pattern ${patternName} does not exist.`);
@@ -99,8 +94,20 @@ const DataAccessLayer = {
             throw new Error(`Pattern ${patternName} does not have color ${koiName}.`);
         }
 
-        
         let discordUsers: string[] = [];
+
+        const USERS: User[] = await User.findAll();
+        for (const USER of USERS)
+        {
+            const HAS_KOI: boolean = await UserSpreadsheet.hasKoi(
+                USER.spreadsheetId, koiName, patternName, PATTERN.type
+            );
+            if (!HAS_KOI)
+            {
+                discordUsers.push(USER.discordId);
+            }
+        }
+        
         return discordUsers;
     }
 }
