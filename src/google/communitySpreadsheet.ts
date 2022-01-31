@@ -26,11 +26,11 @@ export const CommunitySpreadsheet = {
     
     getOverview: async function(): Promise<Overview>
     {
-        const OVERVIEW_PROMISES: Promise<Overview>[] = [
+        let overviewPromises: Promise<Overview>[] = [
             getOverview(PatternType.Collector),
             getOverview(PatternType.Progressive)
         ];
-        const OVERVIEW: Overview = (await Promise.all(OVERVIEW_PROMISES)).flat();
+        const OVERVIEW: Overview = (await Promise.all(overviewPromises)).flat();
         return OVERVIEW;
     },
 
@@ -45,9 +45,11 @@ export const CommunitySpreadsheet = {
         // Aka-    |        |       |      |       | |        |       |       |
         // Ku -    |        |       |      |       | |        |       |       |
 
-        const PROGRESSIVES: SpreadsheetKoi[] = await getProgressives();
-        const COLLECTORS: SpreadsheetKoi[] = await getCollectors();
-        return PROGRESSIVES.concat(COLLECTORS);
+        let getKoisPromises: Promise<SpreadsheetKoi[]>[] = [
+            getProgressives(), getCollectors()
+        ];
+        const KOIS: SpreadsheetKoi[] = (await Promise.all(getKoisPromises)).flat();
+        return KOIS;
     }
 
 }
@@ -92,12 +94,18 @@ async function getProgressives(): Promise<SpreadsheetKoi[]>
 
 async function getCollectors(): Promise<SpreadsheetKoi[]>
 {
-    // get the values from the spreadsheet
-    const TABLE: string[][] = 
-        await Google.getValues(SPREADSHEET_ID, "A-M: Collectors!B2:K");
-    if (!TABLE) { return [];}
+    let collectorsPromises: Promise<SpreadsheetKoi[]>[] = [
+        getCollectorsHalf("A-M: Collectors!B2:K"),
+        getCollectorsHalf("N-Z: Collectors!B2:K")
+    ];
+    const COLLECTORS: SpreadsheetKoi[] = (await Promise.all(collectorsPromises)).flat();
+    return COLLECTORS;
+}
 
-    console.log(TABLE.length);
+async function getCollectorsHalf(range: string): Promise<SpreadsheetKoi[]>
+{
+    // get the values from the spreadsheet
+    const TABLE: string[][] = await Google.getValues(SPREADSHEET_ID, range);
 
     let collectors: SpreadsheetKoi[] = [];
 

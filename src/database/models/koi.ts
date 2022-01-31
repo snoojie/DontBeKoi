@@ -28,7 +28,8 @@ export function initModel(sequelize: Sequelize): void
         {
             name: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                unique: "compositeIndex"
             },
             rarity: {
                 type: DataTypes.STRING,
@@ -36,7 +37,8 @@ export function initModel(sequelize: Sequelize): void
             },
             pattern: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                unique: "compositeIndex"
             }
         },
         { sequelize }
