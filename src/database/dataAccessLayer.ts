@@ -96,19 +96,25 @@ export const DataAccessLayer = {
             return { error : `Pattern ${patternName} does not have color ${koiName}.` };
         }
 
+        // get the users who do not have this koi
+        let promises: Promise<void>[] = [];
         let discordUsers: string[] = [];
-
         const USERS: User[] = await User.findAll();
         for (const USER of USERS)
         {
-            const HAS_KOI: boolean = await UserSpreadsheet.hasKoi(
-                USER.spreadsheetId, koiName, patternName, PATTERN.type
+            promises.push(
+                UserSpreadsheet.hasKoi(
+                    USER.spreadsheetId, koiName, patternName, PATTERN.type
+                ).then(hasKoi => {
+                    if (!hasKoi)
+                    {
+                        discordUsers.push(USER.discordId)
+                    }
+                })
             );
-            if (!HAS_KOI)
-            {
-                discordUsers.push(USER.discordId);
-            }
         }
+
+        await Promise.all(promises);
         
         return { data: { 
             discordIds: discordUsers,

@@ -20,7 +20,6 @@ console.log("===============");
     })
     .catch(Logger.error);*/
 
-
 bot.start()
 .catch(error => {
     Logger.error(error);
@@ -28,7 +27,7 @@ bot.start()
 });
 /*
 Database.start()
-    .then(_ => DataAccessLayer.getUsersMissingKoi("mashiro", "natsffu"))
+    .then(_ => DataAccessLayer.getUsersMissingKoi("mashiro", "akachan"))
     .then(response => Logger.log(JSON.stringify(response, null, 2)))
     .then(_ => Database.stop())
     .catch(Logger.error);*/
