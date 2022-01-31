@@ -129,15 +129,14 @@ export class CommandManager
         const FILES: string[] = fs.readdirSync(DIRECTORY_FULL_PATH);
         for (const FILE of FILES)
         {
-
-            // ignore non js files
+            // ignore non js/ts files
             // this could happen if there's a .js.map file
-            if (!FILE.endsWith(".js"))
+            if (!FILE.endsWith(".js") && !FILE.endsWith(".ts"))
             {
                 continue;
             }
 
-            // remove the .js extension
+            // remove the .js or .ts extension
             const FILE_RELATIVE_PATH: string = `./${DIRECTORY}/${FILE.slice(0,-3)}`;
 
             // import the script
