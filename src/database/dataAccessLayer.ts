@@ -3,7 +3,14 @@ import RethrownError from "../util/rethrownError";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
 
-const DataAccessLayer = {
+export type UsersMissingKoiResponse = {
+    error?: string;
+    data?: {
+        discordIds: string[]
+    };
+}
+
+export const DataAccessLayer = {
     
     /**
      * Saves the user to the database. 
@@ -49,49 +56,21 @@ const DataAccessLayer = {
         await user.save();
     },
 
-    validatePattern: async function(patternName: string): Promise<boolean>
-    {
-        const PATTERN: Pattern | null = 
-            await Pattern.findByCaseInsensitiveName(patternName, false);
-
-        return PATTERN != null;
-    },
-
-    validateKoi: async function(koiName: string, patternName: string): Promise<boolean>
-    {
-        const PATTERN: Pattern | null = 
-            await Pattern.findByCaseInsensitiveName(patternName, true);
-        
-        // confirm pattern exists
-        if (!PATTERN)
-        {
-            return false;
-        }
-
-        // confirm the color for this pattern exists
-        if (!doesPatternHaveKoi(PATTERN, koiName))
-        {
-            return false;
-        }
-
-        // this koi exists
-        return true;
-    },
-
-    getDiscordUsersMissingKoi: async function(
+    getUsersMissingKoi: async function(
         koiName: string, patternName: string
-    ): Promise<string[]>
+    ): Promise<UsersMissingKoiResponse>
     {
+
         // confirm the pattern and color exist
         const PATTERN: Pattern | null = 
             await Pattern.findByCaseInsensitiveName(patternName, true);
         if (!PATTERN)
         {
-            throw new Error(`Pattern ${patternName} does not exist.`);
+            return { error: `Pattern ${patternName} does not exist.` };
         }
         if (!doesPatternHaveKoi(PATTERN, koiName))
         {
-            throw new Error(`Pattern ${patternName} does not have color ${koiName}.`);
+            return { error : `Pattern ${patternName} does not have color ${koiName}.` };
         }
 
         let discordUsers: string[] = [];
@@ -102,18 +81,15 @@ const DataAccessLayer = {
             const HAS_KOI: boolean = await UserSpreadsheet.hasKoi(
                 USER.spreadsheetId, koiName, patternName, PATTERN.type
             );
-            console.log(HAS_KOI);
             if (!HAS_KOI)
             {
                 discordUsers.push(USER.discordId);
             }
         }
         
-        return discordUsers;
+        return { data: { discordIds: discordUsers } };
     }
 }
-
-export default DataAccessLayer;
 
 function doesPatternHaveKoi(pattern: Pattern, koiName: string): boolean
 {

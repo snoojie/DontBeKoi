@@ -1,6 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import DataAccessLayer from "../database/dataAccessLayer";
+import { DataAccessLayer } from "../database/dataAccessLayer";
 import Spreadsheet from "../google/spreadsheet";
 import RethrownError from "../util/rethrownError";
 
