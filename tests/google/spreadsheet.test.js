@@ -1,6 +1,14 @@
 const Spreadsheet = require("../../src/google/spreadsheet").default;
+const ErrorMessages = require("../../src/errorMessages").default;
 
-const VALID_SPREADSHEET_ID = "1A98i8OxxBrYNfmgOaF638qcyA-K8HXQv3dZjhcjx7iM";
+// this is the community spreadsheet
+const VALID_SPREADSHEET_ID = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
+
+const ORIGINAL_ENV = process.env;
+
+// ==============================
+// =====VALIDATE SPREADSHEET=====
+// ==============================
 
 test("Validating valid spreadsheet ID returns true.", async() => {
     let isValid = await Spreadsheet.validateId(VALID_SPREADSHEET_ID);
@@ -15,29 +23,32 @@ test("Validating invalid spreadsheet ID returns false.", async() => {
 describe("Modify google API key.", () => {
 
     // remove google API key for each test
-    const ORIGINAL_ENV = process.env;
     beforeEach(() => {
         process.env = { ...ORIGINAL_ENV };
         delete process.env.GOOGLE_API_KEY;
     });
     afterAll(() => process.env = ORIGINAL_ENV);
 
-    test("Validating valid spreadsheet ID without a google API key throws error.", async() => {
-        await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID)).rejects.toThrow();
+    test("Error validating valid spreadsheet ID without a google API key.", async() => {
+        await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID))
+            .rejects.toThrow(ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE);
     });
     
-    test("Validating invalid spreadsheet ID without a google API key throws error.", async() => {
-        await expect(Spreadsheet.validateId("fakeid")).rejects.toThrow();
+    test("Error validating invalid spreadsheet ID without a google API key.", async() => {
+        await expect(Spreadsheet.validateId("fakeid"))
+            .rejects.toThrow(ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE);
     });
 
-    test("Validating valid spreadsheet ID without an incorrect google API key throws error.", async() => {
+    test("Error validating valid spreadsheet ID with an incorrect google API key.", async() => {
         process.env.GOOGLE_API_KEY = "fakekey";
-        await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID)).rejects.toThrow();
+        await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID))
+            .rejects.toThrow(ErrorMessages.SPREADSHEET.INVALID_GOOGLE_API_KEY);
     });
 
-    test("Validating invalid spreadsheet ID without an incorrect google API key throws error.", async() => {
+    test("Error validating invalid spreadsheet ID with an incorrect google API key.", async() => {
         process.env.GOOGLE_API_KEY = "fakekey";
-        await expect(Spreadsheet.validateId("fakeid")).rejects.toThrow();
+        await expect(Spreadsheet.validateId("fakeid"))
+            .rejects.toThrow(ErrorMessages.SPREADSHEET.INVALID_GOOGLE_API_KEY);
     });
 
 });

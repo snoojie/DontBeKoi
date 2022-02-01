@@ -1,5 +1,6 @@
 import { GaxiosError } from "gaxios";
 import { google, sheets_v4 } from "googleapis";
+import ErrorMessages from "../errorMessages";
 import Config from "../util/config";
 import RethrownError from "../util/rethrownError";
 
@@ -12,19 +13,17 @@ const SPREADSHEETS_API: sheets_v4.Resource$Spreadsheets =
  */
 function getApiKey(): string
 {
-    let apiKey: string;
-    try {
-        apiKey = Config.getGoogleApiKey();
-    }
-    catch(error)
-    {
-        throw new RethrownError("Cannot get Google API Key.", error);
-    }
-    return apiKey;
+    return Config.getGoogleApiKey();
 }
 
 const Spreadsheet = {
 
+    /**
+     * @param spreadsheetId - ID of the spreadsheet. Consider example sheet with URL
+     * https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit#gid=1848229055
+     * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
+     * @returns whether this spreadsheet is valid or not 
+     */
     validateId: async function(spreadsheetId: string): Promise<boolean>
     {
         const API_KEY: string = getApiKey();
@@ -50,8 +49,10 @@ const Spreadsheet = {
                 }
             }
             
-            // unknown error
-            throw new RethrownError("Could not validate spreadsheet.", error);
+            // otherwise the google api key could be wrong
+            throw new RethrownError(
+                ErrorMessages.SPREADSHEET.INVALID_GOOGLE_API_KEY, error
+            );
         }
 
         // since there was no error, the spreadsheet is valid

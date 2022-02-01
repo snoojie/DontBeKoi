@@ -49,6 +49,12 @@ const ErrorMessages =
         MISSING_ENVIRONMENT_VARIABLE: 
             "Did you forget to set the following key as an environment variable?"
             
+    },
+
+    SPREADSHEET: {
+
+        INVALID_GOOGLE_API_KEY: 
+            "Could not validate spreadsheet due to invalid Google API key."
     }
 
 }
