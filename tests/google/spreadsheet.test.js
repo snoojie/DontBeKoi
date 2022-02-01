@@ -7,6 +7,8 @@ const VALID_RANGE = "Progressives!I2:K4";
 
 const ORIGINAL_ENV = process.env;
 
+const TIMEOUT = 30000;
+
 // ==============================
 // =====VALIDATE SPREADSHEET=====
 // ==============================
@@ -14,12 +16,12 @@ const ORIGINAL_ENV = process.env;
 test("Validating valid spreadsheet ID returns true.", async() => {
     let isValid = await Spreadsheet.validateId(VALID_SPREADSHEET_ID);
     expect(isValid).toBeTruthy();
-});
+}, TIMEOUT);
 
 test("Validating invalid spreadsheet ID returns false.", async() => {
     let isValid = await Spreadsheet.validateId("fakeid");
     expect(isValid).not.toBeTruthy();
-});
+}, TIMEOUT);
 
 describe("Modify google API key.", () => {
 
@@ -40,7 +42,7 @@ describe("Modify google API key.", () => {
         process.env.GOOGLE_API_KEY = "fakekey";
         await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID))
             .rejects.toThrow(ErrorMessages.SPREADSHEET.INVALID_GOOGLE_API_KEY);
-    });
+    }, TIMEOUT);
 
 // ====================
 // =====GET VALUES=====
@@ -57,19 +59,19 @@ describe("Modify google API key.", () => {
         process.env.GOOGLE_API_KEY = "fake";
         await expect(Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE))
             .rejects.toThrow(ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET);
-    });
+    }, TIMEOUT);
 
 });
 
 test("Error getting values of invalid spreadsheet.", async() => {
     await expect(Spreadsheet.getValues("fakeid", "fakerange"))
         .rejects.toThrow(ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET);
-});
+}, TIMEOUT);
 
 test("Error getting values of invalid range.", async() => {
     await expect(Spreadsheet.getValues(VALID_SPREADSHEET_ID, "fakerange"))
         .rejects.toThrow(ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET);
-});
+}, TIMEOUT);
 
 test("Can get all values of rows with text.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE);
@@ -78,7 +80,7 @@ test("Can get all values of rows with text.", async() => {
         ["", "-shiro", "-ukon"],
         ["Shi-"]
     ]);
-});
+}, TIMEOUT);
 
 test("Getting values where first row has no text includes that empty row.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L2:M3");
@@ -86,26 +88,36 @@ test("Getting values where first row has no text includes that empty row.", asyn
         [],
         ["-dai", "-kuro"]
     ]);
-});
+}, TIMEOUT);
 
 test("Getting values where last row has no text excludes that last row.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K3:L4");
     expect(VALUES).toStrictEqual([
         ["-ukon", "-dai"]
     ]);
-});
+}, TIMEOUT);
 
 test("Getting values when there is no text returns an empty list.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K4:L5");
     expect(VALUES).toStrictEqual([]);
-});
+}, TIMEOUT);
 
-test("Can get value of one cell with text.", async() => {
+test("Can get value of one cell, with text, with range !<cell>:<cell>.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2:I2");
     expect(VALUES).toStrictEqual([["Inazuma"]]);
-});
+}, TIMEOUT);
 
-test("Getting value of one cell without text returns an empty list.", async() => {
+test("Can get value of one cell, with text, with range !<cell>.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2");
+    expect(VALUES).toStrictEqual([["Inazuma"]]);
+}, TIMEOUT);
+
+test("Getting value of one cell, without text, with range !<cell>:<cell>, returns an empty list.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L5:L5");
     expect(VALUES).toStrictEqual([]);
-});
+}, TIMEOUT);
+
+test("Getting value of one cell, without text, with range !<cell>, returns an empty list.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!J2");
+    expect(VALUES).toStrictEqual([]);
+}, TIMEOUT);
