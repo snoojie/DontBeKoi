@@ -148,6 +148,15 @@ test("There are the same number of common as rare koi.", async () => {
     expect(commonCount).toBe(rareCount);
 });
 
+test("Getting koi ignores accented characters", async() => {
+    // normally color chakoji for pattern mudei is accented
+    const KOIS = await CommunitySpreadsheet.getKois();
+    const KOI = KOIS.find(koi => {
+        return koi.pattern = "Mudei" && koi.name == "Chakoji"
+    });
+    expect(KOI).toBeDefined();
+});
+
 // ===========================
 // =====OVERVIEW AND KOIS=====
 // ===========================
