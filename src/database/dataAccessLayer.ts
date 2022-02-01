@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { UserSpreadsheet } from "../google/userSpreadsheet";
+import UserSpreadsheet from "../google/userSpreadsheet";
 import { Rarity } from "../types";
 import RethrownError from "../util/rethrownError";
 import { Koi } from "./models/koi";

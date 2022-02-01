@@ -2,12 +2,21 @@ import { PatternType } from "../types";
 import KoiSpreadsheet from "./koiSpreadsheet";
 import Spreadsheet from "./spreadsheet";
 
-export const UserSpreadsheet = {
+const UserSpreadsheet = {
 
+    /**
+     * Checks if this user has a specific koi or not.
+     * @param spreadsheetId ID of the user's spreadsheet.
+     * @param color Koi's color.
+     * @param pattern Koi's pattern.
+     * @param type Koi's type, ie, Progressive or Collector.
+     * @returns true or false.
+     */
     hasKoi: async function(
         spreadsheetId: string, color: string, pattern: string, type: PatternType
     ): Promise<boolean>
     {
+        // todo, check progressive
         if (!type) { return false; }
 
         // lowercase pattern and color
@@ -96,3 +105,5 @@ export const UserSpreadsheet = {
     } 
 
 };
+
+export default UserSpreadsheet;

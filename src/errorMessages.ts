@@ -59,6 +59,17 @@ const ErrorMessages =
             "Could the Google API key, spreadsheet ID, or range be wrong?",
 
         CANNOT_GET_VALUES: "Cannot get values. Could the range be wrong?"
+    },
+
+    USER_SPREADSHEET: {
+
+        PATTERN_DOES_NOT_EXIST: "Could not find pattern in the spreadsheet.",
+
+        COLOR_DOES_NOT_EXIST: "Could not find color in the spreadsheet.",
+
+        CANNOT_GET_SPREADSHEET: "Cannot read the spreadsheet. " +
+            "Could the spreadsheet ID be wrong?",
+
     }
 
 }
