@@ -4,7 +4,7 @@ const ErrorMessages = require("../../src/errorMessages").default;
 // ID of test user sheet
 const SPREADSHEET_ID = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
 
-
+/*
 test("User with common collector koi.", async() => {
     const HAS_KOI = 
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "ryomido", "akua", "Collector");
@@ -27,7 +27,7 @@ test("User missing rare collector koi.", async() => {
     const HAS_KOI = 
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "akapapu", "akua", "Collector");
     expect(HAS_KOI).not.toBeTruthy();
-});
+});*/
 
 // todo
 /*
@@ -71,28 +71,28 @@ test("User uses capital D to mark dragon.", async() => {
     const HAS_KOI = 
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "madai", "beta", "Collector");
     expect(HAS_KOI).toBeTruthy();
-});
-
+});*/
+/*
 test("Color is case insensitve", async() => {
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "MudAI", "mukei", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "MudAI", "mukei", "Collector"))
         .toBeTruthy();
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "MUkurO", "mukei", "Collector"))
-        not.toBeTruthy();
-});
-
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "MUkurO", "mukei", "Collector"))
+        .not.toBeTruthy();
+});*/
+/*
 test("Pattern is case insensitve", async() => {
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mudai", "MukEi", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mudai", "MukEi", "Collector"))
         .toBeTruthy();
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mukuro", "MukEi", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mukuro", "MukEi", "Collector"))
         .not.toBeTruthy();
 });
 
-test("Accents are ignored.", async() => {
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "chakoji", "mukei", "Collector"))
+test("Color accents in spreadsheet are ignored.", async() => {
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "chakoji", "mukei", "Collector"))
         .toBeTruthy();
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "makoji", "mukei", "Collector"))
-        not.toBeTruthy();
-});
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "makoji", "mukei", "Collector"))
+        .not.toBeTruthy();
+});*/
 
 test("User with collector koi starting with letter n.", async() => {
     const HAS_KOI = 
@@ -105,20 +105,20 @@ test(
     "dash in the spreadsheet.", 
     async() => 
 {
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "ryomosu", "rakki", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "ryomosu", "rakki", "Collector"))
         .toBeTruthy();
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mamosu", "rakki", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mamosu", "rakki", "Collector"))
         .toBeTruthy();
-});
+});/*
 
 test(
     "Can get whether user has koi even if the base color is missing a " +
     "dash in the spreadsheet.", 
     async() => 
 {
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "gushiro", "rakki", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "gushiro", "rakki", "Collector"))
         .toBeTruthy();
-    await expect(UserSpreadsheet.hasKoi(SPREADSHEET_ID, "guukon", "rakki", "Collector"))
+    expect(await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "guukon", "rakki", "Collector"))
         .toBeTruthy();
 });
 

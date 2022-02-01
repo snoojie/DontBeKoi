@@ -111,7 +111,6 @@ const UserSpreadsheet = {
         const VALUE: string = KoiSpreadsheet.getStringFromCell(
             TABLE, baseColorRowIndex, highlightColorColumnIndex
         ).toLowerCase();
-        console.log("VALUE: " + VALUE +", (" + baseColorRowIndex + ", " + highlightColorColumnIndex + ")");
         return VALUE == "k" || VALUE == "d";
     } 
 

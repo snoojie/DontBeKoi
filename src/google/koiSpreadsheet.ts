@@ -2,6 +2,7 @@ const KoiSpreadsheet = {
 
     /**
      * Gets the string in the table at (row, column).
+     * Accent characters are replaced by their non accent characters.
      * If there is no text in that cell, an empty string "" is returned.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to get the string from.
@@ -11,8 +12,9 @@ const KoiSpreadsheet = {
     getStringFromCell(table: any[][], rowIndex: number, columnIndex: number): string
     {
         const ROW: string[] = table[rowIndex] || [];
-        const VALUE: string = ROW[columnIndex] || "";
-        return VALUE;
+        let value: string = ROW[columnIndex] || "";
+        value = value.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+        return value;
     },
 
     /**
