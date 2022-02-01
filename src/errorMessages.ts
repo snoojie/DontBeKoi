@@ -65,7 +65,7 @@ const ErrorMessages =
 
         PATTERN_DOES_NOT_EXIST: "Could not find pattern in the spreadsheet.",
 
-        COLOR_DOES_NOT_EXIST: "Could not find color in the spreadsheet.",
+        COLOR_DOES_NOT_EXIST: "Found the pattern in the spreadsheet but not the color.",
 
         CANNOT_GET_SPREADSHEET: "Cannot read the spreadsheet. " +
             "Could the spreadsheet ID be wrong?",

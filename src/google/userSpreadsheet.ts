@@ -1,3 +1,4 @@
+import ErrorMessages from "../errorMessages";
 import { PatternType } from "../types";
 import KoiSpreadsheet from "./koiSpreadsheet";
 import Spreadsheet from "./spreadsheet";
@@ -45,7 +46,8 @@ const UserSpreadsheet = {
         if (patternNameRowIndex < 0)
         {
             throw new Error(
-                `Spreadsheet ${spreadsheetId} does not have pattern ${pattern}.`
+                `${ErrorMessages.USER_SPREADSHEET.PATTERN_DOES_NOT_EXIST} ` +
+                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}.`
             );
         }
 
@@ -66,8 +68,8 @@ const UserSpreadsheet = {
         if (baseColorRowIndex < 0)
         {
             throw new Error(
-                `Spreadsheet ${spreadsheetId} has pattern ${pattern} but it does ` +
-                `not have color ${color}.`
+                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
+                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
             );
         }
 
@@ -90,8 +92,8 @@ const UserSpreadsheet = {
         if (highlightColorColumnIndex < 0)
         {
             throw new Error(
-                `Spreadsheet ${spreadsheetId} has pattern ${pattern} but it does ` +
-                `not have color ${color}.`
+                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
+                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
             );
         }
 
