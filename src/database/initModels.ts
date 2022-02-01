@@ -49,7 +49,7 @@ async function populatePatterns(): Promise<void>
             hatchTime: ROW.hatchTime ? ROW.hatchTime : null
         });
     }
-    await Pattern.bulkCreate(patterns, { ignoreDuplicates: true } );
+    await Pattern.bulkCreate(patterns, { updateOnDuplicate: [ "hatchTime" ] } );
 }
 
 async function populateKois(): Promise<void>

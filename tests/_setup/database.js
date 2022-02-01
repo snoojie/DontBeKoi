@@ -6,7 +6,7 @@ function initSequelize()
     return new Sequelize(
         process.env.TEST_DATABASE_URL, 
         { 
-            //logging: false,
+            logging: false,
             quoteIdentifiers: false,
             define: { underscored: true } 
         }

@@ -18,7 +18,7 @@ test("The database can be started and stopped.", async () => {
     await Database.start();
     await Database.stop();
 });
-/*
+
 test("The database can be safely stopped even if it has not started.", async () => {
     await Database.stop();
 });
@@ -40,4 +40,4 @@ describe("Missing environment variables.", () => {
     test("The database throws an error when the database URL is not set in environment variables..", async () => {
         await expect(Database.start()).rejects.toThrow();
     });
-});*/
+});
