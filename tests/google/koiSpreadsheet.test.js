@@ -44,6 +44,15 @@ test("Getting pattern from empty table returns empty string.", () => {
     expect(PATTERN).toBe("");
 });
 
+test("Getting string from cell removes accented characters.", () => {
+    const VALUE = KoiSpreadsheet.getStringFromCell(
+        [ ["kōji", "two"], ["three", "four"] ],
+        0,
+        0
+    );
+    expect(VALUE).toBe("koji");
+});
+
 // =================================
 // =====GET BASE COLOR FROM ROW=====
 // =================================
