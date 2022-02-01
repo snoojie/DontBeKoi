@@ -1,7 +1,7 @@
 //import { DataAccessLayer } from "./database/dataAccessLayer";
 //import Database from "./database/database";
 import Logger from "./util/logger";
-import bot from "./dontBeKoiBot";
+import Bot from "./dontBeKoiBot";
 //import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
 //import { Sequelize } from "sequelize";
 
@@ -20,14 +20,15 @@ console.log("===============");
     })
     .catch(Logger.error);*/
 
-bot.start()
+Bot.start()
 .catch(error => {
     Logger.error(error);
-    return bot.stop();
+    return Bot.stop();
 });
-/*
-Database.start()
-    .then(_ => DataAccessLayer.getUsersMissingKoi("mashiro", "akachan"))
-    .then(response => Logger.log(JSON.stringify(response, null, 2)))
+
+/*Database.start()
+    .then(_ => Logger.log("Done"))
+    //.then(_ => DataAccessLayer.getUsersMissingKoi("mashiro", "akachan"))
+    //.then(response => Logger.log(JSON.stringify(response, null, 2)))
     .then(_ => Database.stop())
     .catch(Logger.error);*/

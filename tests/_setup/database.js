@@ -1,14 +1,12 @@
 const { Sequelize } = require("sequelize");
-require('dotenv').config()
-
-const DATABASE_URL = process.env.TEST_DATABASE_URL;
+require("dotenv").config();
 
 function initSequelize()
 {
     return new Sequelize(
-        DATABASE_URL, 
+        process.env.TEST_DATABASE_URL, 
         { 
-            logging: false,
+            //logging: false,
             quoteIdentifiers: false,
             define: { underscored: true } 
         }
@@ -16,8 +14,6 @@ function initSequelize()
 }
 
 module.exports = {
-
-    DATABASE_URL: DATABASE_URL,
 
     initSequelize: initSequelize,
 

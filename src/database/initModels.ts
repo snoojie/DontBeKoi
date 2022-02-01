@@ -46,7 +46,7 @@ async function populatePatterns(): Promise<void>
         patterns.push({
             name: ROW.name, 
             type: ROW.type,
-            hatchTime: ROW.hatchTime == undefined ? null : ROW.hatchTime
+            hatchTime: ROW.hatchTime ? ROW.hatchTime : null
         });
     }
     await Pattern.bulkCreate(patterns, { ignoreDuplicates: true } );

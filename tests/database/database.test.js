@@ -1,9 +1,9 @@
 const Database = require("../../src/database/database").default;
-const { dropAllTables, DATABASE_URL } = require("../_setup/database");
+const { dropAllTables } = require("../_setup/database");
 
 // before any test runs,
 // change the database URL in environment variable to a test database
-beforeAll(() => process.env.DATABASE_URL = DATABASE_URL);
+//beforeAll(() => process.env.DATABASE_URL = DATABASE_URL);
 
 // for each test, make sure it starts with no tables in the database
 beforeEach(async() => await dropAllTables());
@@ -18,7 +18,7 @@ test("The database can be started and stopped.", async () => {
     await Database.start();
     await Database.stop();
 });
-
+/*
 test("The database can be safely stopped even if it has not started.", async () => {
     await Database.stop();
 });
@@ -40,4 +40,4 @@ describe("Missing environment variables.", () => {
     test("The database throws an error when the database URL is not set in environment variables..", async () => {
         await expect(Database.start()).rejects.toThrow();
     });
-});
+});*/
