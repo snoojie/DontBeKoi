@@ -1,4 +1,5 @@
 import { Options, Sequelize } from "sequelize";
+import ErrorMessages from "../errorMessages";
 import Config from "../util/config";
 import RethrownError from "../util/rethrownError";
 import initModels from "./initModels";
@@ -16,25 +17,11 @@ const Database = {
         // there is nothing to do
         if (sequelize)
         {
-            throw new Error(
-                "The database has already started. To restart it, call stop() first."
-            );
+            throw new Error(ErrorMessages.DATABASE.ALREADY_RUNNING);
         }
 
         // get the database URL
-        let url: string;
-        try
-        {
-            url = Config.getDatabaseUrl();
-        }
-        catch(error)
-        {
-            throw new RethrownError(
-                "Could not connect to the database. " +
-                "Could not get the database URL from config.",
-                error
-            )
-        }
+        const URL = Config.getDatabaseUrl();
 
         // connect to database
         try
@@ -53,7 +40,7 @@ const Database = {
             };
 
             // if using heroku, use ssl
-            if (url.indexOf("@localhost") < 0)
+            if (URL.indexOf("@localhost") < 0)
             {
                 options.dialectOptions = {
                     ssl: {
@@ -64,7 +51,7 @@ const Database = {
             }
 
             // create sequelize instance
-            sequelize = new Sequelize(url, options);
+            sequelize = new Sequelize(URL, options);
 
             // we run authetnicate because creating a sequelize instance
             // does not check if user, database name, etc, are valid
@@ -73,8 +60,7 @@ const Database = {
         catch(error)
         {
             throw new RethrownError(
-                `Could not connect to database. ` +
-                `Could the database URL be wrong? ${url}`, 
+                ErrorMessages.DATABASE.FAILED_CONNECTION + " " + URL,
                 error
             );
         }

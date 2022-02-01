@@ -1,5 +1,8 @@
 const Database = require("../../src/database/database").default;
 const { dropAllTables } = require("../_setup/database");
+const ErrorMessages = require("../../src/errorMessages").default;
+
+const ORIGINAL_ENV = process.env;
 
 // before any test runs,
 // change the database URL in environment variable to a test database
@@ -25,7 +28,8 @@ test("The database can be safely stopped even if it has not started.", async () 
 
 test("Starting the database when it is already running causes an error.", async () => {
     await Database.start();
-    await expect(Database.start()).rejects.toThrow();
+    await expect(Database.start())
+        .rejects.toThrow(ErrorMessages.DATABASE.ALREADY_RUNNING);
 });
 
 test("The database can be started and stopped multiple times.", async () => {
@@ -35,9 +39,32 @@ test("The database can be started and stopped multiple times.", async () => {
     await Database.stop();
 });
 
-describe("Missing environment variables.", () => {
-    beforeEach(() => delete process.env.DATABASE_URL);
-    test("The database throws an error when the database URL is not set in environment variables..", async () => {
+describe("Database URL environment variable.", () => {
+    
+    beforeEach(() => {
+        process.env = { ...ORIGINAL_ENV };
+        delete process.env.DATABASE_URL
+    });
+    afterAll(() => process.env = ORIGINAL_ENV);
+
+    test("Error when the database URL is not set in environment variables.", async () => {
+        await expect(Database.start())
+            .rejects.toThrow(ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE);
+    });
+
+    test("Error when the database URL is invalid.", async () => {
+        process.env.DATABASE_URL = "wrongurl";
+        await expect(Database.start())
+            .rejects.toThrow(ErrorMessages.DATABASE.FAILED_CONNECTION);
+    });
+
+    test("Can start the database after a failed connection attempt.", async () => {
+        
+        // failed attempt
         await expect(Database.start()).rejects.toThrow();
+
+        // successful attempt
+        process.env = ORIGINAL_ENV;
+        await Database.start();
     });
 });

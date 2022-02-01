@@ -10,7 +10,10 @@ const ErrorMessages =
 
     DATABASE: {
 
-        INVALID_DATABASE_URL: "Could not connect to the database. Invalid URL."
+        ALREADY_RUNNING: "Cannot start the database. It is already running.",
+
+        FAILED_CONNECTION: "Could not connect to database. " +
+            "Could the database URL be wrong?"
 
     },
 
