@@ -38,7 +38,10 @@ describe("Modify google API key.", () => {
             .rejects.toThrow(ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE);
     });
 
-    test("Error validating valid spreadsheet ID with an incorrect google API key.", async() => {
+    test(
+        "Error validating valid spreadsheet ID with an incorrect google API key.", 
+        async() => 
+    {
         process.env.GOOGLE_API_KEY = "fakekey";
         await expect(Spreadsheet.validateId(VALID_SPREADSHEET_ID))
             .rejects.toThrow(ErrorMessages.SPREADSHEET.INVALID_GOOGLE_API_KEY);
@@ -48,7 +51,10 @@ describe("Modify google API key.", () => {
 // =====GET VALUES=====
 // ====================
 
-    test("Error getting values without a Google API key even with valid spreadsheet ID and range.", async() => 
+    test(
+        "Error getting values without a Google API key even with valid spreadsheet " + 
+        "ID and range.", 
+        async() => 
     {
         await expect(Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE))
             .rejects.toThrow(ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE);
@@ -83,7 +89,8 @@ test("Can get all values of rows with text.", async() => {
 }, TIMEOUT);
 
 test("Getting values where first row has no text includes that empty row.", async() => {
-    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L2:M3");
+    const VALUES = 
+        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L2:M3");
     expect(VALUES).toStrictEqual([
         [],
         ["-dai", "-kuro"]
@@ -91,19 +98,22 @@ test("Getting values where first row has no text includes that empty row.", asyn
 }, TIMEOUT);
 
 test("Getting values where last row has no text excludes that last row.", async() => {
-    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K3:L4");
+    const VALUES = 
+        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K3:L4");
     expect(VALUES).toStrictEqual([
         ["-ukon", "-dai"]
     ]);
 }, TIMEOUT);
 
 test("Getting values when there is no text returns an empty list.", async() => {
-    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K4:L5");
+    const VALUES = 
+        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K4:L5");
     expect(VALUES).toStrictEqual([]);
 }, TIMEOUT);
 
 test("Can get value of one cell, with text, with range !<cell>:<cell>.", async() => {
-    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2:I2");
+    const VALUES = 
+        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2:I2");
     expect(VALUES).toStrictEqual([["Inazuma"]]);
 }, TIMEOUT);
 
@@ -112,12 +122,20 @@ test("Can get value of one cell, with text, with range !<cell>.", async() => {
     expect(VALUES).toStrictEqual([["Inazuma"]]);
 }, TIMEOUT);
 
-test("Getting value of one cell, without text, with range !<cell>:<cell>, returns an empty list.", async() => {
+test(
+    "Getting value of one cell, without text, with range !<cell>:<cell>, returns " +
+    "an empty list.", 
+    async() => 
+{
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L5:L5");
     expect(VALUES).toStrictEqual([]);
 }, TIMEOUT);
 
-test("Getting value of one cell, without text, with range !<cell>, returns an empty list.", async() => {
+test(
+    "Getting value of one cell, without text, with range !<cell>, " + 
+    "returns an empty list.", 
+    async() => 
+{
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!J2");
     expect(VALUES).toStrictEqual([]);
 }, TIMEOUT);
