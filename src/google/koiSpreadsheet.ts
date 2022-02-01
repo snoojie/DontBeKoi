@@ -1,12 +1,12 @@
 const KoiSpreadsheet = {
 
     /**
-     * Gets the string in the table at (rowIndex, columnIndex).
+     * Gets the string in the table at (row, column).
      * If there is no text in that cell, an empty string "" is returned.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to get the string from.
      * @param columnIndex index of the column to get the string from.
-     * @returns string at (rowIndex, columnIndex).
+     * @returns string at (row, column).
      */
     getStringFromCell(table: any[][], rowIndex: number, columnIndex: number): string
     {
@@ -50,6 +50,15 @@ const KoiSpreadsheet = {
         return color;
     },
 
+    /**
+     * The string at (row, column) will be stripped of dashes and returned.
+     * It is expected the highlight color is in (row, column).
+     * For example, the text at (row, column) may be "-kura", but "kura" will be returned.
+     * If there is no text in (row, column), the empty string is returned.
+     * @param table array of arrays representing the google spreadsheet values.
+     * @param rowIndex index of the row to find the highlight color in.
+     * @returns string at (row, column) without a dash.
+     */
     getHighlightColorFromColumn(
         table: any[][], rowIndex: number, columnIndex: number
     ): string

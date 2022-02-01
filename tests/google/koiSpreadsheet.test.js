@@ -71,3 +71,34 @@ test("Getting base color from empty table yields empty string.", () => {
     const COLOR = KoiSpreadsheet.getBaseColorFromRow([], 0);
     expect(COLOR).toBe("");
 });
+
+// =========================================
+// =====GET HIGHLIGHT COLOR FROM COLUMN=====
+// =========================================
+
+test("Getting highlight color strips dash.", () => {
+    const COLOR = KoiSpreadsheet.getHighlightColorFromColumn(
+        [ ["wrong row"], ["wrong column", "-kura"] ],
+        1,
+        1
+    );
+    expect(COLOR).toBe("kura");
+});
+
+test(
+    "Getting highlight color returns the color even when the table " +
+    "does not have the dash.", 
+    () => 
+{
+    const COLOR = KoiSpreadsheet.getHighlightColorFromColumn(
+        [ ["wrong row"], ["wrong column", "kura"] ],
+        1,
+        1
+    );
+    expect(COLOR).toBe("kura");
+});
+
+test("Getting highlight color from empty table yields empty string.", () => {
+    const COLOR = KoiSpreadsheet.getHighlightColorFromColumn([], 0, 0);
+    expect(COLOR).toBe("");
+});
