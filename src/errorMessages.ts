@@ -53,8 +53,13 @@ const ErrorMessages =
 
     SPREADSHEET: {
 
-        INVALID_GOOGLE_API_KEY: 
-            "Could not validate spreadsheet due to invalid Google API key."
+        INVALID_GOOGLE_API_KEY: "Invalid Google API key.",
+
+        CANNOT_GET_SPREADSHEET: "Cannot read the spreadsheet. " +
+            "Could the Google API key, spreadsheet ID, or range be wrong?",
+
+        SPREADSHEET_IS_NOT_DEFINED: 
+            "This shouldn't happen. The spreadsheet values is undefined or null."
     }
 
 }

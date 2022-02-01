@@ -23,6 +23,7 @@ const Spreadsheet = {
      * https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit#gid=1848229055
      * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
      * @returns whether this spreadsheet is valid or not 
+     * @throws if the Google API key is invalid.
      */
     validateId: async function(spreadsheetId: string): Promise<boolean>
     {
@@ -77,16 +78,17 @@ const Spreadsheet = {
         catch(error)
         {
             throw new RethrownError(
-                `Could not get spreadsheet. Could the spreadsheet ID ` +
-                `${spreadsheetId} or range ${range} be invalid?`,
+                `${ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET} Spreadsheet ID: ` + 
+                `${spreadsheetId}, range: ${range}`,
                 error
             );
         }
-        if (!values)
+        if (values == null || values == undefined)
         {
             // this shouldn't happen
             throw new Error(
-                `Spreadsheet ${spreadsheetId} with range ${range} returned empty values.`
+                `${ErrorMessages.SPREADSHEET.SPREADSHEET_IS_NOT_DEFINED} ` +
+                `Spreadsheet ID: ${spreadsheetId}, range: ${range}`
             );
         }
 
