@@ -83,13 +83,13 @@ const Spreadsheet = {
                 error
             );
         }
+
+        // when all the values are empty text,
+        // google for some reason returns null or undefined
+        // change that to be an empty list
         if (values == null || values == undefined)
         {
-            // this shouldn't happen
-            throw new Error(
-                `${ErrorMessages.SPREADSHEET.SPREADSHEET_IS_NOT_DEFINED} ` +
-                `Spreadsheet ID: ${spreadsheetId}, range: ${range}`
-            );
+            values = [];
         }
 
         return values;

@@ -71,12 +71,41 @@ test("Error getting values of invalid range.", async() => {
         .rejects.toThrow(ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET);
 });
 
-test("Getting values returns correct values.", async() => {
+test("Can get all values of rows with text.", async() => {
     const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE);
-    console.log(VALUES);
     expect(VALUES).toStrictEqual([
         ["Inazuma"],
         ["", "-shiro", "-ukon"],
         ["Shi-"]
     ]);
+});
+
+test("Getting values where first row has no text includes that empty row.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L2:M3");
+    expect(VALUES).toStrictEqual([
+        [],
+        ["-dai", "-kuro"]
+    ]);
+});
+
+test("Getting values where last row has no text excludes that last row.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K3:L4");
+    expect(VALUES).toStrictEqual([
+        ["-ukon", "-dai"]
+    ]);
+});
+
+test("Getting values when there is no text returns an empty list.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!K4:L5");
+    expect(VALUES).toStrictEqual([]);
+});
+
+test("Can get value of one cell with text.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2:I2");
+    expect(VALUES).toStrictEqual([["Inazuma"]]);
+});
+
+test("Getting value of one cell without text returns an empty list.", async() => {
+    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!L5:L5");
+    expect(VALUES).toStrictEqual([]);
 });

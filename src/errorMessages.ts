@@ -58,8 +58,7 @@ const ErrorMessages =
         CANNOT_GET_SPREADSHEET: "Cannot read the spreadsheet. " +
             "Could the Google API key, spreadsheet ID, or range be wrong?",
 
-        SPREADSHEET_IS_NOT_DEFINED: 
-            "This shouldn't happen. The spreadsheet values is undefined or null."
+        CANNOT_GET_VALUES: "Cannot get values. Could the range be wrong?"
     }
 
 }
