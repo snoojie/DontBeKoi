@@ -147,3 +147,43 @@ test("There are the same number of common as rare koi.", async () => {
     }
     expect(commonCount).toBe(rareCount);
 });
+
+// ===========================
+// =====OVERVIEW AND KOIS=====
+// ===========================
+
+test("There are 32 times more koi than patterns.", async() => {
+    const OVERVIEW = await CommunitySpreadsheet.getOverview();
+    const KOIS = await CommunitySpreadsheet.getKois();
+    expect(32 * OVERVIEW.length).toBe(KOIS.length);
+});
+
+test("Each koi has a pattern defined in the overview.", async() => {
+    const OVERVIEW = await CommunitySpreadsheet.getOverview();
+    const KOIS = await CommunitySpreadsheet.getKois();
+    let koiHasPatternNotInOverview = false;
+    for (const KOI of KOIS)
+    {
+        if (!OVERVIEW.find(entry => KOI.pattern == entry.name))
+        {
+            koiHasPatternNotInOverview = true;
+            break;
+        }
+    }
+    expect(koiHasPatternNotInOverview).not.toBeTruthy();
+});
+
+test("Each pattern in the overview has koi.", async() => {
+    const OVERVIEW = await CommunitySpreadsheet.getOverview();
+    const KOIS = await CommunitySpreadsheet.getKois();
+    let overviewHasPatternWithoutKoi = false;
+    for (const OVERVIEW_ENTRY of OVERVIEW)
+    {
+        if (!KOIS.find(koi => koi.pattern == OVERVIEW_ENTRY.name))
+        {
+            overviewHasPatternWithoutKoi = true;
+            break;
+        }
+    }
+    expect(overviewHasPatternWithoutKoi).not.toBeTruthy();
+});
