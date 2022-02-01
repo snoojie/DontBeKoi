@@ -83,8 +83,7 @@ const Spreadsheet = {
                 error
             );
         }
-        console.log(values);
-
+        
         // when all the values are empty text,
         // google for some reason returns null or undefined
         // change that to be an empty list
