@@ -53,12 +53,12 @@ const UserSpreadsheet = {
 
         // find the base color
         let baseColorRowIndex: number = -1;
+        let baseColor: string = "";
         for(let i=0; i<4; i++)
         {
             const ROW_INDEX: number = patternNameRowIndex + i + 2;
-            const BASE_COLOR: string = 
-                KoiSpreadsheet.getBaseColorFromRow(TABLE, ROW_INDEX);
-            if (COLOR_LOWERCASE.startsWith(BASE_COLOR.toLowerCase()))
+            baseColor = KoiSpreadsheet.getBaseColorFromRow(TABLE, ROW_INDEX);
+            if (COLOR_LOWERCASE.startsWith(baseColor.toLowerCase()))
             {
                 // found the base color!
                 baseColorRowIndex = ROW_INDEX;
@@ -105,6 +105,17 @@ const UserSpreadsheet = {
             );
         }
 
+        // confirm the base and highlight color match the expected color
+        if ((baseColor + KoiSpreadsheet.getHighlightColorFromColumn(
+            TABLE, patternNameRowIndex+1, highlightColorColumnIndex
+        )).toLowerCase() != COLOR_LOWERCASE)
+        {
+            throw new Error(
+                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
+                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
+            );
+        }
+
         // read the value of this pattern's color
         // if it is empty, the user does not have this koi
         // if it has "k" or "d", the user has this koi
@@ -132,10 +143,9 @@ function getHighlightColorColumnIndex(
     for (let i=0; i<4; i++)
     {
         const COLUMN_INDEX: number = i + RARITY_OFFSET;
-        const HIGHLIGHT_COLOR: string = 
-            KoiSpreadsheet.getHighlightColorFromColumn(
-                table, patternNameRowIndex + 1, COLUMN_INDEX
-            );
+        const HIGHLIGHT_COLOR: string = KoiSpreadsheet.getHighlightColorFromColumn(
+            table, patternNameRowIndex + 1, COLUMN_INDEX
+        );
         if (colorLowercase.endsWith(HIGHLIGHT_COLOR.toLowerCase()))
         {
             // found the highlight color!
@@ -143,5 +153,6 @@ function getHighlightColorColumnIndex(
             break;
         }
     }
+
     return index;
 }
