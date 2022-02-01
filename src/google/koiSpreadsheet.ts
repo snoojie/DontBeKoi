@@ -28,6 +28,15 @@ const KoiSpreadsheet = {
         return KoiSpreadsheet.getStringFromCell(table, rowIndex, 0);
     },
 
+    /**
+     * The string at (row, 0) will be stripped of dashes and returned.
+     * It is expected the base color is in (row, 0).
+     * For example, the text at (row, 0) may be "Cha-", but "Cha" will be returned.
+     * If there is no text in (row, 0), the empty string is returned.
+     * @param table array of arrays representing the google spreadsheet values.
+     * @param rowIndex index of the row to find the base color in.
+     * @returns string at (row, 0) without a dash.
+     */
     getBaseColorFromRow(table: any[][], rowIndex: number): string
     {
         let color: string = KoiSpreadsheet.getStringFromCell(table, rowIndex, 0);

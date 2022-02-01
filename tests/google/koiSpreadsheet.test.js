@@ -40,9 +40,34 @@ test("Getting pattern returns string at (row, 0).", () => {
 });
 
 test("Getting pattern from empty table returns empty string.", () => {
-    const PATTERN = KoiSpreadsheet.getPatternNameFromRow(
-        [],
-        0,
-    );
+    const PATTERN = KoiSpreadsheet.getPatternNameFromRow([], 0,);
     expect(PATTERN).toBe("");
+});
+
+// =================================
+// =====GET BASE COLOR FROM ROW=====
+// =================================
+
+test("Getting base color strips dash.", () => {
+    const COLOR = KoiSpreadsheet.getBaseColorFromRow(
+        [ ["wrong row"], ["Cha-", "not a color"] ],
+        1,
+    );
+    expect(COLOR).toBe("Cha");
+});
+
+test(
+    "Getting base color returns the color even when the table does not have the dash.", 
+    () => 
+{
+    const COLOR = KoiSpreadsheet.getBaseColorFromRow(
+        [ ["wrong row"], ["Cha", "not a color"] ],
+        1,
+    );
+    expect(COLOR).toBe("Cha");
+});
+
+test("Getting base color from empty table yields empty string.", () => {
+    const COLOR = KoiSpreadsheet.getBaseColorFromRow([], 0);
+    expect(COLOR).toBe("");
 });
