@@ -55,7 +55,7 @@ export class CommandManager
         // though this shouldn't happen
         if (!interaction.isCommand())
         {
-            Logger.error("Cannot respond to interaction because it is not a command.");
+            Logger.error(ErrorMessages.COMMAND_MANAGER.UNKNOWN_INTERACTON);
             Logger.error(interaction);
             return;
         }
@@ -65,7 +65,7 @@ export class CommandManager
         if (!this.commands.has(interaction.commandName))
         {
             Logger.error(
-                "Cannot respond to interaction because it is an unknown command: " +
+                ErrorMessages.COMMAND_MANAGER.UNKNOWN_COMMAND + " " + 
                 interaction.commandName
             );
             return;
@@ -83,7 +83,7 @@ export class CommandManager
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
             .catch(error => {
-                // todo
+                Logger.error(ErrorMessages.COMMAND_MANAGER.FAILED_COMMAND_EXECUTION);
                 Logger.error(error);
                 return "Uh oh. Something went wrong.";
             });

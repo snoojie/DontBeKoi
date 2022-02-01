@@ -33,7 +33,14 @@ const ErrorMessages =
         CANNOT_BUILD_COMMAND: "Failed to build a command for deployment.",
 
         FAILED_COMMAND_DEPLOYMENT: 
-            "Failed to deploy commands. Could the client ID or guild ID be wrong?"
+            "Failed to deploy commands. Could the client ID or guild ID be wrong?",
+
+        UNKNOWN_INTERACTON: "Cannot respond to interaction because it is not a command.",
+        
+        UNKNOWN_COMMAND: 
+            "Cannot respond to interaction because it is an unknown command.",
+
+        FAILED_COMMAND_EXECUTION: "Error while executing the command."
 
     },
 
