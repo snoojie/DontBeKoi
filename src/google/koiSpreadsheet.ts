@@ -1,5 +1,13 @@
 const KoiSpreadsheet = {
 
+    /**
+     * Gets the string in the table at (rowIndex, columnIndex).
+     * If there is no text in that cell, an empty string "" is returned.
+     * @param table array of arrays representing the google spreadsheet values.
+     * @param rowIndex index of the row, starting at index 0.
+     * @param columnIndex index of the column, starting at index 0.
+     * @returns string at (rowIndex, columnIndex).
+     */
     getStringFromCell(table: any[][], rowIndex: number, columnIndex: number): string
     {
         const ROW: string[] = table[rowIndex] || [];

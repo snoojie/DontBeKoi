@@ -1,4 +1,4 @@
-const { CommunitySpreadsheet } =require("../../src/google/communitySpreadsheet");
+const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet");
 
 // ==================
 // =====OVERVIEW=====
