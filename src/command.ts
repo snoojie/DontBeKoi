@@ -5,9 +5,8 @@ import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
 import RethrownError from "./util/rethrownError";
 import Config from "./util/config";
-import { isDefinedString } from "./util/common";
 import * as fs from "fs";
-
+import ErrorMessages from "./errorMessages";
 
 export interface Option
 {
@@ -41,22 +40,8 @@ export class CommandManager
      */
     public async run(): Promise<void>
     {
-        await this.init()
-            .catch(error => {
-                throw new RethrownError(
-                    "Cannot run CommandManager. There was an issue initializing " +
-                    "the commands.", 
-                    error
-                );
-            })
-
-        await this.deploy()
-            .catch(error => {
-                throw new RethrownError(
-                    "Cannot run CommandManager. There was an issue deploying commands.",
-                    error
-                );
-            })
+        await this.init();
+        await this.deploy();
     }
 
     /**
@@ -113,6 +98,7 @@ export class CommandManager
 
     /**
      * Sets this.commands by reading from the commands/ directory.
+     * @throws if there was an issue initializing any command.
      */
     private async init(): Promise<void>
     {
@@ -121,9 +107,7 @@ export class CommandManager
         const DIRECTORY_FULL_PATH: string = `${__dirname}/${DIRECTORY}`;
         if (!fs.existsSync(DIRECTORY_FULL_PATH))
         {
-            throw new Error(
-                "Cannot init commands. The commands directory is missing."
-            );
+            throw new Error(ErrorMessages.COMMAND_MANAGER.MISSING_COMMANDS_DIRECTORY);
         }
 
         const FILES: string[] = fs.readdirSync(DIRECTORY_FULL_PATH);
@@ -140,22 +124,16 @@ export class CommandManager
             const FILE_RELATIVE_PATH: string = `./${DIRECTORY}/${FILE.slice(0,-3)}`;
 
             // import the script
-            const SCRIPT = await import(FILE_RELATIVE_PATH)
-                .catch(error => {
-                    throw new RethrownError(
-                        `Cannot init commands. The following script could not be ` +
-                        `loaded: ${FILE_RELATIVE_PATH}`,
-                        error
-                    );
-                });
+            const SCRIPT = await import(FILE_RELATIVE_PATH);
                     
             // ensure the script has a default export
             const COMMAND = SCRIPT.default;
             if (!COMMAND)
             {
                 throw new Error(
-                    `Cannot init commands. The following script does not have a ` +
-                    `default export: ${FILE_RELATIVE_PATH}`
+                    ErrorMessages.COMMAND_MANAGER
+                        .COMMAND_SCRIPT_MISSING_DEFAULT_EXPORT + 
+                    " " + FILE_RELATIVE_PATH
                 );
             }
 
@@ -163,8 +141,8 @@ export class CommandManager
             if (!this.isCommand(COMMAND))
             {
                 throw new Error(
-                    `Cannot init commands. The default export of the following ` +
-                    `script is not of type command: ${FILE_RELATIVE_PATH}`
+                    ErrorMessages.COMMAND_MANAGER.IS_NOT_COMMAND + " " + 
+                    FILE_RELATIVE_PATH
                 );
             }
 
@@ -172,8 +150,7 @@ export class CommandManager
             if (this.commands.has(COMMAND.name))
             {
                 throw new Error(
-                    `Cannot init commands. The commands directory has multiple ` +
-                    `commands of the same name: ${COMMAND.name}`
+                    ErrorMessages.COMMAND_MANAGER.DUPLICATE_COMMAND + " " + COMMAND.name
                 );
             }
 
@@ -188,43 +165,10 @@ export class CommandManager
      */
     private async deploy(): Promise<void>
     {
-        // get config variables bot token, client ID, and guild ID
-        let token: string;
-        let clientId: string;
-        let guildId: string;
-        try
-        {
-            token = Config.getBotToken();
-        }
-        catch (error)
-        {
-            throw new RethrownError(
-                "Could not deploy commands. Could not get the bot token.", 
-                error
-            );
-        }
-        try
-        {
-            clientId = Config.getClientId();
-        }
-        catch (error)
-        {
-            throw new RethrownError(
-                "Could not deploy commands. Could not get the client ID.", 
-                error
-            );
-        }
-        try
-        {
-            guildId = Config.getGuildId();
-        }
-        catch (error)
-        {
-            throw new RethrownError(
-                "Could not deploy commands. Could not get the guild ID.", 
-                error
-            );
-        }
+        // get config variables
+        const TOKEN: string = Config.getBotToken();
+        const CLIENT_ID: string = Config.getClientId();
+        const GUILD_ID: string = Config.getGuildId();
 
         // build the commands
         // we need to do this to get the JSON for the REST call
@@ -252,8 +196,8 @@ export class CommandManager
             catch(error)
             {
                 throw new RethrownError(
-                    `Could not deploy commands. There was an issue with building the ` +
-                    `following command: ${COMMAND_NAME}`, 
+                    ErrorMessages.COMMAND_MANAGER.CANNOT_BUILD_COMMAND + " " + 
+                    COMMAND_NAME,
                     error
                 );
             }
@@ -262,15 +206,14 @@ export class CommandManager
 
         // finally deploy the commands 
         await new REST({ version: "9" })
-            .setToken(token)
+            .setToken(TOKEN)
             .put(
-                Routes.applicationGuildCommands(clientId, guildId),
+                Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
                 { body: commandBuilders.map(commandBuilder => commandBuilder.toJSON()) }
             )
             .catch(error => {
                 throw new RethrownError(
-                    `Could not deploy commands. Could the client ID ${clientId} or ` +
-                    `guild ID ${guildId} be wrong?`,
+                    ErrorMessages.COMMAND_MANAGER.FAILED_COMMAND_DEPLOYMENT,
                     error
                 );
             });
@@ -294,4 +237,14 @@ export class CommandManager
                // execute must be a defined function
                COMMAND.execute !== undefined && typeof COMMAND.execute === "function"
     }
+}
+
+/**
+ * Checks if the provided object is a string with at least one character.
+ * @param object object to check if a defined string
+ * @returns boolean
+ */
+function isDefinedString(object: string): boolean
+{
+    return object !== undefined && typeof object === "string" && object !== "";
 }

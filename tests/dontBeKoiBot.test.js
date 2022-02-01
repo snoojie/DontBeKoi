@@ -1,6 +1,6 @@
 const Bot = require("../src/DontBeKoiBot").default;
 const Logger = require("../src/util/logger").default;
-const ErrorMessages = require("../src/util/errorMessages").default;
+const ErrorMessages = require("../src/errorMessages").default;
 
 // mute logger
 Logger.log = jest.fn();
@@ -31,7 +31,7 @@ test("The bot can be safely stopped even if it has not started.", async () => {
     await Bot.stop();
 });
 
-test("Starting the bot when it is already running causes an error.", async () => {
+test("Error starting the bot when it is already running.", async () => {
     await Bot.start();
     await expect(Bot.start()).rejects.toThrow(ErrorMessages.BOT.ALREADY_RUNNING);
 }, 2 * TIMEOUT);
@@ -55,20 +55,22 @@ describe("Test login with invalid bot token.", () => {
     });
     afterAll(() => process.env = ORIGINAL_ENV);
     
-    test("Starting a bot without a token errors.", async () =>  {
-        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
+    test("Error starting a bot without a token.", async () =>  {
+        await expect(Bot.start()).rejects.toThrow(
+            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
+        );
         
     });
 
-    test("Starting a bot with an incorrect token errors.", async () =>  {
+    test("Error starting a bot with an incorrect token.", async () =>  {
         process.env.BOT_TOKEN = "I am not valid";
-        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
+        await expect(Bot.start()).rejects.toThrow(ErrorMessages.BOT.FAILED_LOGIN);
     });
 
     test("Can start the bot after a failed login attempt.", async () => {
 
         // purposely fail the start
-        await expect(Bot.start()).rejects.toThrow(ErrorMessages.INVALID_TOKEN);
+        await expect(Bot.start()).rejects.toThrow();
 
         // run the bot successfully
         process.env = ORIGINAL_ENV;

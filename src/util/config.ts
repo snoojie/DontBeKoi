@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+import ErrorMessages from "../errorMessages";
 
 // init environment variables
 dotenv.config();
@@ -9,7 +10,7 @@ function get(key: string): string
     if (!VALUE)
     {
         throw new Error(
-            `Did you forget to set ${key} as an environment variable?`
+            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE + " " + key
         );
     }
     return VALUE;

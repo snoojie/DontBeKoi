@@ -1,4 +1,5 @@
 const { CommandManager } = require("../src/command");
+const ErrorMessages = require("../src/errorMessages").default;
 
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
@@ -20,21 +21,27 @@ describe("Missing environment variables", () => {
         process.env = { ...ORIGINAL_ENV };
     });
 
-    test("Error when deploying commands without a bot token in environment variables.", async () => {
+    test("Error deploying commands without a bot token.", async () => {
         delete process.env.BOT_TOKEN;
         let commandManager = new CommandManager();
-        await expect(commandManager.run()).rejects.toThrow();
+        await expect(commandManager.run()).rejects.toThrow(
+            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
+        );
     });
 
-    test("Error when deploying commands without a client ID in environment variables.", async () => {
+    test("Error deploying commands without a client ID.", async () => {
         delete process.env.CLIENT_ID;
         let commandManager = new CommandManager();
-        await expect(commandManager.run()).rejects.toThrow();
+        await expect(commandManager.run()).rejects.toThrow(
+            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
+        );
     });
 
-    test("Error when deploying commands without a guild ID in environment variables.", async () => {
+    test("Error deploying commands without a guild ID.", async () => {
         delete process.env.GUILD_ID;
         let commandManager = new CommandManager();
-        await expect(commandManager.run()).rejects.toThrow();
+        await expect(commandManager.run()).rejects.toThrow(
+            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
+        );
     });
 });

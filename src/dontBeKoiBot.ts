@@ -1,11 +1,10 @@
 import { Client, Interaction } from "discord.js";
 import Config from "./util/config";
 import Logger from "./util/logger";
-import RethrownError from "./util/rethrownError";
-import { sleep } from "./util/common";
 import { CommandManager } from "./command";
 import Database from "./database/database";
-import ErrorMessages from "./util/errorMessages";
+import ErrorMessages from "./errorMessages";
+import RethrownError from "./util/rethrownError";
 
 let discord: Client = getNewDiscordClient();
 
@@ -35,7 +34,20 @@ async function login(): Promise<void>
     const TOKEN: string = Config.getBotToken();
 
     // login to discord
-    await discord.login(TOKEN);
+    await discord.login(TOKEN)
+        .catch(error => {
+            throw new RethrownError(ErrorMessages.BOT.FAILED_LOGIN, error);
+        })
+}
+
+/**
+ * Sleep for a certain amount of time.
+ * @param ms How long to sleep in milliseconds.
+ * @returns after the provided ms time.
+ */
+async function sleep(ms: number): Promise<void>
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const Bot = {
@@ -65,10 +77,7 @@ const Bot = {
             // for some reason, if the database fails, if we logged in at the same time,
             // the program will hang
             await login()
-                .then(_ => Logger.log("...Logged into discord."))
-                .catch(async error => {
-                    throw new RethrownError(ErrorMessages.BOT.INVALID_TOKEN, error);
-                });
+                .then(_ => Logger.log("...Logged into discord."));
 
             // set up commands
             let commandManager: CommandManager = new CommandManager();
