@@ -1,6 +1,5 @@
 const Config = require("../../src/util/config").default;
-
-const ORIGINAL_ENV = process.env;
+const ErrorMessages = require("../../src/errorMessages").default;
 
 testEnvironmentVariable("Bot token");
 testEnvironmentVariable("Client ID");
@@ -8,14 +7,13 @@ testEnvironmentVariable("Guild ID");
 testEnvironmentVariable("Database URL");
 testEnvironmentVariable("Google API key");
 
-function testEnvironmentVariable(readableName, envKey)
+function testEnvironmentVariable(readableName)
 {
     // example readableName: "Client ID"
 
     // get the environment key
     // in our example, it would be "CLIENT_ID"
     const ENV_KEY = readableName.toUpperCase().replaceAll(" ", "_");
-
 
     // get the method name
     // in our example, it would be "getClientId"
@@ -37,7 +35,9 @@ function testEnvironmentVariable(readableName, envKey)
         });
 
         test("Error getting the environment variable when it is not set.", () => {
-            expect(() => Config[methodName]()).toThrow();
+            expect(() => Config[methodName]()).toThrow(
+                ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
+            );
         });
     });
 }
