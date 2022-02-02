@@ -31,7 +31,6 @@ export default async function initModels(sequelize: Sequelize): Promise<void>
         }
     }
 
-
     // add data to the tables
     await populatePatterns();
     await populateKois();
