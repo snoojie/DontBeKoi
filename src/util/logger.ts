@@ -1,5 +1,6 @@
 // references: 
 // https://stackoverflow.com/a/41407246
+
 // https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#colors
 enum Color
 {
@@ -33,10 +34,16 @@ const Logger = {
      */
     error: function(error: any): void
     {
-        // generally, error will be of type Error
         if (error instanceof Error && error.stack)
         {
-            for (const STEP of error.stack.split("\n"))
+            // normally, the first line of an error stack looks like
+            // Error: some message here
+            // but, sequelize just does 
+            // Error
+            // which is useless
+            // so, for sequelize, we need to manually create the first line
+            console.log(Theme.ERROR, error.name + ": " + error.message);
+            for (const STEP of error.stack.split("\n").slice(1))
             {
                 const THEME: Theme = STEP.startsWith("    at ") 
                     ? Theme.STACKTRACE 
