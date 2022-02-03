@@ -1,5 +1,5 @@
 const initModels = require("../../src/database/initModels").default;
-const { dropAllTables, initSequelize } = require("../_setup/database");
+const { dropAllTables, initSequelize, countRecords } = require("../_setup/database");
 const { DataTypes, QueryTypes } = require("sequelize");
 
 let sequelize;
@@ -13,7 +13,7 @@ beforeEach(async() => {
 });
 afterEach(async() => await sequelize.close());
 afterAll(async () => await dropAllTables());
-/*
+
 // ============================
 // =====TABLES ARE CREATED=====
 // ============================
@@ -144,7 +144,7 @@ describe("Prepopulate patterns table.", () => {
         expect(RECORD.name).toBe(KOI.name);
         expect(RECORD.pattern).toBe(KOI.pattern);
     }); 
-});*/
+});
 
 // ==================================
 // =====PATTERNS TABLE POPULATED=====
@@ -152,18 +152,36 @@ describe("Prepopulate patterns table.", () => {
 
 test("There are 30 progressive patterns.", async() => {
     await initModels(sequelize);
-    const RECORD = await sequelize.query(
-        "SELECT COUNT(name) FROM patterns WHERE type='Progressive'",
-        { type: QueryTypes.SELECT, raw: true, plain: true }
-    );
-    expect(parseInt(RECORD.count)).toBe(30);
+    const COUNT = await countRecords(sequelize, "patterns", "type='Progressive'");
+    expect(COUNT).toBe(30);
 });
 
 test("There are at least 208 collector patterns.", async() => {
     await initModels(sequelize);
-    const RECORD = await sequelize.query(
-        "SELECT COUNT(name) FROM patterns WHERE type='Collector'",
-        { type: QueryTypes.SELECT, raw: true, plain: true }
-    );
-    expect(parseInt(RECORD.count)).toBeGreaterThanOrEqual(208);
+    const COUNT = await countRecords(sequelize, "patterns", "type='Collector'");
+    expect(COUNT).toBeGreaterThanOrEqual(208);
+});
+
+// =============================
+// =====KOI TABLE POPULATED=====
+// =============================
+
+test("There are 32 times as many koi as patterns.", async() => {
+    await initModels(sequelize);
+    const PATTERN_COUNT = await countRecords(sequelize, "patterns");
+    const KOI_COUNT = await countRecords(sequelize, "kois");
+    expect(32 * PATTERN_COUNT).toBe(KOI_COUNT);
+});
+
+test("Pattern natsu has 32 koi.", async() => {
+    await initModels(sequelize);
+    const COUNT = await countRecords(sequelize, "kois", "pattern='Natsu'");
+    expect(COUNT).toBe(32);
+});
+
+test("There are an equal number of common and rare koi.", async() => {
+    await initModels(sequelize);
+    const COMMON_COUNT = await countRecords(sequelize, "kois", "rarity='Common'");
+    const RARE_COUNT = await countRecords(sequelize, "kois", "rarity='Rare'");
+    expect(COMMON_COUNT).toBe(RARE_COUNT);
 });
