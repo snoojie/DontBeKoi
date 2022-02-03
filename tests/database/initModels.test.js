@@ -13,7 +13,7 @@ beforeEach(async() => {
 });
 afterEach(async() => await sequelize.close());
 afterAll(async () => await dropAllTables());
-
+/*
 // ============================
 // =====TABLES ARE CREATED=====
 // ============================
@@ -57,7 +57,6 @@ function testTableHasColumns(tableName, columnNames)
         expect(COLUMNS.length).toBe(columnNames.length);
     });
 }
-
 
 // ====================================
 // =====TABLES ARE NOT OVERWRITTEN=====
@@ -145,4 +144,26 @@ describe("Prepopulate patterns table.", () => {
         expect(RECORD.name).toBe(KOI.name);
         expect(RECORD.pattern).toBe(KOI.pattern);
     }); 
+});*/
+
+// ==================================
+// =====PATTERNS TABLE POPULATED=====
+// ==================================
+
+test("There are 30 progressive patterns.", async() => {
+    await initModels(sequelize);
+    const RECORD = await sequelize.query(
+        "SELECT COUNT(name) FROM patterns WHERE type='Progressive'",
+        { type: QueryTypes.SELECT, raw: true, plain: true }
+    );
+    expect(parseInt(RECORD.count)).toBe(30);
+});
+
+test("There are at least 208 collector patterns.", async() => {
+    await initModels(sequelize);
+    const RECORD = await sequelize.query(
+        "SELECT COUNT(name) FROM patterns WHERE type='Collector'",
+        { type: QueryTypes.SELECT, raw: true, plain: true }
+    );
+    expect(parseInt(RECORD.count)).toBeGreaterThanOrEqual(208);
 });
