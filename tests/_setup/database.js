@@ -13,6 +13,23 @@ function initSequelize()
     );
 }
 
+async function select(tableName, whereClause, isPlain)
+{
+    let sequelize = initSequelize();
+    let query = `SELECT * FROM ${tableName}`;
+    if (whereClause)
+    {
+        query += " WHERE " + whereClause;
+    }
+
+    const RECORD = await sequelize.query(
+        query,
+        { type: QueryTypes.SELECT, raw: true, plain: isPlain }
+    );
+    await sequelize.close();
+    return RECORD;
+}
+
 module.exports = {
 
     initSequelize: initSequelize,
@@ -36,6 +53,27 @@ module.exports = {
             { type: QueryTypes.SELECT, raw: true, plain: true }
         );
         return parseInt(RECORD.count);
+    },
+
+    select: async function(tableName, whereClause)
+    {
+        return select(tableName, whereClause, false);
+    },
+
+    selectOne: async function(tableName, whereClause)
+    {
+        return select(tableName, whereClause, true);
+    },
+
+    insert: async function(tableName, record)
+    {
+        // add timestamps to each record
+        record.created_at = new Date();
+        record.updated_at = new Date();
+
+        let sequelize = initSequelize();
+        await sequelize.getQueryInterface().bulkInsert(tableName, [record]);
+        await sequelize.close();
     }
 
 };

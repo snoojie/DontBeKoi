@@ -1,6 +1,7 @@
 const initModels = require("../../src/database/initModels").default;
-const { dropAllTables, initSequelize, countRecords } = require("../_setup/database");
-const { DataTypes, QueryTypes } = require("sequelize");
+const { dropAllTables, initSequelize, countRecords, select, selectOne }
+    = require("../_setup/database");
+const { DataTypes } = require("sequelize");
 
 let sequelize;
 let queryInterface;
@@ -25,11 +26,8 @@ function testTableIsCreated(name)
 {
     test(name + " table is created when it did not previously exist.", async() => {
         await initModels(sequelize);
-        let tables = await sequelize.query(
-            "SELECT table_name FROM information_schema.tables " + 
-            "WHERE table_name='" + name + "'",
-            { type: QueryTypes.SELECT, raw: true }
-        );
+        let tables = 
+            await select("information_schema.tables", "table_name='" + name + "'");
         expect(tables.length).toBe(1);
     });
 }
@@ -79,10 +77,7 @@ test("Users are not overwritten.", async() => {
     await initModels(sequelize);
 
     // check that data was not overwritten
-    const RECORD = await sequelize.query(
-        `SELECT name FROM users WHERE name='${USER.name}'`,
-        { type: QueryTypes.SELECT, raw: true, plain: true }
-    );
+    const RECORD = await selectOne("users", `name='${USER.name}'`)
     expect(RECORD).toBeDefined();
     expect(RECORD.name).toBe(USER.name);
 }); 
@@ -108,10 +103,7 @@ describe("Prepopulate patterns table.", () => {
         await initModels(sequelize);
     
         // check that data was not overwritten
-        const RECORD = await sequelize.query(
-            `SELECT name FROM patterns WHERE name='${PATTERN.name}'`,
-            { type: QueryTypes.SELECT, raw: true, plain: true }
-        );
+        const RECORD = await selectOne("patterns", `name='${PATTERN.name}'`);
         expect(RECORD).toBeDefined();
         expect(RECORD.name).toBe(PATTERN.name);
     }); 
@@ -136,10 +128,7 @@ describe("Prepopulate patterns table.", () => {
         await initModels(sequelize);
     
         // check that data was not overwritten
-        const RECORD = await sequelize.query(
-            `SELECT name, pattern FROM kois WHERE name='${KOI.name}'`,
-            { type: QueryTypes.SELECT, raw: true, plain: true }
-        );
+        const RECORD = await selectOne("kois", `name='${KOI.name}'`);
         expect(RECORD).toBeDefined();
         expect(RECORD.name).toBe(KOI.name);
         expect(RECORD.pattern).toBe(KOI.pattern);
