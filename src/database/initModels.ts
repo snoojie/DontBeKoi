@@ -1,6 +1,5 @@
 import { Sequelize } from "sequelize";
-import RethrownError from "../util/rethrownError";
-import { User, initModel as initUser } from "./models/user";
+import { initModel as initUser } from "./models/user";
 import { Pattern, initModel as initPattern, PatternAttributes } from "./models/pattern";
 import { Koi, initModel as initKoi, KoiAttributes } from "./models/koi";
 import { CommunitySpreadsheet, Overview, SpreadsheetKoi } from "../google/communitySpreadsheet";
@@ -17,19 +16,7 @@ export default async function initModels(sequelize: Sequelize): Promise<void>
     associate();
 
     // create the tables if they don't exist yet
-    for (const Model of [User, Pattern, Koi])
-    {
-        try
-        {
-            await Model.sync()
-        }
-        catch(error)
-        {
-            throw new RethrownError(
-                `Could not initialize the ${Model.name} table.`, error
-            );
-        }
-    }
+    await sequelize.sync();
 
     // add data to the tables
     await populatePatterns();

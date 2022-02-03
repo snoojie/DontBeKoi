@@ -34,6 +34,17 @@ function testTableIsCreated(name)
     });
 }
 
+// =============================
+// =====COLUMNS ARE CORRECT=====
+// =============================
+
+test("User table has name column.", async () => {
+    await initModels(sequelize);
+    const COLUMNS = Object.keys(await queryInterface.describeTable("users"));
+    expect(COLUMNS).toContain("name");
+});
+
+
 // ====================================
 // =====TABLES ARE NOT OVERWRITTEN=====
 // ====================================

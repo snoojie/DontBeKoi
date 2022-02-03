@@ -26,7 +26,8 @@ export function initModel(sequelize: Sequelize): void
             discordId: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                unique: true
+                unique: true,
+                primaryKey: true
             },
             name: {
                 type: DataTypes.STRING,
