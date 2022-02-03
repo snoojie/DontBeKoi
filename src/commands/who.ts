@@ -19,26 +19,19 @@ const WhoCommand: Command = {
         const COLOR: string = interaction.options.getString("color") || "";
         const PATTERN: string = interaction.options.getString("pattern") || "";
         
-        const RESPONSE: UsersMissingKoiResponse = 
+        const USERS_MISSING_KOI: UsersMissingKoiResponse =
             await DataAccessLayer.getUsersMissingKoi(COLOR, PATTERN);
 
-        if (RESPONSE.error)
-        {
-            return RESPONSE.error;
-        }
-
-        const DATA = RESPONSE.data!;
-
         const KOI_DESCRIPTOR: string = 
-            `${DATA.rarity.toLowerCase()} ${COLOR} ${PATTERN}`;
+            `${USERS_MISSING_KOI.rarity.toLowerCase()} ${COLOR} ${PATTERN}`;
 
-        if (DATA.discordIds.length == 0)
+        if (USERS_MISSING_KOI.discordIds.length == 0)
         {
             return `Nobody needs ${KOI_DESCRIPTOR}.`;
         }
 
         let mentions: string[] = [];
-        for (const DISCORD_ID of DATA.discordIds)
+        for (const DISCORD_ID of USERS_MISSING_KOI.discordIds)
         {
             mentions.push(`<@${DISCORD_ID}>`);
         }

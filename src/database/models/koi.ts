@@ -6,7 +6,6 @@ export interface KoiAttributes
     name: string;
     rarity: Rarity;
     pattern: string;
-
 }
 
 export class Koi extends Model<KoiAttributes> implements KoiAttributes

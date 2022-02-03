@@ -7,6 +7,7 @@ import RethrownError from "./util/rethrownError";
 import Config from "./util/config";
 import * as fs from "fs";
 import ErrorMessages from "./errorMessages";
+import PublicError from "./util/publicError";
 
 export interface Option
 {
@@ -83,6 +84,10 @@ export class CommandManager
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
             .catch(error => {
+                if (error instanceof PublicError)
+                {
+                    return error.message;
+                }
                 Logger.error(ErrorMessages.COMMAND_MANAGER.FAILED_COMMAND_EXECUTION);
                 Logger.error(error);
                 return "Uh oh. Something went wrong.";

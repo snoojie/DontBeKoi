@@ -1,17 +1,15 @@
 import { Op } from "sequelize";
 import UserSpreadsheet from "../google/userSpreadsheet";
 import { Rarity } from "../types";
+import PublicError from "../util/publicError";
 import RethrownError from "../util/rethrownError";
 import { Koi } from "./models/koi";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
 
 export type UsersMissingKoiResponse = {
-    error?: string;
-    data?: {
-        discordIds: string[];
-        rarity: Rarity;
-    };
+    discordIds: string[];
+    rarity: Rarity;
 }
 
 export const DataAccessLayer = {
@@ -64,7 +62,6 @@ export const DataAccessLayer = {
         koiName: string, patternName: string
     ): Promise<UsersMissingKoiResponse>
     {
-
         // find the pattern and confirm it's valid
         const PATTERN: Pattern | null = await Pattern.findOne({
              where: { name: { [Op.iLike]: patternName } },
@@ -72,11 +69,13 @@ export const DataAccessLayer = {
         });
         if (!PATTERN)
         {
-            return { error: `Pattern ${patternName} does not exist.` };
+            throw new PublicError(`Pattern ${patternName} does not exist.`);
         }
         if (!PATTERN.kois)
         {
-            throw new Error(`Pattern ${patternName} has no colors.`);
+            throw new Error(
+                `Pattern ${patternName} has no colors. How did this happen?`
+            );
         }
 
         // find the koi and confirm it's valid
@@ -93,7 +92,9 @@ export const DataAccessLayer = {
         }
         if (!koi)
         {
-            return { error : `Pattern ${patternName} does not have color ${koiName}.` };
+            throw new PublicError(
+                `Pattern ${patternName} does not have color ${koiName}.`
+            );
         }
 
         // get the users who do not have this koi
@@ -116,9 +117,9 @@ export const DataAccessLayer = {
 
         await Promise.all(promises);
         
-        return { data: { 
+        return {
             discordIds: discordUsers,
             rarity: koi.rarity
-        } };
+        };
     }
 }
