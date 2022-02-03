@@ -1,5 +1,5 @@
 const initModels = require("../../src/database/initModels").default;
-const { dropAllTables, initSequelize, countRecords, select, selectOne }
+const { dropAllTables, initSequelize, countRecords, select, selectOne, insert }
     = require("../_setup/database");
 const { DataTypes } = require("sequelize");
 
@@ -51,8 +51,12 @@ function testTableHasColumns(tableName, columnNames)
             expect(COLUMNS).toContain(COLUMN_NAME);
         }
 
+        // confirm the timestamp columns exist
+        expect(COLUMNS).toContain("created_at");
+        expect(COLUMNS).toContain("updated_at");
+
         // make sure no other columns are part of the table
-        expect(COLUMNS.length).toBe(columnNames.length);
+        expect(COLUMNS.length).toBe(columnNames.length+2);
     });
 }
 
@@ -62,16 +66,18 @@ function testTableHasColumns(tableName, columnNames)
 
 test("Users are not overwritten.", async() => {
     // populate table
-    const USER = { name: "Name One" };
+    const USER = { name: "Name One", discord_id: "did1", spreadsheet_id: "sid1" };
     await queryInterface.createTable(
         "users", 
         { 
             "name" : DataTypes.STRING, 
             "discord_id": DataTypes.STRING, 
-            "spreadsheet_id": DataTypes.STRING
+            "spreadsheet_id": DataTypes.STRING,
+            "created_at" : DataTypes.STRING,
+            "updated_at": DataTypes.STRING
         }
     );
-    await queryInterface.bulkInsert("users", [USER]);
+    await insert("users", USER);
 
     // function to test
     await initModels(sequelize);
@@ -92,10 +98,12 @@ describe("Prepopulate patterns table.", () => {
             { 
                 "name" : { type: DataTypes.STRING, primaryKey: true },
                 "type": DataTypes.STRING, 
-                "hatch_time": DataTypes.INTEGER
+                "hatch_time": DataTypes.INTEGER,
+                "created_at" : DataTypes.STRING,
+                "updated_at": DataTypes.STRING
             }
         );
-        await queryInterface.bulkInsert("patterns", [PATTERN]);
+        await insert("patterns", PATTERN);
     });
 
     test("Patterns are not overwritten.", async() => {
@@ -117,12 +125,12 @@ describe("Prepopulate patterns table.", () => {
                 "id" : DataTypes.INTEGER,
                 "name" : DataTypes.STRING,
                 "rarity": DataTypes.STRING, 
-                "pattern": DataTypes.STRING
+                "pattern": DataTypes.STRING,
+                "created_at" : DataTypes.STRING,
+                "updated_at": DataTypes.STRING
             }
         );
-        await queryInterface.bulkInsert(
-            "kois", [KOI]
-        );
+        await insert("kois", KOI);
 
         // function to test
         await initModels(sequelize);
