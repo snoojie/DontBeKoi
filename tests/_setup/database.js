@@ -8,7 +8,7 @@ function initSequelize()
         { 
             logging: false,
             quoteIdentifiers: false,
-            define: { underscored: true, timestamps: false }
+            define: { underscored: true }
         }
     );
 }

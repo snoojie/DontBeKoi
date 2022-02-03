@@ -2,7 +2,6 @@ import { Op } from "sequelize";
 import UserSpreadsheet from "../google/userSpreadsheet";
 import { Rarity } from "../types";
 import PublicError from "../util/publicError";
-import RethrownError from "../util/rethrownError";
 import { Koi } from "./models/koi";
 import { Pattern } from "./models/pattern";
 import { User } from "./models/user";
@@ -30,18 +29,7 @@ export const DataAccessLayer = {
     {   
         // if the user already exists in the database, 
         // update their name and spreadsheet ID
-        let user: User | null;
-        try {
-            user = await User.findOne({ where: { discordId } });
-        }
-        catch(error)
-        {
-            throw new RethrownError(
-                "Could not query User table by discord ID. " +
-                "Could the table be set up incorrectly?",
-                error
-            );
-        }
+        let user: User | null = await User.findOne({ where: { discordId } });
         if (user)
         {
             user.name = name;
