@@ -23,4 +23,5 @@ module.exports = {
         await sequelize.getQueryInterface().dropAllTables();
         await sequelize.close();
     }
+
 };

@@ -1,6 +1,6 @@
 const initModels = require("../../src/database/initModels").default;
 const { dropAllTables, initSequelize } = require("../_setup/database");
-const { QueryTypes, DataTypes } = require("sequelize");
+const { DataTypes, QueryTypes } = require("sequelize");
 
 let sequelize;
 let queryInterface;
@@ -38,11 +38,25 @@ function testTableIsCreated(name)
 // =====COLUMNS ARE CORRECT=====
 // =============================
 
-test("User table has name column.", async () => {
-    await initModels(sequelize);
-    const COLUMNS = Object.keys(await queryInterface.describeTable("users"));
-    expect(COLUMNS).toContain("name");
-});
+testTableHasColumns("users", ["discord_id", "name", "spreadsheet_id"]);
+testTableHasColumns("patterns", ["name", "type", "hatch_time"]);
+testTableHasColumns("kois", ["name", "id", "pattern", "rarity"]);
+function testTableHasColumns(tableName, columnNames)
+{
+    test(`${tableName} table has columns ${columnNames.join(", ")}.`, async () => {
+        await initModels(sequelize);
+        const COLUMNS = Object.keys(await queryInterface.describeTable(tableName));
+
+        // make sure each provided column is in the table
+        for (const COLUMN_NAME of columnNames)
+        {
+            expect(COLUMNS).toContain(COLUMN_NAME);
+        }
+
+        // make sure no other columns are part of the table
+        expect(COLUMNS.length).toBe(columnNames.length);
+    });
+}
 
 
 // ====================================
