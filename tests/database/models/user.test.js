@@ -10,7 +10,7 @@ BaseModelTester.runColumnTests(
     []
 );
 
-describe("Model property tests.", () => {
+describe("Model properties.", () => {
     let sequelize;
 
     beforeEach(async() => {

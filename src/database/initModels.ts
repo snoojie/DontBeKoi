@@ -3,7 +3,6 @@ import { initModel as initUser } from "./models/user";
 import { Pattern, initModel as initPattern, PatternAttributes } from "./models/pattern";
 import { Koi, initModel as initKoi, KoiAttributes } from "./models/koi";
 import { CommunitySpreadsheet, Overview, SpreadsheetKoi } from "../google/communitySpreadsheet";
-import associate from "./associations/patternsHaveKois";
 
 export default async function initModels(sequelize: Sequelize): Promise<void>
 {
@@ -11,9 +10,6 @@ export default async function initModels(sequelize: Sequelize): Promise<void>
     initUser(sequelize);
     initPattern(sequelize);
     initKoi(sequelize);
-
-    // initialize the associations
-    associate();
 
     // create the tables if they don't exist yet
     await sequelize.sync();

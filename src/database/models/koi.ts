@@ -1,5 +1,7 @@
 import { Association, DataTypes, Model, Sequelize } from "sequelize";
+import ErrorMessages from "../../errorMessages";
 import { Rarity } from "../../types";
+import RethrownError from "../../util/rethrownError";
 import { Pattern } from "./pattern";
 
 export interface KoiAttributes
@@ -47,4 +49,23 @@ export function initModel(sequelize: Sequelize): void
         },
         { sequelize }
     );
+
+    try
+    {
+        Pattern.hasMany(Koi, {
+            sourceKey: "name",
+            foreignKey: "patternName",
+            as: "kois"
+        });
+    }
+    catch(error)
+    {
+        throw new RethrownError(ErrorMessages.DATABASE.CANNOT_INITIALIZE_KOI, error);
+    }
+
+    Koi.belongsTo(Pattern, {
+        foreignKey: "patternName",
+        targetKey: "name",
+        as: "pattern"
+    });
 }

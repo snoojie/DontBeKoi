@@ -13,7 +13,10 @@ const ErrorMessages =
         ALREADY_RUNNING: "Cannot start the database. It is already running.",
 
         FAILED_CONNECTION: "Could not connect to database. " +
-            "Could the database URL be wrong?"
+            "Could the database URL be wrong?",
+
+        CANNOT_INITIALIZE_KOI: "Could not associate Pattern to Koi. " +
+            "Did you forget to inititalize Pattern before initializing Koi?",
 
     },
 

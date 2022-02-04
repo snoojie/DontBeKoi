@@ -1,5 +1,5 @@
 const { initModel, Pattern } = require("../../../src/database/models/pattern");
-const { initSequelize, dropAllTables, getColumns } = require("../../_setup/database");
+const { initSequelize, dropAllTables } = require("../../_setup/database");
 const BaseModelTester = require("./_baseModelTester");
 
 BaseModelTester.runColumnTests(
@@ -10,7 +10,7 @@ BaseModelTester.runColumnTests(
     [ "hatch_time" ]
 );
 
-describe("Model property tests.", () => {
+describe("Model properties.", () => {
     let sequelize;
 
     beforeEach(async() => {
