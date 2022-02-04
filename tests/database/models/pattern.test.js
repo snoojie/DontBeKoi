@@ -1,5 +1,5 @@
-const { initModel, User } = require("../../../src/database/models/user");
-const { initSequelize, dropAllTables, selectOne, getColumns } = require("../../_setup/database");
+const { initModel, Pattern } = require("../../../src/database/models/pattern");
+const { initSequelize, dropAllTables, getColumns } = require("../../_setup/database");
 
 let sequelize;
 
@@ -19,16 +19,16 @@ afterAll(async() => await dropAllTables());
 describe("Database columns.", () => {
     let columns;
     beforeEach(async() => 
-        columns = await getColumns("users")
+        columns = await getColumns("patterns")
     );
 
     // =======================
     // =====COLUMN EXISTS=====
     // =======================
 
-    testColumnExists("discord_id");
+    testColumnExists("type");
     testColumnExists("name");
-    testColumnExists("spreadsheet_id");
+    testColumnExists("hatch_time");
     testColumnExists("created_at");
     testColumnExists("updated_at");
     function testColumnExists(columnName)
@@ -46,19 +46,21 @@ describe("Database columns.", () => {
     // =====COLUMN ATTRIBUTES=====
     // ===========================
 
-    test("Column discord_id is the primary key.", () => {
-        expect(columns.discord_id.primaryKey).toBeTruthy();
+    test("Column name is the primary key.", () => {
+        expect(columns.name.primaryKey).toBeTruthy();
     });
 
-    testColumnCannotBeNull("discord_id");
+    testColumnCannotBeNull("type");
     testColumnCannotBeNull("name");
-    testColumnCannotBeNull("spreadsheet_id");
     function testColumnCannotBeNull(columnName)
     {
         test(`Column ${columnName} cannot be null.`, () => {
             expect(columns[columnName].allowNull).toBeFalsy();
         })
     }
+    test("Column hatch_time can be null.", () => {
+        expect(columns.hatch_time.allowNull).toBeTruthy();
+    })
     
 });
 
@@ -67,24 +69,24 @@ describe("Database columns.", () => {
 // =========================
 
 describe("Model properties.", () => {
-    const USER_TO_SAVE = {
-        discordId: "somediscord", 
+    const PATTERN_TO_SAVE = {
         name: "somename", 
-        spreadsheetId: "somespreadsheet"
+        type: "sometype",
+        hatchTime: 99
     };
-    let savedUser;
+    let savedPattern;
     beforeEach(async() => {
-        await User.create(USER_TO_SAVE);
-        savedUser = await User.findOne();
+        await Pattern.create(PATTERN_TO_SAVE);
+        savedPattern = await Pattern.findOne();
     });
     
-    testPropertyExists("discordId");
+    testPropertyExists("type");
     testPropertyExists("name");
-    testPropertyExists("spreadsheetId");
+    testPropertyExists("hatchTime");
     function testPropertyExists(propertyName)
     {
         test(`Property ${propertyName} exists.`, () => {
-            expect(savedUser[propertyName]).toBe(USER_TO_SAVE[propertyName]);
+            expect(savedPattern[propertyName]).toBe(PATTERN_TO_SAVE[propertyName]);
         });
     }
 });
@@ -94,20 +96,24 @@ describe("Model properties.", () => {
 // =====PROPERTY ATTRIBUTES=====
 // =============================
 
-test("Property discordId is required.", async() => {
-    await expect(
-        User.create({name: "some name", spreadsheetId: "some spreadsheet" })
-    ).rejects.toThrow();
-});
-
 test("Property name is required.", async() => {
     await expect(
-        User.create({discordId: "some discord id", spreadsheetId: "some spreadsheet" })
+        Pattern.create({type: "some type", hatch_time: 99 })
     ).rejects.toThrow();
 });
 
-test("Property spreadsheetId is required.", async() => {
+test("Property type is required.", async() => {
     await expect(
-        User.create({discordId: "some discordid", name: "some name" })
+        Pattern.create({name: "some name", hatch_time: 99 })
     ).rejects.toThrow();
+});
+
+test("Property hatch_time is optional.", async() => {
+    await Pattern.create({ name: "withNullTime", type: "some type" });
+    const SAVED_PATTERN = 
+        await Pattern.findOne({where: {name: "withNullTime"}});
+    expect(SAVED_PATTERN).toBeDefined();
+    expect(SAVED_PATTERN.name).toBe("withNullTime");
+    expect(SAVED_PATTERN.type).toBe("some type");
+    expect(SAVED_PATTERN.hatch_time).toBeUndefined();
 });
