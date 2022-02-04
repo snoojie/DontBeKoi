@@ -2,7 +2,8 @@ const { initSequelize, dropAllTables, getColumns } = require("../../_setup/datab
 
 module.exports = {
 
-    runColumnTests: async function(initModel, tableName, columnNames, primaryKey)
+    runColumnTests: 
+        async function(initModel, tableName, columnNames, primaryKey, nullableColumnNames)
     {
         let promise = new Promise((resolve, reject) => {
             let sequelize;
@@ -56,9 +57,18 @@ module.exports = {
             
                 for (const COLUMN_NAME of columnNames)
                 {
-                    test(`Column ${COLUMN_NAME} cannot be null.`, () => {
-                        expect(columns[COLUMN_NAME].allowNull).toBeFalsy();
-                    });
+                    if (nullableColumnNames.indexOf(COLUMN_NAME) >= 0)
+                    {
+                        test(`Column ${COLUMN_NAME} can be null.`, () => {
+                            expect(columns[COLUMN_NAME].allowNull).toBeTruthy();
+                        });
+                    }
+                    else
+                    {
+                        test(`Column ${COLUMN_NAME} cannot be null.`, () => {
+                            expect(columns[COLUMN_NAME].allowNull).toBeFalsy();
+                        });
+                    }
                 }
                 
             });

@@ -5,9 +5,9 @@ BaseModelTester.runColumnTests(
     initModel,
     "kois",
     ["id", "name", "rarity", "pattern_name"],
-    "id"
+    "id",
+    []
 );
-
 
 // =========================
 // =====PROPERTY EXISTS=====
