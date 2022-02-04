@@ -49,7 +49,7 @@ export const DataAccessLayer = {
     getUsersMissingKoi: async function(
         koiName: string, patternName: string
     ): Promise<UsersMissingKoiResponse>
-    {
+    {        
         // find the pattern and confirm it's valid
         const PATTERN: Pattern | null = await Pattern.findOne({
              where: { name: { [Op.iLike]: patternName } },
@@ -69,7 +69,6 @@ export const DataAccessLayer = {
         // find the koi and confirm it's valid
         let koi: Koi | undefined;
         const KOI_NAME_LOWERCASE: string = koiName.toLowerCase();
-        console.log(PATTERN.kois.length);
         for (const KOI of PATTERN.kois)
         {
             if (KOI.name.toLowerCase() == KOI_NAME_LOWERCASE)

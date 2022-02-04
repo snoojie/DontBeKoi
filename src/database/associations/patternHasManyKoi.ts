@@ -8,4 +8,10 @@ export default function associate()
         foreignKey: "patternName",
         as: "kois"
     });
+
+    Koi.belongsTo(Pattern, {
+        foreignKey: "patternName",
+        targetKey: "name",
+        as: "pattern"
+    });
 }

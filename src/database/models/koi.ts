@@ -1,5 +1,6 @@
-import { DataTypes, Model, Sequelize } from "sequelize";
+import { Association, DataTypes, Model, Sequelize } from "sequelize";
 import { Rarity } from "../../types";
+import { Pattern } from "./pattern";
 
 export interface KoiAttributes
 {
@@ -13,6 +14,11 @@ export class Koi extends Model<KoiAttributes> implements KoiAttributes
     declare name: string;
     declare rarity: Rarity;
     declare patternName: string;
+
+    declare readonly pattern?: Pattern;
+    declare static associations: {
+        pattern: Association<Koi, Pattern>;
+    };
 }
 
 /**
