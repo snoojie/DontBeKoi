@@ -19,6 +19,7 @@ BaseModelTester.runColumnTests(
 
 describe("Model properties.", () => {
     let sequelize;
+    const PATTERN = { name: "somepattern", type: "sometype" };
 
     beforeEach(async() => {
         await dropAllTables();
@@ -26,6 +27,8 @@ describe("Model properties.", () => {
         sequelize = initSequelize();
         await initModels(sequelize);
         await sequelize.sync();
+
+        await Pattern.create(PATTERN);
     });
 
     afterEach(async() => await sequelize.close());
@@ -40,11 +43,10 @@ describe("Model properties.", () => {
         const KOI_TO_SAVE = {
             name: "somekoi", 
             rarity: "somerarity",
-            patternName: "somepattern"
+            patternName: PATTERN.name
         };
         let savedKoi;
         beforeEach(async() => {    
-            await Pattern.create({name: "somepattern", type: "sometype"})
             await Koi.create(KOI_TO_SAVE);
             savedKoi = await Koi.findOne();
         });
@@ -62,24 +64,22 @@ describe("Model properties.", () => {
     // =============================
     // =====PROPERTY ATTRIBUTES=====
     // =============================
-/*
-    test("Property discordId is required.", async() => {
-        await expect(
-            User.create({name: "some name", spreadsheetId: "some spreadsheet" })
-        ).rejects.toThrow();
-    });
 
     test("Property name is required.", async() => {
         await expect(
-            User.create({discordId: "some discord id", spreadsheetId: "some spreadsheet" })
+            Koi.create({ patternName: PATTERN.name, rarity: "somerarity" })
         ).rejects.toThrow();
     });
 
-    test("Property spreadsheetId is required.", async() => {
+    test("Property rarity is required.", async() => {
         await expect(
-            User.create({discordId: "some discordid", name: "some name" })
+            Koi.create({ name: "somekoi", patternName: PATTERN.name })
         ).rejects.toThrow();
     });
-    
-    */
+
+    test("Property patternName is required.", async() => {
+        await expect(
+            Koi.create({ name: "somekoi", rarity: "somerarity" })
+        ).rejects.toThrow();
+    });
 });
