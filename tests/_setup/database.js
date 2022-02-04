@@ -76,6 +76,16 @@ module.exports = {
         let sequelize = initSequelize();
         await sequelize.getQueryInterface().bulkInsert(tableName, [record]);
         await sequelize.close();
-    }
+    },
+
+    getColumns: async function(tableName)
+    {
+        let sequelize = initSequelize();
+        const COLUMNS = await sequelize.getQueryInterface().describeTable(tableName);
+        await sequelize.close();
+        return COLUMNS;
+    },
+
+
 
 };
