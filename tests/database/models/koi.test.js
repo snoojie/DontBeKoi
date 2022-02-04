@@ -10,6 +10,20 @@ async function initModels(sequelize)
     await initKoi(sequelize);
 }
 
+BaseModelTester.runCommonTests({
+
+    init: async function(sequelize)
+    {
+        await initPattern(sequelize);
+        await initKoi(sequelize);
+    },
+
+    tableName: "kois",
+    columnNames: ["id", "name", "rarity", "pattern_name"],
+    primaryKey: "id",
+    nullableColumnNames: []
+});
+/*
 BaseModelTester.runColumnTests(
     initModels,
     "kois",
@@ -42,4 +56,4 @@ BaseModelTester.runRequiredPropertyTests(
     async function() {
         await Pattern.create(PATTERN);
     },
-);
+);*/
