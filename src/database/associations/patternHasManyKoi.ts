@@ -5,7 +5,7 @@ export default function associate()
 {
     Pattern.hasMany(Koi, {
         sourceKey: "name",
-        foreignKey: "pattern",
+        foreignKey: "patternName",
         as: "kois"
     });
 }

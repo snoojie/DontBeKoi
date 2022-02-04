@@ -66,31 +66,31 @@ describe("Database columns.", () => {
 // =========================
 // =====PROPERTY EXISTS=====
 // =========================
-/*
+
 describe("Model properties.", () => {
-    const PATTERN_TO_SAVE = {
+    const KOI_TO_SAVE = {
         name: "somename", 
-        type: "sometype",
-        hatchTime: 99
+        rarity: "somerarity",
+        pattern: "somepattern"
     };
-    let savedPattern;
+    let savedKoi;
     beforeEach(async() => {
-        await Pattern.create(PATTERN_TO_SAVE);
-        savedPattern = await Pattern.findOne();
+        await Koi.create(KOI_TO_SAVE);
+        savedKoi = await Koi.findOne();
     });
     
-    testPropertyExists("type");
     testPropertyExists("name");
-    testPropertyExists("hatchTime");
+    //testPropertyExists("name");
+    //testPropertyExists("hatchTime");
     function testPropertyExists(propertyName)
     {
         test(`Property ${propertyName} exists.`, () => {
-            expect(savedPattern[propertyName]).toBe(PATTERN_TO_SAVE[propertyName]);
+            expect(savedKoi[propertyName]).toBe(KOI_TO_SAVE[propertyName]);
         });
     }
 });
 
-
+/*
 // =============================
 // =====PROPERTY ATTRIBUTES=====
 // =============================

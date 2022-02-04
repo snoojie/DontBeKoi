@@ -69,6 +69,7 @@ export const DataAccessLayer = {
         // find the koi and confirm it's valid
         let koi: Koi | undefined;
         const KOI_NAME_LOWERCASE: string = koiName.toLowerCase();
+        console.log(PATTERN.kois.length);
         for (const KOI of PATTERN.kois)
         {
             if (KOI.name.toLowerCase() == KOI_NAME_LOWERCASE)

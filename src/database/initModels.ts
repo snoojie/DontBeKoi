@@ -47,7 +47,7 @@ async function populateKois(): Promise<void>
         kois.push({
             name: KOI.name,
             rarity: KOI.rarity,
-            pattern: KOI.pattern
+            patternName: KOI.pattern
         });
     }
     await Koi.bulkCreate(kois, { ignoreDuplicates: true });

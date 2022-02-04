@@ -5,14 +5,14 @@ export interface KoiAttributes
 {
     name: string;
     rarity: Rarity;
-    pattern: string;
+    patternName: string;
 }
 
 export class Koi extends Model<KoiAttributes> implements KoiAttributes
 {
     declare name: string;
     declare rarity: Rarity;
-    declare pattern: string;
+    declare patternName: string;
 }
 
 /**
@@ -33,7 +33,7 @@ export function initModel(sequelize: Sequelize): void
                 type: DataTypes.STRING,
                 allowNull: false
             },
-            pattern: {
+            patternName: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 unique: "compositeIndex"
