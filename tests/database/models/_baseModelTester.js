@@ -6,29 +6,28 @@ module.exports = {
         async function(initModel, tableName, columnNames, primaryKey, nullableColumnNames)
     {
         let promise = new Promise((resolve, reject) => {
-            let sequelize;
-
-            beforeEach(async() => {
-                await dropAllTables();
-                
-                // function to test
-                sequelize = initSequelize();
-                await initModel(sequelize);
-                await sequelize.sync();
-            });
-
-            afterEach(async() => sequelize.close());
-
-            afterAll(async() => {
-                await dropAllTables();
-                resolve();
-            });
-
+            
             describe("Database columns.", () => {
+                let sequelize;
                 let columns;
-                beforeEach(async() => 
-                    columns = await getColumns(tableName)
-                );
+
+                beforeEach(async() => {
+                    await dropAllTables();
+        
+                    // function to test
+                    sequelize = initSequelize();
+                    await initModel(sequelize);
+                    await sequelize.sync();
+
+                    columns = await getColumns(tableName);
+                });
+
+                afterEach(async() => await sequelize.close());
+
+                afterAll(async() => {
+                    await dropAllTables();
+                    resolve();
+                });
             
                 // =======================
                 // =====COLUMN EXISTS=====
