@@ -19,7 +19,6 @@ BaseModelTester.runCommonTests({
     tableName: "kois",
     columnNames: ["id", "name", "rarity", "pattern_name"],
     primaryKey: "id",
-    nullableColumnNames: [],
 
     recordExample: KOI_TO_SAVE,
     beforePropertyExistsTests: async function() {

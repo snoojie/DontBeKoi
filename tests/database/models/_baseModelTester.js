@@ -10,10 +10,11 @@ module.exports = {
         const TABLE_NAME = data.tableName;
         const COLUMN_NAMES = data.columnNames;
         const PRIMARY_KEY = data.primaryKey;
-        const NULLABLE_COLUMN_NAMES = data.nullableColumnNames;
+        const NULLABLE_COLUMN_NAMES = data.nullableColumnNames ? data.nullableColumnNames : [];
 
         // property
         const RECORD_EXAMPLE = data.recordExample;
+        const OPTIONAL_PROPERTIES = data.optionalProperties ? data.optionalProperties : [];
         const beforePropertyExistsTests = data.beforePropertyExistsTests;
         const beforeRequiredPropertyTests = data.beforeRequiredPropertyTests
         const create = data.create
@@ -113,12 +114,23 @@ module.exports = {
 
                 for (const PROPERTY_NAME in RECORD_EXAMPLE)
                 {
-                    test(`Property ${PROPERTY_NAME} is required.`, async() => {
-                        let objectToCreate = { ... RECORD_EXAMPLE };
-                        delete objectToCreate[PROPERTY_NAME];
-                        await expect(create(objectToCreate))
-                            .rejects.toThrow(ValidationError);
-                    });
+                    if (OPTIONAL_PROPERTIES.indexOf(PROPERTY_NAME) >= 0)
+                    {
+                        test(`Property ${PROPERTY_NAME} is optional.`, async() => {
+                            let objectToCreate = { ... RECORD_EXAMPLE };
+                            delete objectToCreate[PROPERTY_NAME];
+                            await expect(create(objectToCreate));
+                        });
+                    }
+                    else
+                    {
+                        test(`Property ${PROPERTY_NAME} is required.`, async() => {
+                            let objectToCreate = { ... RECORD_EXAMPLE };
+                            delete objectToCreate[PROPERTY_NAME];
+                            await expect(create(objectToCreate))
+                                .rejects.toThrow(ValidationError);
+                        });
+                    }
                 }
             });
         });
