@@ -41,8 +41,9 @@ module.exports = {
         await sequelize.close();
     },
 
-    countRecords: async function(sequelize, tableName, whereClause)
+    countRecords: async function(tableName, whereClause)
     {
+        let sequelize = initSequelize();
         let query = `SELECT COUNT(*) FROM ${tableName}`;
         if (whereClause)
         {
@@ -52,6 +53,7 @@ module.exports = {
             query,
             { type: QueryTypes.SELECT, raw: true, plain: true }
         );
+        await sequelize.close();
         return parseInt(RECORD.count);
     },
 
