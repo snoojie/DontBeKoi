@@ -1,72 +1,18 @@
-const { initModel, Koi } = require("../../../src/database/models/koi");
-const { initSequelize, dropAllTables, getColumns } = require("../../_setup/database");
+const BaseModelTester = require("./_baseModelTester");
+const { initModel } = require("../../../src/database/models/koi");
 
-let sequelize;
+BaseModelTester.runColumnTests(
+    initModel,
+    "kois",
+    ["id", "name", "rarity", "pattern_name"],
+    "id"
+);
 
-beforeEach(async() => {
-    await dropAllTables();
-    
-    // function to test
-    sequelize = initSequelize();
-    await initModel(sequelize);
-    await sequelize.sync();
-});
-
-afterEach(async() => sequelize.close());
-
-afterAll(async() => await dropAllTables());
-
-describe("Database columns.", () => {
-    let columns;
-    beforeEach(async() => 
-        columns = await getColumns("kois")
-    );
-
-    // =======================
-    // =====COLUMN EXISTS=====
-    // =======================
-
-    testColumnExists("name");
-    testColumnExists("rarity");
-    testColumnExists("pattern_name");
-    testColumnExists("id");
-    testColumnExists("created_at");
-    testColumnExists("updated_at");
-    function testColumnExists(columnName)
-    {
-        test(`There exists ${columnName} column.`, () => {
-            expect(columns[columnName]).toBeDefined();
-        });
-    }
-
-    test("There are exactly 6 columns.", () => {
-        expect(Object.keys(columns).length).toBe(6);
-    });
-
-    // ===========================
-    // =====COLUMN ATTRIBUTES=====
-    // ===========================
-
-    test("Column id is the primary key.", () => {
-        expect(columns.id.primaryKey).toBeTruthy();
-    });
-
-    testColumnCannotBeNull("name");
-    testColumnCannotBeNull("rarity");
-    testColumnCannotBeNull("pattern_name");
-    function testColumnCannotBeNull(columnName)
-    {
-        test(`Column ${columnName} cannot be null.`, () => {
-            expect(columns[columnName].allowNull).toBeFalsy();
-        })
-    }
-    
-});
 
 // =========================
 // =====PROPERTY EXISTS=====
 // =========================
-
+/*
 describe("Model properties.", () => {
     const KOI_TO_SAVE = {
         name: "somename", 
