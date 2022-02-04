@@ -1,5 +1,5 @@
 const { initModel, User } = require("../../../src/database/models/user");
-const { initSequelize, dropAllTables, getColumns } = require("../../_setup/database");
+const { initSequelize, dropAllTables } = require("../../_setup/database");
 const BaseModelTester = require("./_baseModelTester");
 
 BaseModelTester.runColumnTests(
