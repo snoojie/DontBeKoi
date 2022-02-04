@@ -28,7 +28,7 @@ describe("Database columns.", () => {
 
     testColumnExists("name");
     testColumnExists("rarity");
-    testColumnExists("pattern");
+    testColumnExists("pattern_name");
     testColumnExists("id");
     testColumnExists("created_at");
     testColumnExists("updated_at");
@@ -53,7 +53,7 @@ describe("Database columns.", () => {
 
     testColumnCannotBeNull("name");
     testColumnCannotBeNull("rarity");
-    testColumnCannotBeNull("pattern");
+    testColumnCannotBeNull("pattern_name");
     function testColumnCannotBeNull(columnName)
     {
         test(`Column ${columnName} cannot be null.`, () => {
@@ -71,7 +71,7 @@ describe("Model properties.", () => {
     const KOI_TO_SAVE = {
         name: "somename", 
         rarity: "somerarity",
-        pattern: "somepattern"
+        patternName: "somepattern"
     };
     let savedKoi;
     beforeEach(async() => {
@@ -80,8 +80,8 @@ describe("Model properties.", () => {
     });
     
     testPropertyExists("name");
-    //testPropertyExists("name");
-    //testPropertyExists("hatchTime");
+    testPropertyExists("patternName");
+    testPropertyExists("hatchTime");
     function testPropertyExists(propertyName)
     {
         test(`Property ${propertyName} exists.`, () => {
