@@ -119,7 +119,7 @@ module.exports = {
                         test(`Property ${PROPERTY_NAME} is optional.`, async() => {
                             let objectToCreate = { ... RECORD_EXAMPLE };
                             delete objectToCreate[PROPERTY_NAME];
-                            await expect(create(objectToCreate));
+                            await create(objectToCreate);
                         });
                     }
                     else
