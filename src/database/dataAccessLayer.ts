@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import ErrorMessages from "../errorMessages";
 import UserSpreadsheet from "../google/userSpreadsheet";
 import { Rarity } from "../types";
 import PublicError from "../util/publicError";
@@ -46,6 +47,13 @@ export const DataAccessLayer = {
         await user.save();
     },
 
+    /**
+     * Get everyone who does not have this specific koi.
+     * @param koiName Name of the koi, ie, its color.
+     * @param patternName Name of the koi's pattern.
+     * @returns list of discord IDs and the rarity of the koi.
+     * @throws PublicError if the pattern or color is not valid.
+     */
     getUsersMissingKoi: async function(
         koiName: string, patternName: string
     ): Promise<UsersMissingKoiResponse>
@@ -94,7 +102,25 @@ export const DataAccessLayer = {
             promises.push(
                 UserSpreadsheet.hasKoi(
                     USER.spreadsheetId, koiName, patternName, PATTERN.type
-                ).then(hasKoi => {
+                )
+                .catch(error => {
+                    // The user may have forgotten to add this pattern to 
+                    // their spreadsheet. So, even though the pattern is valid,
+                    // they don't have it. In this case, assume they do not
+                    // have the koi.
+                    if (error instanceof Error)
+                    {
+                        if (error.message.startsWith(ErrorMessages.USER_SPREADSHEET.PATTERN_DOES_NOT_EXIST))
+                        {
+                            return false;
+                        }
+                    }
+
+                    // this error was caused for another reason.
+                    // keep throwing it up.
+                    throw error;
+                })
+                .then(hasKoi => {
                     if (!hasKoi)
                     {
                         discordUsers.push(USER.discordId)
