@@ -4,11 +4,9 @@ const { initModel: initPattern, Pattern } = require("../../../src/database/model
 const { initSequelize, dropAllTables } = require("../../_setup/database");
 const { ValidationError, ForeignKeyConstraintError } = require("sequelize");
 
-async function initModels(sequelize)
-{
-    await initPattern(sequelize);
-    await initKoi(sequelize);
-}
+
+const PATTERN = { name: "somepattern", type: "sometype" };
+const KOI_TO_SAVE = { name: "somekoi", rarity: "somerarity", patternName: PATTERN.name };
 
 BaseModelTester.runCommonTests({
 
@@ -21,20 +19,18 @@ BaseModelTester.runCommonTests({
     tableName: "kois",
     columnNames: ["id", "name", "rarity", "pattern_name"],
     primaryKey: "id",
-    nullableColumnNames: []
+    nullableColumnNames: [],
+
+    saveModelRecord: async function() {
+        await Pattern.create(PATTERN);
+        await Koi.create(KOI_TO_SAVE);
+        const SAVED_KOI = await Koi.findOne();
+        return SAVED_KOI;
+    },
+    recordToSave: KOI_TO_SAVE
 });
 /*
-BaseModelTester.runColumnTests(
-    initModels,
-    "kois",
-    ["id", "name", "rarity", "pattern_name"],
-    "id",
-    []
-);
 
-
-const PATTERN = { name: "somepattern", type: "sometype" };
-const KOI_TO_SAVE = { name: "somekoi", rarity: "somerarity", patternName: PATTERN.name };
 BaseModelTester.runPropertyExistsTests(
     initModels,
     async function() {

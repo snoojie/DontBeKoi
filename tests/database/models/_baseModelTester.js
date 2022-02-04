@@ -6,10 +6,16 @@ module.exports = {
     runCommonTests: async function(data)
     {
         const init = data.init;
+
+        // column info
         const TABLE_NAME = data.tableName;
         const COLUMN_NAMES = data.columnNames;
         const PRIMARY_KEY = data.primaryKey;
         const NULLABLE_COLUMN_NAMES = data.nullableColumnNames;
+
+        // property info
+        const saveModelRecord = data.saveModelRecord;
+        const RECORD_TO_SAVE = data.recordToSave;
 
         let promise = new Promise((resolve) => {
 
@@ -79,6 +85,20 @@ module.exports = {
                     }
                 }
                 
+            });
+
+            describe("Property exists.", () => {
+                let savedRecord;
+                beforeEach(async() => {    
+                    savedRecord = await saveModelRecord();
+                });
+                for (const PROPERTY_NAME in RECORD_TO_SAVE)
+                {
+                    test(`Property ${PROPERTY_NAME} exists.`, () => {
+                        expect(savedRecord[PROPERTY_NAME])
+                            .toBe(RECORD_TO_SAVE[PROPERTY_NAME]);
+                    });
+                }
             });
         });
 
