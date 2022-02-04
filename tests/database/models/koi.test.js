@@ -21,15 +21,14 @@ BaseModelTester.runCommonTests({
     primaryKey: "id",
     nullableColumnNames: [],
 
-    saveModelRecord: async function() {
+    recordExample: KOI_TO_SAVE,
+    beforePropertyExistsTests: async function() {
         await Pattern.create(PATTERN);
         await Koi.create(KOI_TO_SAVE);
         const SAVED_KOI = await Koi.findOne();
         return SAVED_KOI;
     },
-    recordToSave: KOI_TO_SAVE,
-
-    postSync: async function() {
+    beforeRequiredPropertyTests: async function() {
         await Pattern.create(PATTERN);
     },
     create: async function(koi)

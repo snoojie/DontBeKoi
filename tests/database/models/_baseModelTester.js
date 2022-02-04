@@ -6,18 +6,16 @@ module.exports = {
     {
         const init = data.init;
 
-        // column info
+        // column
         const TABLE_NAME = data.tableName;
         const COLUMN_NAMES = data.columnNames;
         const PRIMARY_KEY = data.primaryKey;
         const NULLABLE_COLUMN_NAMES = data.nullableColumnNames;
 
-        // property exists
-        const saveModelRecord = data.saveModelRecord;
-        const RECORD_TO_SAVE = data.recordToSave;
-
-        // property required
-        const postSync = data.postSync
+        // property
+        const RECORD_EXAMPLE = data.recordExample;
+        const beforePropertyExistsTests = data.beforePropertyExistsTests;
+        const beforeRequiredPropertyTests = data.beforeRequiredPropertyTests
         const create = data.create
 
         let promise = new Promise((resolve) => {
@@ -93,13 +91,13 @@ module.exports = {
             describe("Property exists.", () => {
                 let savedRecord;
                 beforeEach(async() => {    
-                    savedRecord = await saveModelRecord();
+                    savedRecord = await beforePropertyExistsTests();
                 });
-                for (const PROPERTY_NAME in RECORD_TO_SAVE)
+                for (const PROPERTY_NAME in RECORD_EXAMPLE)
                 {
                     test(`Property ${PROPERTY_NAME} exists.`, () => {
                         expect(savedRecord[PROPERTY_NAME])
-                            .toBe(RECORD_TO_SAVE[PROPERTY_NAME]);
+                            .toBe(RECORD_EXAMPLE[PROPERTY_NAME]);
                     });
                 }
             });
@@ -107,16 +105,16 @@ module.exports = {
             describe("Required properties.", () => {
 
                 beforeEach(async() => {
-                    if (postSync)
+                    if (beforeRequiredPropertyTests)
                     {
-                        await postSync();
+                        await beforeRequiredPropertyTests();
                     }
                 });
 
-                for (const PROPERTY_NAME in RECORD_TO_SAVE)
+                for (const PROPERTY_NAME in RECORD_EXAMPLE)
                 {
                     test(`Property ${PROPERTY_NAME} is required.`, async() => {
-                        let objectToCreate = { ... RECORD_TO_SAVE };
+                        let objectToCreate = { ... RECORD_EXAMPLE };
                         delete objectToCreate[PROPERTY_NAME];
                         await expect(create(objectToCreate))
                             .rejects.toThrow(ValidationError);
