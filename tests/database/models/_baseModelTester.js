@@ -1,4 +1,6 @@
 const { initSequelize, dropAllTables, getColumns } = require("../../_setup/database");
+const { ValidationError } = require("sequelize");
+const { initModel: initKoi, Koi } = require("../../../src/database/models/koi");
 
 module.exports = {
 
@@ -74,5 +76,91 @@ module.exports = {
         });
 
         return promise;
+    },
+
+    runPropertyExistsTests: async function(initModels, createData, expectedProperties)
+    {
+        let promise = new Promise((resolve) => {
+
+            describe("Model properties.", () => {
+
+                let sequelize;
+            
+                beforeEach(async() => {
+                    await dropAllTables();
+                    
+                    sequelize = initSequelize();
+                    await initModels(sequelize);
+                    await sequelize.sync();
+                });
+            
+                afterEach(async() => await sequelize.close());
+            
+                afterAll(async() => {
+                    await dropAllTables();
+                    resolve();
+                });
+            
+                describe("Property exists.", () => {
+                    let savedRecord;
+                    beforeEach(async() => {    
+                        savedRecord = await createData();
+                    });
+                    for (const PROPERTY_NAME in expectedProperties)
+                    {
+                        test(`Property ${PROPERTY_NAME} exists.`, () => {
+                            expect(savedRecord[PROPERTY_NAME])
+                                .toBe(expectedProperties[PROPERTY_NAME]);
+                        });
+                    }
+                });
+            });
+        });
+        
+        return promise;
+    },
+
+    runRequiredPropertyTests: async function(initModels, validObject, create, postSync)
+    {
+        let promise = new Promise((resolve) => {
+
+            describe("Model properties.", () => {
+
+                let sequelize;
+            
+                beforeEach(async() => {
+                    await dropAllTables();
+                    
+                    sequelize = initSequelize();
+                    await initModels(sequelize);
+                    await sequelize.sync();
+
+                    if (postSync)
+                    {
+                        await postSync();
+                    }
+                });
+            
+                afterEach(async() => await sequelize.close());
+            
+                afterAll(async() => {
+                    await dropAllTables();
+                    resolve();
+                });
+            
+                for (const PROPERTY_NAME in validObject)
+                {
+                    test(`Property ${PROPERTY_NAME} is required.`, async() => {
+                        let objectToCreate = { ... validObject };
+                        delete objectToCreate[PROPERTY_NAME];
+                        await expect(create(objectToCreate))
+                            .rejects.toThrow(ValidationError);
+                    });
+                }
+            });
+        });
+        
+        return promise;
     }
+
 };
