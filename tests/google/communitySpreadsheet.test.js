@@ -1,5 +1,14 @@
 const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet");
 
+// get overview and kois once for the tests
+// this is to lower the read count because of google's quota
+let overview;
+let kois;
+beforeAll(async () => {
+    overview = await CommunitySpreadsheet.getOverview();
+    kois = await CommunitySpreadsheet.getKois();
+});
+
 // ==================
 // =====OVERVIEW=====
 // ==================
@@ -8,10 +17,9 @@ testOverviewHasType("Collector");
 testOverviewHasType("Progressive");
 function testOverviewHasType(type)
 {
-    test(`Overview includes ${type.toLowerCase()}s.`, async() => {
-        const OVERVIEW = await CommunitySpreadsheet.getOverview();
+    test(`Overview includes ${type.toLowerCase()}s.`, () => {
         let hasType = false;
-        for (const ENTRY of OVERVIEW)
+        for (const ENTRY of overview)
         {
             if (ENTRY.type == type)
             {
@@ -23,10 +31,9 @@ function testOverviewHasType(type)
     })
 }
 
-test("Overview has no types other than progressive and collector.", async() => {
-    const OVERVIEW = await CommunitySpreadsheet.getOverview();
+test("Overview has no types other than progressive and collector.", () => {
     let hasWrongType = false;
-    for (const ENTRY of OVERVIEW)
+    for (const ENTRY of overview)
     {
         if (ENTRY.type != "Progressive" && ENTRY.type != "Collector")
         {
@@ -34,22 +41,20 @@ test("Overview has no types other than progressive and collector.", async() => {
             break;
         }
     }
-    expect(hasWrongType).not.toBeTruthy();
+    expect(hasWrongType).toBeFalsy();
 })
 
-test("There are 30 progressives.", async () => {
-    const OVERVIEW = await CommunitySpreadsheet.getOverview();
-    const COUNT = getOverviewCountOfType(OVERVIEW, "Progressive");
+test("There are 30 progressives.", () => {
+    const COUNT = getOverviewCountOfType("Progressive");
     expect(COUNT).toBe(30);
 });
 
-test("There are at least 208 collectors.", async () => {
-    let OVERVIEW = await CommunitySpreadsheet.getOverview();
-    let COUNT = getOverviewCountOfType(OVERVIEW, "Collector");
+test("There are at least 208 collectors.", () => {
+    let COUNT = getOverviewCountOfType("Collector");
     expect(COUNT).toBeLessThanOrEqual(208);
 });
 
-function getOverviewCountOfType(overview, type)
+function getOverviewCountOfType(type)
 {
     let count = 0;
     for (const ENTRY of overview)
@@ -69,11 +74,10 @@ function testOverviewHasPattern(name, type, hatchTime)
 {
     test(
         `${name} is a ${type.toLowerCase()} with a hatch time of ${hatchTime} hours.`, 
-        async () => 
+        () => 
     {
-        const OVERVIEW = await CommunitySpreadsheet.getOverview();
         let found = false;
-        for (const ENTRY of OVERVIEW)
+        for (const ENTRY of overview)
         {
             if (ENTRY.name == name && 
                 ENTRY.type == type && 
@@ -96,10 +100,9 @@ testKoisIncludeRarity("Common");
 testKoisIncludeRarity("Rare");
 function testKoisIncludeRarity(rarity)
 {
-    test(`There are ${rarity.toLowerCase()} koi.`, async() => {
-        const KOIS = await CommunitySpreadsheet.getKois();
+    test(`There are ${rarity.toLowerCase()} koi.`, () => {
         let hasRarity = false;
-        for (const KOI of KOIS)
+        for (const KOI of kois)
         {
             if (KOI.rarity == rarity)
             {
@@ -111,10 +114,9 @@ function testKoisIncludeRarity(rarity)
     });
 }
 
-test("Kois are only common or rare.", async() => {
-    const KOIS = await CommunitySpreadsheet.getKois();
+test("Kois are only common or rare.", () => {
     let hasWrongRarity = false;
-    for (const KOI of KOIS)
+    for (const KOI of kois)
     {
         if (KOI.rarity != "Common" && KOI.rarity != "Rare")
         {
@@ -122,19 +124,17 @@ test("Kois are only common or rare.", async() => {
             break;
         }
     }
-    expect(hasWrongRarity).not.toBeTruthy();
+    expect(hasWrongRarity).toBeFalsy();
 });
 
-test("There are at least 7,616 koi.", async () => {
-    const KOIS = await CommunitySpreadsheet.getKois();
-    expect(KOIS.length).toBeGreaterThanOrEqual(7616);
+test("There are at least 7,616 koi.", () => {
+    expect(kois.length).toBeGreaterThanOrEqual(7616);
 });
 
-test("There are the same number of common as rare koi.", async () => {
-    const KOIS = await CommunitySpreadsheet.getKois();
+test("There are the same number of common as rare koi.", () => {
     let commonCount = 0;
     let rareCount = 0;
-    for (const KOI of KOIS)
+    for (const KOI of kois)
     {
         if (KOI.rarity == "Common")
         {
@@ -148,12 +148,9 @@ test("There are the same number of common as rare koi.", async () => {
     expect(commonCount).toBe(rareCount);
 });
 
-test("Getting koi ignores accented characters", async() => {
+test("Getting koi ignores accented characters", () => {
     // normally color chakoji for pattern mukei is accented
-    const KOIS = await CommunitySpreadsheet.getKois();
-    const KOI = KOIS.find(koi => {
-        return koi.pattern = "Mukei" && koi.name == "Chakoji"
-    });
+    const KOI = kois.find(koi => koi.pattern == "Mukei" && koi.name == "Chakoji");
     expect(KOI).toBeDefined();
 });
 
@@ -161,38 +158,32 @@ test("Getting koi ignores accented characters", async() => {
 // =====OVERVIEW AND KOIS=====
 // ===========================
 
-test("There are 32 times more koi than patterns.", async() => {
-    const OVERVIEW = await CommunitySpreadsheet.getOverview();
-    const KOIS = await CommunitySpreadsheet.getKois();
-    expect(32 * OVERVIEW.length).toBe(KOIS.length);
+test("There are 32 times more koi than patterns.", () => {
+    expect(32 * overview.length).toBe(kois.length);
 });
 
-test("Each koi has a pattern defined in the overview.", async() => {
-    const OVERVIEW = await CommunitySpreadsheet.getOverview();
-    const KOIS = await CommunitySpreadsheet.getKois();
+test("Each koi has a pattern defined in the overview.", () => {
     let koiHasPatternNotInOverview = false;
-    for (const KOI of KOIS)
+    for (const KOI of kois)
     {
-        if (!OVERVIEW.find(entry => KOI.pattern == entry.name))
+        if (!overview.find(entry => KOI.pattern == entry.name))
         {
             koiHasPatternNotInOverview = true;
             break;
         }
     }
-    expect(koiHasPatternNotInOverview).not.toBeTruthy();
+    expect(koiHasPatternNotInOverview).toBeFalsy();
 });
 
-test("Each pattern in the overview has koi.", async() => {
-    const OVERVIEW = await CommunitySpreadsheet.getOverview();
-    const KOIS = await CommunitySpreadsheet.getKois();
+test("Each pattern in the overview has koi.", () => {
     let overviewHasPatternWithoutKoi = false;
-    for (const OVERVIEW_ENTRY of OVERVIEW)
+    for (const OVERVIEW_ENTRY of overview)
     {
-        if (!KOIS.find(koi => koi.pattern == OVERVIEW_ENTRY.name))
+        if (!kois.find(koi => koi.pattern == OVERVIEW_ENTRY.name))
         {
             overviewHasPatternWithoutKoi = true;
             break;
         }
     }
-    expect(overviewHasPatternWithoutKoi).not.toBeTruthy();
+    expect(overviewHasPatternWithoutKoi).toBeFalsy();
 });
