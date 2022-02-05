@@ -1,10 +1,16 @@
 const initModels = require("../../src/database/initModels").default;
-const { dropAllTables, initSequelize, countRecords, select, selectOne, insert }
-    = require("../_setup/database");
+const { 
+    dropAllTables, initSequelize, countRecords, select, selectOne, insert, getColumns 
+} = require("../_setup/database");
 const { DataTypes } = require("sequelize");
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
 
 // clear the database before and after all these tests
-beforeAll(async() => await dropAllTables());
+beforeAll(async() => {
+    await waitGoogleQuota();
+    await dropAllTables()
+}, googleQuotaTimeout + 30000);
+
 afterAll(async () => await dropAllTables());
 
 // normally we would run the method to test, initModels, in each test directly
@@ -49,11 +55,7 @@ describe("Init models once for the following tests.", () => {
     function testTableHasColumns(tableName, columnNames)
     {
         test(`${tableName} table has columns ${columnNames.join(", ")}.`, async () => {
-            let sequelize = initSequelize();
-            const COLUMNS = Object.keys(
-                await sequelize.getQueryInterface().describeTable(tableName)
-            );
-            await sequelize.close();
+            const COLUMNS = Object.keys(await getColumns(tableName));
 
             // make sure each provided column is in the table
             for (const COLUMN_NAME of columnNames)

@@ -1,8 +1,15 @@
 const UserSpreadsheet = require("../../src/google/userSpreadsheet").default;
 const ErrorMessages = require("../../src/errorMessages").default;
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
 
 // ID of test user sheet
 const SPREADSHEET_ID = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
+
+// wait a minute before starting the tests
+// this is because google has a read quota
+beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout + 30000);
 
 test("User with common collector koi.", async() => {
     const HAS_KOI = 
