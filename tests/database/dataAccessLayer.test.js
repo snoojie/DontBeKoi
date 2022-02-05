@@ -10,43 +10,48 @@ const USER = {
     spreadsheet_id: "somespreadsheetid"
 };
 
-// start each test with an empty database
-// run the Database object for each test
-beforeEach(async() => {
+beforeAll(async() => {
     await dropAllTables();
     await Database.start();
 });
-afterEach(async() => {
+afterAll(async() => {
     await Database.stop();
+    await dropAllTables()
 });
-afterAll(async () => await dropAllTables());
 
 // ===================
 // =====SAVE USER=====
 // ===================
 
-test("Saving user creates that user.", async() => {
-    await DataAccessLayer.saveUser(USER.discord_id, USER.name, USER.spreadsheet_id);
-    const RECORDS = await select("users");
-    expect(RECORDS.length).toBe(1)
-    expect(RECORDS[0].discord_id).toBe(USER.discord_id);
-    expect(RECORDS[0].name).toBe(USER.name);
-    expect(RECORDS[0].spreadsheet_id).toBe(USER.spreadsheet_id);
-});
+describe("Clear database between tests.", () => {
 
-test(
-    "Saving user that already exists updates their name and spreadsheet ID.", 
-    async() => 
-{
-    // put the user in the table first
-    await insert("users", USER);
+    afterEach(async() => {
+        await User.sync({force:true});
+    });
 
-    await DataAccessLayer.saveUser(USER.discord_id, "newname", "newspreadsheet");
-    const RECORDS = await select("users");
-    expect(RECORDS.length).toBe(1);
-    expect(RECORDS[0].discord_id).toBe(USER.discord_id);
-    expect(RECORDS[0].name).toBe("newname");
-    expect(RECORDS[0].spreadsheet_id).toBe("newspreadsheet");
+    test("Saving user creates that user.", async() => {
+        await DataAccessLayer.saveUser(USER.discord_id, USER.name, USER.spreadsheet_id);
+        const RECORDS = await select("users");
+        expect(RECORDS.length).toBe(1)
+        expect(RECORDS[0].discord_id).toBe(USER.discord_id);
+        expect(RECORDS[0].name).toBe(USER.name);
+        expect(RECORDS[0].spreadsheet_id).toBe(USER.spreadsheet_id);
+    });
+    
+    test(
+        "Saving user that already exists updates their name and spreadsheet ID.", 
+        async() => 
+    {
+        // put the user in the table first
+        await insert("users", USER);
+    
+        await DataAccessLayer.saveUser(USER.discord_id, "newname", "newspreadsheet");
+        const RECORDS = await select("users");
+        expect(RECORDS.length).toBe(1);
+        expect(RECORDS[0].discord_id).toBe(USER.discord_id);
+        expect(RECORDS[0].name).toBe("newname");
+        expect(RECORDS[0].spreadsheet_id).toBe("newspreadsheet");
+    });
 });
 
 // ===============================
@@ -71,9 +76,13 @@ describe("Get users missing koi tests.", () => {
         spreadsheetId: "1TqoQ1rP_SXqpAGb8bB2rF57kdii5A8Ev693896rk9g8"
     };
 
-    beforeEach(async() => {
+    beforeAll(async() => {
         User.bulkCreate([USER_SNOOJ, USER_NOTHING, USER_LUCY]);
     });
+
+    afterAll(async() => {
+        await User.sync({force:true});
+    })
 
     // =======================
     // =====INVALID INPUT=====
