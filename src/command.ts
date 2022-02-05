@@ -81,6 +81,20 @@ export class CommandManager
             ephemeral: COMMAND.isPrivate
         });
 
+        // log the command
+        let logMessage: string = 
+            `${interaction.user.username}: /${interaction.commandName}`;
+        if (COMMAND.options)
+        {
+            for (const OPTION of COMMAND.options)
+            {
+                logMessage += 
+                    ` ${OPTION.name}:${interaction.options.getString(OPTION.name)}`;
+            }
+        }
+        Logger.log(logMessage);
+        console.time(logMessage);
+
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
             .catch(error => {
@@ -92,6 +106,9 @@ export class CommandManager
                 Logger.error(error);
                 return "Uh oh. Something went wrong.";
             });
+        
+        // print the amount of time this command took
+        console.timeEnd(logMessage);        
 
         // reply 
         await interaction.editReply(REPLY)

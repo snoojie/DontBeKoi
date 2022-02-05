@@ -1,7 +1,7 @@
-import { DataAccessLayer } from "./database/dataAccessLayer";
-import Database from "./database/database";
+//import { DataAccessLayer } from "./database/dataAccessLayer";
+//import Database from "./database/database";
 import Logger from "./util/logger";
-//import Bot from "./dontBeKoiBot";
+import Bot from "./dontBeKoiBot";
 //import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
 //import { Sequelize } from "sequelize";
 
@@ -19,15 +19,15 @@ console.log("===============");
         Logger.log("DONE");
     })
     .catch(Logger.error);*/
-/*
+
 Bot.start()
 .catch(error => {
     Logger.error(error);
     return Bot.stop();
-});*/
+});
 
-Database.start()
+/*Database.start()
     .then(_ => DataAccessLayer.getUsersMissingKoi("shidai", "aishite"))
     .then(response => Logger.log(response.discordIds))
     .then(_ => Database.stop())
-    .catch(Logger.error);
+    .catch(Logger.error);*/
