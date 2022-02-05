@@ -45,7 +45,7 @@ describe("Init models once for the following tests.", () => {
 
     testTableHasColumns("users", ["discord_id", "name", "spreadsheet_id"]);
     testTableHasColumns("patterns", ["name", "type", "hatch_time"]);
-    testTableHasColumns("kois", ["name", "id", "pattern", "rarity"]);
+    testTableHasColumns("kois", ["id", "name", "pattern_name", "rarity"]);
     function testTableHasColumns(tableName, columnNames)
     {
         test(`${tableName} table has columns ${columnNames.join(", ")}.`, async () => {
@@ -95,7 +95,7 @@ describe("Init models once for the following tests.", () => {
     });
 
     test("Pattern natsu has 32 koi.", async() => {
-        const COUNT = await countRecords("kois", "pattern='Natsu'");
+        const COUNT = await countRecords("kois", "pattern_name='Natsu'");
         expect(COUNT).toBe(32);
     });
 
@@ -114,7 +114,7 @@ describe("Init models after prepoopulating tables.", () => {
 
     const USER = { name: "Name One", discord_id: "did1", spreadsheet_id: "sid1" };
     const PATTERN = { name: "somepattern", type: "sometype", hatch_time: 99 };
-    const KOI = { name: "somekoi", pattern: PATTERN.name, rarity: "somerarity" };
+    const KOI = { name: "somekoi", pattern_name: PATTERN.name, rarity: "somerarity" };
 
     beforeAll(async() => {
 
@@ -156,7 +156,7 @@ describe("Init models after prepoopulating tables.", () => {
                 "id" : DataTypes.INTEGER,
                 "name" : DataTypes.STRING,
                 "rarity": DataTypes.STRING, 
-                "pattern": DataTypes.STRING,
+                "pattern_name": DataTypes.STRING,
                 "created_at" : DataTypes.STRING,
                 "updated_at": DataTypes.STRING
             }
@@ -191,7 +191,7 @@ describe("Init models after prepoopulating tables.", () => {
         const RECORD = await selectOne("kois", `name='${KOI.name}'`);
         expect(RECORD).toBeDefined();
         expect(RECORD.name).toBe(KOI.name);
-        expect(RECORD.pattern).toBe(KOI.pattern);
+        expect(RECORD.pattern_name).toBe(KOI.pattern_name);
         expect(RECORD.rarity).toBe(KOI.rarity);
     }); 
 
