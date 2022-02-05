@@ -25,14 +25,19 @@ const WhoCommand: Command = {
 
         // start building the reply message
         // to show information about the koi
-        // <rarity> <color> <pattern>
-        const KOI_DESCRIPTOR: string = 
-            `${USERS_MISSING_KOI.rarity.toLowerCase()} ${COLOR} ${PATTERN}`;
+        // note that not all patterns (progressives primarily) have a known hatch time
+        // <rarity> <time> <color> <pattern>
+        let koiDescription: string = `${USERS_MISSING_KOI.rarity.toLowerCase()} `;
+        if (USERS_MISSING_KOI.hatchTime)
+        {
+            koiDescription += `${USERS_MISSING_KOI.hatchTime}h `;
+        }
+        koiDescription += `${COLOR} ${PATTERN}`;
 
         // if no one needs the koi, return that
         if (USERS_MISSING_KOI.discordIds.length == 0)
         {
-            return `Nobody needs ${KOI_DESCRIPTOR}.`;
+            return `Nobody needs ${koiDescription}.`;
         }
 
         // at least one person needs this koi
@@ -42,7 +47,7 @@ const WhoCommand: Command = {
             mentions.push(`<@${DISCORD_ID}>`);
         }
 
-        return `Needing ${KOI_DESCRIPTOR}:\n${mentions.join(" ")}`;
+        return `Needing ${koiDescription}:\n${mentions.join(" ")}`;
     }
 
 };

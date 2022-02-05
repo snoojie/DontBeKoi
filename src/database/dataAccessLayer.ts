@@ -10,6 +10,7 @@ import { User } from "./models/user";
 export type UsersMissingKoiResponse = {
     discordIds: string[];
     rarity: Rarity;
+    hatchTime?: number;
 }
 
 export const DataAccessLayer = {
@@ -133,7 +134,8 @@ export const DataAccessLayer = {
         
         return {
             discordIds: discordUsers,
-            rarity: koi.rarity
+            rarity: koi.rarity,
+            hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined
         };
     }
 }
