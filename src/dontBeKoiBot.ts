@@ -68,10 +68,7 @@ const Bot = {
         Logger.log("Starting bot...");
 
         try
-        {
-            // log when discord is ready
-            discord.once("ready", _ => Logger.log("...Ready event fired."));
-            
+        {            
             // login
             // cannot do this at the same time as setting up database with awaitingOn
             // for some reason, if the database fails, if we logged in at the same time,
