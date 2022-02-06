@@ -36,27 +36,32 @@ const Logger = {
      */
     error: function(error: any): void
     {
-        
-        // normally, the first line of an error stack looks like
-        // Error: some message here
-        // but, sequelize just does 
-        // Error
-        // which is useless
-        // so, for sequelize, we need to manually create the first line
-        // also, for sequelize, we should print the sql
-        if (error instanceof DatabaseError)
+        if (error instanceof Error)
         {
+            // normally, the first line of an error stack looks like
+            // Error: some message here
+            // but, sequelize just does 
+            // Error
+            // which is useless
+            // so, for sequelize, we need to manually create the first line
+            // also, for sequelize, we should print the sql
+
             console.log(Theme.ERROR, error.name + ": " + error.message);
-            console.log(Theme.ERROR, "SQL: " + error.sql);
-        }
-        if (error instanceof Error && error.stack)
-        {
-            for (const STEP of error.stack.split("\n").slice(1))
+
+            if (error instanceof DatabaseError)
             {
-                const THEME: Theme = STEP.startsWith("    at ") 
-                    ? Theme.STACKTRACE 
-                    : Theme.ERROR;
-                console.log(THEME, STEP);
+                console.log(Theme.ERROR, "SQL: " + error.sql);
+            }
+
+            if (error.stack)
+            {
+                for (const STEP of error.stack.split("\n").slice(1))
+                {
+                    const THEME: Theme = STEP.startsWith("    at ") 
+                        ? Theme.STACKTRACE 
+                        : Theme.ERROR;
+                    console.log(THEME, STEP);
+                }
             }
         }
 

@@ -38,8 +38,8 @@ const ErrorMessages =
 
         CANNOT_BUILD_COMMAND: "Failed to build a command for deployment.",
 
-        FAILED_COMMAND_DEPLOYMENT: 
-            "Failed to deploy commands. Could the client ID or guild ID be wrong?",
+        FAILED_COMMAND_DEPLOYMENT: "Failed to deploy commands. " +
+            "Could the client ID or guild ID be wrong? Is the bot on the discord server?",
 
         UNKNOWN_INTERACTON: "Cannot respond to interaction because it is not a command.",
         
