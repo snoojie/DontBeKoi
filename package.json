@@ -5,7 +5,6 @@
     },
     "scripts": {
         "dev": "npx ts-node-dev --respawn src/index.ts",
-        "devnowatch": "npx ts-node-dev src/index.ts",
         "prod": "rm -rf build/ && npx tsc && node -r source-map-support/register build/index.js",
         "test": "jest --coverage --runInBand && rm -rf coverage/"
     },
