@@ -73,20 +73,23 @@ const Bot = {
             // cannot do this at the same time as setting up database with awaitingOn
             // for some reason, if the database fails, if we logged in at the same time,
             // the program will hang
+            Logger.log("...Logging into discord...")
             await login()
-                .then(_ => Logger.log("...Logged into discord."));
+                .then(_ => Logger.log("......Logged into discord."));
 
             // set up commands
+            Logger.log("...Setting up commands...");
             let commandManager: CommandManager = new CommandManager();
             discord.on("interactionCreate", async (interaction: Interaction) => { 
                 commandManager.executeCommand(interaction);
             });
             await commandManager.run()
-                .then(_ => Logger.log("...Commands set up."));
+                .then(_ => Logger.log("......Commands set up."));
 
             // set up database
+            Logger.log("...Setting up database...")
             await Database.start()
-                .then(_ => Logger.log("...Database set up."));
+                .then(_ => Logger.log("......Database set up."));
 
             // Wait until discord is ready.
             // This is not immediate after logging in, but is soon after.
@@ -102,6 +105,8 @@ const Bot = {
         }
         catch(error)
         {
+            Logger.error(error);
+            Logger.log("Error occured. Stopping the bot...");
             await Bot.stop();
             throw error;
         }
@@ -116,13 +121,16 @@ const Bot = {
         // if we try to login again after a destroy then stop again it hangs.
         // Weird things happen basically.
         // So, after destroy, let's recreate the discord client.
+        Logger.log("...Disconnecting from discord...");
         discord.destroy();
         discord = getNewDiscordClient();
+        Logger.log("......Disconnected from discord.");
 
+        Logger.log("...Stopping the database...");
         await Database.stop();
+        Logger.log("......Database stopped.");
 
         isBotOn = false;
-
 
         Logger.log("Bot stopped.");
     }
