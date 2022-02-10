@@ -40,13 +40,13 @@ const WhoCommand: Command = {
             return `Nobody needs ${koiDescription}.`;
         }
 
-        // at least one person needs this koi
+        // at least one person needs this koi,
+        // so mention all discord users who need this koi
         let mentions: string[] = [];
         for (const DISCORD_ID of USERS_MISSING_KOI.discordIds)
         {
             mentions.push(`<@${DISCORD_ID}>`);
         }
-
         return `Needing ${koiDescription}:\n${mentions.join(" ")}`;
     }
 
