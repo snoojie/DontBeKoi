@@ -1,5 +1,6 @@
 import { CommandInteraction, Interaction } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { SlashCommandBuilder } 
+    from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
@@ -13,6 +14,7 @@ export interface Option
 {
     name: string;
     description: string;
+    type?: "string" | "number";
 }
 
 export interface Command
@@ -88,8 +90,10 @@ export class CommandManager
         {
             for (const OPTION of COMMAND.options)
             {
-                logMessage += 
-                    ` ${OPTION.name}:${interaction.options.getString(OPTION.name)}`;
+                const VALUE: string = "" + (OPTION.type == "number" 
+                    ? interaction.options.getNumber(OPTION.name)
+                    : interaction.options.getString(OPTION.name));
+                logMessage += ` ${OPTION.name}:${VALUE}`;
             }
         }
         Logger.log(logMessage);
@@ -207,11 +211,23 @@ export class CommandManager
                 {
                     for (const OPTION of COMMAND.options)
                     {
-                        commandBuilder.addStringOption(option => 
-                            option.setName(OPTION.name)
-                                .setDescription(OPTION.description)
-                                .setRequired(true)
-                        );
+                        // TODO, pull the option.set... methods into a common function
+                        if (OPTION.type == "number")
+                        {
+                            commandBuilder.addNumberOption(option => 
+                                option.setName(OPTION.name)
+                                    .setDescription(OPTION.description)
+                                    .setRequired(true)
+                            );
+                        }
+                        else // string
+                        {
+                            commandBuilder.addStringOption(option => 
+                                option.setName(OPTION.name)
+                                    .setDescription(OPTION.description)
+                                    .setRequired(true)
+                            );
+                        }
                     }
                 }
             }

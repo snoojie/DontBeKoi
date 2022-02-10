@@ -1,13 +1,15 @@
 const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
 
 // get overview and kois once for the tests
 // this is to lower the read count because of google's quota
 let overview;
 let kois;
 beforeAll(async () => {
+    await waitGoogleQuota();
     overview = await CommunitySpreadsheet.getOverview();
     kois = await CommunitySpreadsheet.getKois();
-});
+}, googleQuotaTimeout + 30000);
 
 // ==================
 // =====OVERVIEW=====

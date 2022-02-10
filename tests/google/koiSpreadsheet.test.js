@@ -1,4 +1,11 @@
 const KoiSpreadsheet = require("../../src/google/koiSpreadsheet").default;
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
+
+// wait a minute before starting the tests
+// this is because google has a read quota
+beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout + 30000);
 
 // ==============================
 // =====GET STRING FROM CELL=====

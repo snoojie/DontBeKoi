@@ -1,11 +1,18 @@
 const Spreadsheet = require("../../src/google/spreadsheet").default;
 const ErrorMessages = require("../../src/errorMessages").default;
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
 
 // this is the community spreadsheet
 const VALID_SPREADSHEET_ID = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 const VALID_RANGE = "Progressives!I2:K4";
 
 const ORIGINAL_ENV = process.env;
+
+// wait a minute before starting the tests
+// this is because google has a read quota
+beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout + 30000);
 
 // ==============================
 // =====VALIDATE SPREADSHEET=====
