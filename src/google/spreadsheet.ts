@@ -1,7 +1,7 @@
 import { GaxiosError } from "gaxios";
 import { google, sheets_v4 } from "googleapis";
 import ErrorMessages from "../errorMessages";
-import Config from "../util/config";
+import { Config } from "../util/config";
 import RethrownError from "../util/rethrownError";
 
 const SPREADSHEETS_API: sheets_v4.Resource$Spreadsheets = 

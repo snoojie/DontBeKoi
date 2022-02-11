@@ -1,4 +1,5 @@
 const { CommandManager, InvalidCommand } = require("../src/command");
+const { ConfigError } = require("../src/util/config");
 const ErrorMessages = require("../src/errorMessages").default;
 const fs = require("fs");
 
@@ -6,7 +7,7 @@ const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
 
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
-})
+});
 
 // =============
 // =====RUN=====
@@ -45,7 +46,6 @@ function testMissingProperty(property)
 
 // todo test invalid properties, like name having spaces
 
-
 describe("Missing environment variables", () => {
 
     const ORIGINAL_ENV = process.env;
@@ -65,9 +65,7 @@ describe("Missing environment variables", () => {
         test(`Error deploying commands without a ${READABLE_ENV_KEY}.`, async () => {
             delete process.env[envKey];
             let commandManager = new CommandManager();
-            await expect(commandManager.run()).rejects.toThrow(
-                ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
-            );
+            await expect(commandManager.run()).rejects.toThrow(ConfigError);
         });
     }
 });

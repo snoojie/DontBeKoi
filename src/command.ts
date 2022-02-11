@@ -220,7 +220,7 @@ export class CommandManager
 
     /**
      * Deploys commands to the discord server.
-     * @throws if commands could not be deployed.
+     * @throws ConfigError if environment variables were not set.
      */
     private async deploy(): Promise<void>
     {

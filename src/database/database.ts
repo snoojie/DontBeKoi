@@ -1,6 +1,6 @@
 import { Options, Sequelize } from "sequelize";
 import ErrorMessages from "../errorMessages";
-import Config from "../util/config";
+import { Config } from "../util/config";
 import RethrownError from "../util/rethrownError";
 import initModels from "./initModels";
 
