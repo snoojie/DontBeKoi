@@ -1,5 +1,8 @@
-const { CommandManager } = require("../src/command");
+const { CommandManager, InvalidCommand } = require("../src/command");
 const ErrorMessages = require("../src/errorMessages").default;
+const fs = require("fs");
+
+const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
 
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
@@ -12,7 +15,36 @@ test("Can create an instance of CommandManager.", () => {
 test("Can deploy commands to discord server.", async () => {
     let commandManager = new CommandManager();
     await commandManager.run();
-}, 60000)
+});
+
+testMissingProperty("name");
+testMissingProperty("description");
+testMissingProperty("execute");
+function testMissingProperty(property)
+{
+    describe(`Test command script with missing ${property} proeprty.`, () => {
+
+        const COMMAND_SCRIPT = `../../tests/_mocks/commands/` + 
+                `missing${property[0].toUpperCase()}${property.substring(1)}.js`;
+
+        afterAll(() =>  fs.readdirSync = ORIGINAL_FS_READDIRSYNC);
+
+        test(`Error of type InvalidCommand.`, async() => {
+            fs.readdirSync = jest.fn(() => [COMMAND_SCRIPT]);
+            let commandManager = new CommandManager();
+            await expect(commandManager.run()).rejects.toThrow(InvalidCommand);
+        });
+
+        test(`Error message mentions ${property}.`, async() => {
+            fs.readdirSync = jest.fn(() => [COMMAND_SCRIPT]);
+            let commandManager = new CommandManager();
+            await expect(commandManager.run()).rejects.toThrow(property);
+        });
+    });
+}
+
+// todo test invalid properties, like name having spaces
+
 
 describe("Missing environment variables", () => {
 

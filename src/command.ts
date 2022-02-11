@@ -1,6 +1,5 @@
 import { CommandInteraction, Interaction } from "discord.js";
-import { SlashCommandBuilder } 
-    from "@discordjs/builders";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
@@ -9,6 +8,17 @@ import Config from "./util/config";
 import * as fs from "fs";
 import ErrorMessages from "./errorMessages";
 import PublicError from "./util/publicError";
+import EnhancedError from "./util/enhancedError";
+
+export class CommandManagerError extends EnhancedError {}
+
+export class InvalidCommand extends CommandManagerError
+{
+    constructor(file: string, reason: string)
+    {
+        super(`${file} is not a valid command script. ` + reason);
+    }
+}
 
 export interface Option
 {
@@ -43,7 +53,7 @@ export class CommandManager
      */
     public async run(): Promise<void>
     {
-        await this.init();
+        await this.loadCommandScripts();
         await this.deploy();
     }
 
@@ -124,16 +134,17 @@ export class CommandManager
 
     /**
      * Sets this.commands by reading from the commands/ directory.
-     * @throws if there was an issue initializing any command.
+     * @throws CommandManagerError if the commands directory is missing
+     * @throws InvalidCommand if a command script does not have a valid command
      */
-    private async init(): Promise<void>
+    private async loadCommandScripts(): Promise<void>
     {
         // confirm the commands/ directory exists
         const DIRECTORY: string = "commands";
         const DIRECTORY_FULL_PATH: string = `${__dirname}/${DIRECTORY}`;
         if (!fs.existsSync(DIRECTORY_FULL_PATH))
         {
-            throw new Error(ErrorMessages.COMMAND_MANAGER.MISSING_COMMANDS_DIRECTORY);
+            throw new CommandManagerError("The commands directory is missing.");
         }
 
         const FILES: string[] = fs.readdirSync(DIRECTORY_FULL_PATH);
@@ -153,35 +164,57 @@ export class CommandManager
             const SCRIPT = await import(FILE_RELATIVE_PATH);
                     
             // ensure the script has a default export
-            const COMMAND = SCRIPT.default;
-            if (!COMMAND)
+            let command = SCRIPT.default;
+            if (!command)
             {
-                throw new Error(
-                    ErrorMessages.COMMAND_MANAGER
-                        .COMMAND_SCRIPT_MISSING_DEFAULT_EXPORT + 
-                    " " + FILE_RELATIVE_PATH
+                throw new InvalidCommand(FILE, "Missing a default export.");
+            }
+
+            // validate the name
+            if (!command.name)
+            {
+                throw new InvalidCommand(FILE, "The name property is missing or empty.");
+            }
+            if (command.name.indexOf(" ") >= 0)
+            {
+                throw new InvalidCommand(FILE, "A command's name cannot have spaces.");
+            }
+            if (this.commands.has(command.name))
+            {
+                throw new InvalidCommand(
+                    FILE, 
+                    `There exists multiple commands with the same name ${command.name}.`
                 );
             }
 
-            // ensure the command is actually a command
-            if (!this.isCommand(COMMAND))
+            // validate the description
+            if (!command.description)
             {
-                throw new Error(
-                    ErrorMessages.COMMAND_MANAGER.IS_NOT_COMMAND + " " + 
-                    FILE_RELATIVE_PATH
+                throw new InvalidCommand(
+                    FILE, "The description property is missing or empty."
                 );
             }
 
-            // ensure we do not already have a command by this name
-            if (this.commands.has(COMMAND.name))
+            // validate the execute function
+            if (!command.execute)
             {
-                throw new Error(
-                    ErrorMessages.COMMAND_MANAGER.DUPLICATE_COMMAND + " " + COMMAND.name
+                throw new InvalidCommand(FILE, "The execute property is missing.")
+            }
+            if (typeof command.execute != "function")
+            {
+                throw new InvalidCommand(
+                    FILE, "The execute property must be a function."
                 );
             }
 
-            // got the command!
-            this.commands.set(COMMAND.name, COMMAND);
+            // if options was not set, set it to the empty list
+            if (!command.options)
+            {
+                command.options = [];
+            }
+
+            // save the command is valid!
+            this.commands.set(command.name, command);
         }
     }
 
@@ -256,33 +289,4 @@ export class CommandManager
                 );
             });
     }
-
-    /**
-     * Checks if the provided object is an instance of Command
-     * @param object object to check if it is an instance of Command
-     * @returns boolean
-     */
-    private isCommand(object: any): object is Command 
-    {
-        const COMMAND = object as Command;
-
-        // name must be a defined string with no spaces
-        return isDefinedString(COMMAND.name) && COMMAND.name.indexOf(" ") < 0 &&
-
-               // description must be a defined string
-               isDefinedString(COMMAND.description) &&
-
-               // execute must be a defined function
-               COMMAND.execute !== undefined && typeof COMMAND.execute === "function"
-    }
-}
-
-/**
- * Checks if the provided object is a string with at least one character.
- * @param object object to check if a defined string
- * @returns boolean
- */
-function isDefinedString(object: string): boolean
-{
-    return object !== undefined && typeof object === "string" && object !== "";
 }
