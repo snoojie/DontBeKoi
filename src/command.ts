@@ -4,7 +4,7 @@ import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
 import RethrownError from "./util/rethrownError";
-import Config from "./util/config";
+import { Config } from "./util/config";
 import * as fs from "fs";
 import ErrorMessages from "./errorMessages";
 import PublicError from "./util/publicError";

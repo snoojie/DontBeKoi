@@ -1,5 +1,7 @@
 import * as dotenv from "dotenv";
-import ErrorMessages from "../errorMessages";
+import EnhancedError from "./enhancedError";
+
+export class ConfigError extends EnhancedError {}
 
 // init environment variables
 dotenv.config();
@@ -9,14 +11,14 @@ function get(key: string): string
     const VALUE: string | undefined = process.env[key];
     if (!VALUE)
     {
-        throw new Error(
-            ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE + " " + key
+        throw new ConfigError(
+            `Did you forget to set ${key} as an environment variable?`
         );
     }
     return VALUE;
 }
 
-const Config = {
+export const Config = {
     
     /**
      * @returns Discord bot token.
@@ -63,5 +65,3 @@ const Config = {
         return get("GOOGLE_API_KEY");
     }
 }
-
-export default Config;

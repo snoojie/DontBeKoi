@@ -1,5 +1,4 @@
-const Config = require("../../src/util/config").default;
-const ErrorMessages = require("../../src/errorMessages").default;
+const { Config, ConfigError } = require("../../src/util/config");
 
 testEnvironmentVariable("Bot token");
 testEnvironmentVariable("Client ID");
@@ -34,10 +33,9 @@ function testEnvironmentVariable(readableName)
             expect(Config[methodName]()).toBe(value);
         });
 
-        test("Error getting the environment variable when it is not set.", () => {
-            expect(() => Config[methodName]()).toThrow(
-                ErrorMessages.CONFIG.MISSING_ENVIRONMENT_VARIABLE
-            );
+        test("ConfigError getting the environment variable when it is not set.", () => {
+            expect(() => Config[methodName]()).toThrow(ConfigError);
+            expect(() => Config[methodName]()).toThrow(ENV_KEY);
         });
     });
 }

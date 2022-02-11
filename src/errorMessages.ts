@@ -50,13 +50,6 @@ const ErrorMessages =
 
     },
 
-    CONFIG: {
-
-        MISSING_ENVIRONMENT_VARIABLE: 
-            "Did you forget to set the following key as an environment variable?"
-            
-    },
-
     SPREADSHEET: {
 
         INVALID_GOOGLE_API_KEY: "Invalid Google API key.",
