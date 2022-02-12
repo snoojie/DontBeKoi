@@ -1,5 +1,6 @@
 import { CommandInteraction, Interaction } from "discord.js";
-import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption } from "@discordjs/builders";
+import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption } 
+    from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
@@ -56,7 +57,8 @@ export class CommandManager
 
     /**
      * Deploys commands from commands/ directory to the discord server.
-     * @throws if commands could not be deployed.
+     * @throws CommandManager if commands could not be deployed to discord.
+     * @throws InvalidCommand if any command script is invalid.
      */
     public async run(): Promise<void>
     {
