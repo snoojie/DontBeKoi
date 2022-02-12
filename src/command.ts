@@ -1,5 +1,5 @@
 import { CommandInteraction, Interaction } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption } from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
@@ -143,6 +143,7 @@ export class CommandManager
     /**
      * Sets this.commands by reading from the commands/ directory.
      * @throws InvalidCommand if a command script does not have a valid command
+     * @throws CommandManagerError if the commands/ directory does not exist.
      */
     private async loadCommandScripts(): Promise<void>
     {
@@ -189,12 +190,6 @@ export class CommandManager
                 );
             }
 
-            // if options was not set, set it to the empty list
-            if (!command.options)
-            {
-                command.options = [];
-            }
-
             // save the command is valid!
             this.commands.set(command.name, command);
         }
@@ -216,43 +211,35 @@ export class CommandManager
         let commandBuilders: SlashCommandBuilder[] = [];
         for (const [COMMAND_NAME, COMMAND] of this.commands)
         {
-            let commandBuilder: SlashCommandBuilder;
-            try
+            let commandBuilder: SlashCommandBuilder = new SlashCommandBuilder()
+                .setName(COMMAND_NAME)
+                .setDescription(COMMAND.description);
+            if (COMMAND.options)
             {
-                commandBuilder = new SlashCommandBuilder()
-                    .setName(COMMAND_NAME)
-                    .setDescription(COMMAND.description);
-                if (COMMAND.options)
+                for (const OPTION of COMMAND.options)
                 {
-                    for (const OPTION of COMMAND.options)
+                    if (OPTION.type == "number")
                     {
-                        // TODO, pull the option.set... methods into a common function
-                        if (OPTION.type == "number")
-                        {
-                            commandBuilder.addNumberOption(option => 
-                                option.setName(OPTION.name)
-                                    .setDescription(OPTION.description)
-                                    .setRequired(true)
-                            );
-                        }
-                        else // string
-                        {
-                            commandBuilder.addStringOption(option => 
-                                option.setName(OPTION.name)
-                                    .setDescription(OPTION.description)
-                                    .setRequired(true)
-                            );
-                        }
+                        commandBuilder.addNumberOption(option => 
+                            <SlashCommandNumberOption>buildOptionProperties(option)
+                        );
+                    }
+                    else // string
+                    {
+                        commandBuilder.addStringOption(option => 
+                            <SlashCommandStringOption>buildOptionProperties(option)
+                        );
+                    }
+
+                    function buildOptionProperties(
+                        option: SlashCommandStringOption | SlashCommandNumberOption
+                    ): SlashCommandStringOption | SlashCommandNumberOption
+                    {
+                        return option.setName(OPTION.name)
+                            .setDescription(OPTION.description)
+                            .setRequired(true);
                     }
                 }
-            }
-            catch(error)
-            {
-                throw new RethrownError(
-                    ErrorMessages.COMMAND_MANAGER.CANNOT_BUILD_COMMAND + " " + 
-                    COMMAND_NAME,
-                    error
-                );
             }
             commandBuilders.push(commandBuilder);
         }
@@ -351,8 +338,21 @@ export class CommandManager
                 validateDescription(
                     OPTION.description,
                     `The description '${OPTION.description}' on command ` +
-                    `'${command.name}'`
+                    `'${command.name}' option '${OPTION.name}'`
                 );
+
+                // validate type if provided
+                if (OPTION.type != undefined && 
+                    OPTION.type != null && 
+                    ["string", "number"].indexOf(OPTION.type)<0
+                ) {
+                    throw new InvalidCommand(
+                        file, 
+                        `The type '${OPTION.type}' on command '${command.name}' ` +
+                        `option '${OPTION.name}' is defined, but it is neither ` +
+                        `'string' nor 'number'.`
+                    );
+                }
             }
 
         }

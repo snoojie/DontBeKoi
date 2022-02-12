@@ -210,7 +210,9 @@ describe("Validate command scripts.", () => {
         mockCommandDirectory("optionDescriptionMissing");
         let run = commandManager.run();
         await expectInvalidCommand(
-            run, "The description 'undefined' on command 'somename' is missing"
+            run, 
+            "The description 'undefined' on command 'somename' " +
+            "option 'someoptionname' is missing"
         );
     });
 
@@ -218,7 +220,9 @@ describe("Validate command scripts.", () => {
         mockCommandDirectory("optionDescriptionNotString");
         let run = commandManager.run();
         await expectInvalidCommand(
-            run, "The description '6' on command 'somename' must be a string"
+            run, 
+            "The description '6' on command 'somename' " +
+            "option 'someoptionname' must be a string"
         );
     });
 
@@ -229,7 +233,41 @@ describe("Validate command scripts.", () => {
             run, 
             "The description 'here is a description. it is very long. why so long? " +
             "why not. this is a test. it can be whatever. it just needs to be long.' " +
-            "on command 'somename' is too long"
+            "on command 'somename' option 'someoptionname' is too long"
+        );
+    });
+
+    // ==============================
+    // =====OPTION TYPE PROPERTY=====
+    // ==============================
+
+    test("Option type is empty string.", async() => {
+        mockCommandDirectory("optionTypeEmpty");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, 
+            "The type '' on command 'somename' option 'someoptionname' is " +
+            "defined, but it is neither 'string' nor 'number'"
+        );
+    });
+
+    test("Option type is not a string.", async() => {
+        mockCommandDirectory("optionTypeNotString");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, 
+            "The type '1' on command 'somename' option 'someoptionname' is " +
+            "defined, but it is neither 'string' nor 'number'"
+        );
+    });
+    
+    test("Option type is unknown.", async() => {
+        mockCommandDirectory("optionTypeUnknown");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, 
+            "The type 'unknowntype' on command 'somename' option 'someoptionname' is " +
+            "defined, but it is neither 'string' nor 'number'"
         );
     });
 

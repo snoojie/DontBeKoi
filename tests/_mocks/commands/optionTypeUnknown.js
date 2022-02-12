@@ -5,7 +5,11 @@ module.exports = {
     description: "Some description",
 
     options: [
-        { name: "someoptionname" },
+        { 
+            name: "someoptionname", 
+            description: "some option description", 
+            type: "unknowntype"
+        },
     ],
 
     execute: async function ()
