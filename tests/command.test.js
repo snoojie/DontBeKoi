@@ -18,6 +18,21 @@ test("Can deploy commands to discord server.", async () => {
     await commandManager.run();
 });
 
+describe("Missing commands/ directory.", () => {
+    
+    const ORIGINAL_FS_EXISTSSYNC = fs.existsSync;
+    
+    afterAll(() => fs.existsSync = ORIGINAL_FS_EXISTSSYNC);
+
+    test("CommandManagerError when commands/ directory is missing.", async() => {
+        fs.existsSync = jest.fn(() => false);
+        let commandManager = new CommandManager();
+        let run = commandManager.run();
+        await expect(run).rejects.toThrow(CommandManagerError);
+        await expect(run).rejects.toThrow("commands directory is missing");
+    });
+});
+
 describe("Validate command scripts.", () => {
 
     let commandManager;
