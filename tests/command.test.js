@@ -1,6 +1,7 @@
-const { CommandManager, InvalidCommand } = require("../src/command");
+const { CommandManager, InvalidCommand, CommandManagerError } = require("../src/command");
 const { ConfigError } = require("../src/util/config");
 const fs = require("fs");
+const { REST } = require("@discordjs/rest");
 
 const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
 
@@ -293,10 +294,8 @@ describe("Missing environment variables", () => {
 
     const ORIGINAL_ENV = process.env;
 
-    // after each test, 
-    // restore environment variables
-    // as they will be individually removed in each test
-    afterEach(() => process.env = { ...ORIGINAL_ENV });
+    beforeEach(() => process.env = { ...ORIGINAL_ENV });
+    afterAll(() => process.env = { ...ORIGINAL_ENV });
 
     testMissingEnvironmentVariable("BOT_TOKEN");
     testMissingEnvironmentVariable("CLIENT_ID");
@@ -311,4 +310,24 @@ describe("Missing environment variables", () => {
             await expect(commandManager.run()).rejects.toThrow(ConfigError);
         });
     }
+});
+
+describe("Test REST call to discord.", () => {
+    
+    const ORIGINAL_REST_PUT = REST.put;
+    beforeAll(() => {
+        REST.prototype.put = jest.fn(async () => 
+            { throw new Error("mock rest error"); }
+        );
+    });
+    afterAll(() => {
+        REST.prototype.put = ORIGINAL_REST_PUT;
+    })
+
+    test("CommandManagerError when REST call to deploy to discord fails.", async() => {
+        let commandManager = new CommandManager();
+        let run = commandManager.run();
+        await expect(run).rejects.toThrow(CommandManagerError);
+        await expect(run).rejects.toThrow("Failed to deploy commands to discord");
+    });
 });

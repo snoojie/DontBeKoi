@@ -3,7 +3,6 @@ import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
-import RethrownError from "./util/rethrownError";
 import { Config } from "./util/config";
 import * as fs from "fs";
 import ErrorMessages from "./errorMessages";
@@ -198,6 +197,7 @@ export class CommandManager
     /**
      * Deploys commands to the discord server.
      * @throws ConfigError if environment variables were not set.
+     * @throws CommandManager if failed to deploy commands to discord.
      */
     private async deploy(): Promise<void>
     {
@@ -252,9 +252,8 @@ export class CommandManager
                 { body: commandBuilders.map(commandBuilder => commandBuilder.toJSON()) }
             )
             .catch(error => {
-                throw new RethrownError(
-                    ErrorMessages.COMMAND_MANAGER.FAILED_COMMAND_DEPLOYMENT,
-                    error
+                throw new CommandManagerError(
+                    "Failed to deploy commands to discord.", error
                 );
             });
     }
