@@ -284,75 +284,128 @@ export class CommandManager
     {
         const COMMAND_NAME_FORMAT: string = 
             "Use lowercase letters, numbers, underscores, and dashes only.";
+        
+        // validate name
+        validateName(command.name, `The command name '${command.name}'`);
 
-        // validate the name
-        validatePropertyIsNonEmptyStringAndNotTooLong("name", command.name, 32);
-        if (command.name.indexOf(" ") >= 0)
-        {
-            throw new InvalidCommand(
-                file, 
-                `The name '${command.name}' has spaces which is not allowed. ` +
-                COMMAND_NAME_FORMAT
-            );
-        }
-        if (command.name.toLowerCase() != command.name)
-        {
-            throw new InvalidCommand(
-                file, 
-                `The name '${command.name}' has uppercase letters. ` +
-                COMMAND_NAME_FORMAT
-            )
-        }
-        if (!command.name.match(/^[\w-]{1,32}$/))
-        {
-            throw new InvalidCommand(
-                file, 
-                `The name '${command.name}' has invalid characters. ` +
-                COMMAND_NAME_FORMAT
-            )
-        }
-
-        // validate the description
-        validatePropertyIsNonEmptyStringAndNotTooLong(
-            "description", command.description, 100
+        // validate description
+        validateDescription(
+            command.description,
+            `The description '${command.description}' on command '${command.name}'`
         );
 
         // validate the execute function
+        const EXECUTE_MESSAGE_PREFIX: string = 
+            `The execute property on command '${command.name}'`;
         if (!command.execute)
         {
-            throw new InvalidCommand(file, "The execute property is missing.")
+            throw new InvalidCommand(
+                file, `${EXECUTE_MESSAGE_PREFIX} is missing.`
+            );
         }
         if (typeof command.execute != "function")
         {
             throw new InvalidCommand(
-                file, "The execute property must be a function."
+                file, `${EXECUTE_MESSAGE_PREFIX} must be a function.`
             );
-        }        
-            
-        function validatePropertyIsNonEmptyStringAndNotTooLong(
-            property: string, value: string, max: number): void
+        }  
+        
+        // validate options if provided
+        if (command.options)
+        {
+            if (!Array.isArray(command.options))
+            {
+                throw new InvalidCommand(
+                    file, 
+                    `The command '${command.name}' has options defined, ` +
+                    `but it is not an array.`
+                );
+            }
+            if (command.options.length > 25)
+            {
+                throw new InvalidCommand(
+                    file, 
+                    `The command '${command.name}' has too many options. `+
+                    `There can be at most 25 options.`
+                );
+            }
+            let optionNames: string[] = [];
+            for (const OPTION of command.options)
+            {
+                // validate option name
+                validateName(
+                    OPTION.name, 
+                    `The option name '${OPTION.name}' on command '${command.name}'`
+                );
+                if (optionNames.indexOf(OPTION.name)>=0)
+                {
+                    throw new InvalidCommand(
+                        file, 
+                        `The command '${command.name}' has multiple options of ` +
+                        `the same name '${OPTION.name}'.`
+                    );
+                }
+                optionNames.push(OPTION.name);
+
+                // validate option description
+                validateDescription(
+                    OPTION.description,
+                    `The description '${OPTION.description}' on command ` +
+                    `'${command.name}'`
+                );
+            }
+
+        }
+
+        function validateName(name: string, descriptor: string): void
+        {
+            validateNonEmptyStringAndNotTooLong(name, descriptor, 32);
+            if (name.indexOf(" ") >= 0)
+            {
+                throw new InvalidCommand(
+                    file, `${descriptor} has spaces. ${COMMAND_NAME_FORMAT}`
+                );
+            }
+            if (name.toLowerCase() != name)
+            {
+                throw new InvalidCommand(
+                    file, `${descriptor} has uppercase letters. ${COMMAND_NAME_FORMAT}`
+                )
+            }
+            if (!name.match(/^[\w-]{1,32}$/))
+            {
+                throw new InvalidCommand(
+                    file, `${descriptor} has invalid characters. ${COMMAND_NAME_FORMAT}`
+                )
+            }
+        }
+
+        function validateDescription(description: string, descriptor: string): void
+        {
+            validateNonEmptyStringAndNotTooLong(description, descriptor, 100);
+        }
+
+        function validateNonEmptyStringAndNotTooLong(
+            value: string, descriptor: string, max: number): void
         {
             if (!value)
             {
-                throw new InvalidCommand(
-                    file, `The ${property} property is missing or empty.`
-                );
+                throw new InvalidCommand(file, `${descriptor} is missing or empty.`);
             }
             if (typeof value != "string")
             {
-                throw new InvalidCommand(
-                    file, `The ${property} '${value}' must be a string.`
-                );
+                throw new InvalidCommand(file, `${descriptor} must be a string.`);
             }
             if (value.length > max)
             {
                 throw new InvalidCommand(
                     file, 
-                    `The ${property} '${value}' is too long. ` +
+                    `${descriptor} is too long. ` +
                     `It can only have up to ${max} characters.`
                 );
             }
         }
+
     }
 
 }
