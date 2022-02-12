@@ -1,6 +1,8 @@
 module.exports = {
 
-    name: "somename",
+    name: "some-name",
+
+    description: "Some description",
 
     execute: async function ()
     {

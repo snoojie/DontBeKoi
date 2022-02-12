@@ -20,6 +20,14 @@ export class InvalidCommand extends CommandManagerError
     }
 }
 
+export class InvalidCommandName extends InvalidCommand
+{
+    constructor(file: string)
+    {
+        super(file, "dsf");
+    }
+}
+
 export interface Option
 {
     name: string;
@@ -134,7 +142,6 @@ export class CommandManager
 
     /**
      * Sets this.commands by reading from the commands/ directory.
-     * @throws CommandManagerError if the commands directory is missing
      * @throws InvalidCommand if a command script does not have a valid command
      */
     private async loadCommandScripts(): Promise<void>
@@ -170,40 +177,15 @@ export class CommandManager
                 throw new InvalidCommand(FILE, "Missing a default export.");
             }
 
-            // validate the name
-            if (!command.name)
-            {
-                throw new InvalidCommand(FILE, "The name property is missing or empty.");
-            }
-            if (command.name.indexOf(" ") >= 0)
-            {
-                throw new InvalidCommand(FILE, "A command's name cannot have spaces.");
-            }
+            this.validateCommand(command, FILE);
+
+            // ensure we don't already have a command by this name
             if (this.commands.has(command.name))
             {
                 throw new InvalidCommand(
                     FILE, 
-                    `There exists multiple commands with the same name ${command.name}.`
-                );
-            }
-
-            // validate the description
-            if (!command.description)
-            {
-                throw new InvalidCommand(
-                    FILE, "The description property is missing or empty."
-                );
-            }
-
-            // validate the execute function
-            if (!command.execute)
-            {
-                throw new InvalidCommand(FILE, "The execute property is missing.")
-            }
-            if (typeof command.execute != "function")
-            {
-                throw new InvalidCommand(
-                    FILE, "The execute property must be a function."
+                    `There exists multiple commands with the same name ` +
+                    `'${command.name}'.`
                 );
             }
 
@@ -289,4 +271,88 @@ export class CommandManager
                 );
             });
     }
+
+    /**
+     * Validates if a supposed command object is a command.
+     * This is useful to run against new command scripts in the commands/ directory.
+     * @param command The supposed command object to test.
+     * @param file File script name the command is from. 
+     *             This is used for building the error message.
+     * @throws InvalidCommand if this is not a valid command.
+     */
+    private validateCommand(command: Command, file: string)
+    {
+        const COMMAND_NAME_FORMAT: string = 
+            "Use lowercase letters, numbers, underscores, and dashes only.";
+
+        // validate the name
+        validatePropertyIsNonEmptyStringAndNotTooLong("name", command.name, 32);
+        if (command.name.indexOf(" ") >= 0)
+        {
+            throw new InvalidCommand(
+                file, 
+                `The name '${command.name}' has spaces which is not allowed. ` +
+                COMMAND_NAME_FORMAT
+            );
+        }
+        if (command.name.toLowerCase() != command.name)
+        {
+            throw new InvalidCommand(
+                file, 
+                `The name '${command.name}' has uppercase letters. ` +
+                COMMAND_NAME_FORMAT
+            )
+        }
+        if (!command.name.match(/^[\w-]{1,32}$/))
+        {
+            throw new InvalidCommand(
+                file, 
+                `The name '${command.name}' has invalid characters. ` +
+                COMMAND_NAME_FORMAT
+            )
+        }
+
+        // validate the description
+        validatePropertyIsNonEmptyStringAndNotTooLong(
+            "description", command.description, 100
+        );
+
+        // validate the execute function
+        if (!command.execute)
+        {
+            throw new InvalidCommand(file, "The execute property is missing.")
+        }
+        if (typeof command.execute != "function")
+        {
+            throw new InvalidCommand(
+                file, "The execute property must be a function."
+            );
+        }        
+            
+        function validatePropertyIsNonEmptyStringAndNotTooLong(
+            property: string, value: string, max: number): void
+        {
+            if (!value)
+            {
+                throw new InvalidCommand(
+                    file, `The ${property} property is missing or empty.`
+                );
+            }
+            if (typeof value != "string")
+            {
+                throw new InvalidCommand(
+                    file, `The ${property} '${value}' must be a string.`
+                );
+            }
+            if (value.length > max)
+            {
+                throw new InvalidCommand(
+                    file, 
+                    `The ${property} '${value}' is too long. ` +
+                    `It can only have up to ${max} characters.`
+                );
+            }
+        }
+    }
+
 }

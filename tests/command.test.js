@@ -1,6 +1,5 @@
 const { CommandManager, InvalidCommand } = require("../src/command");
 const { ConfigError } = require("../src/util/config");
-const ErrorMessages = require("../src/errorMessages").default;
 const fs = require("fs");
 
 const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
@@ -18,33 +17,107 @@ test("Can deploy commands to discord server.", async () => {
     await commandManager.run();
 });
 
-testMissingProperty("name");
-testMissingProperty("description");
-testMissingProperty("execute");
-function testMissingProperty(property)
-{
-    describe(`Test command script with missing ${property} proeprty.`, () => {
+describe("Validate command scripts.", () => {
 
-        const COMMAND_SCRIPT = `../../tests/_mocks/commands/` + 
-                `missing${property[0].toUpperCase()}${property.substring(1)}.js`;
+    let commandManager;
+    beforeEach(() => commandManager = new CommandManager());
+    afterEach(() => fs.readdirSync = ORIGINAL_FS_READDIRSYNC);
 
-        afterAll(() =>  fs.readdirSync = ORIGINAL_FS_READDIRSYNC);
+    // =======================
+    // =====NAME PROPERTY=====
+    // =======================
 
-        test(`Error of type InvalidCommand.`, async() => {
-            fs.readdirSync = jest.fn(() => [COMMAND_SCRIPT]);
-            let commandManager = new CommandManager();
-            await expect(commandManager.run()).rejects.toThrow(InvalidCommand);
-        });
+    testMissingProperty("name");
+    
+    testNotAStringProperty("name");
 
-        test(`Error message mentions ${property}.`, async() => {
-            fs.readdirSync = jest.fn(() => [COMMAND_SCRIPT]);
-            let commandManager = new CommandManager();
-            await expect(commandManager.run()).rejects.toThrow(property);
-        });
+    test("Name with spaces.", async() => {
+        mockCommandDirectory("nameWithSpaces");
+        let run = commandManager.run();
+        await expectInvalidCommand(run, "The name 'name with spaces' has spaces");
     });
-}
 
-// todo test invalid properties, like name having spaces
+    testLongProperty("name", "namethatisverylongjusttoolongwaytoolong");
+
+    test("Name with capitals.", async() => {
+        mockCommandDirectory("nameWithCapitals");
+        let run = commandManager.run();
+        await expectInvalidCommand(run, "The name 'SomeName' has uppercase letters");
+    });
+
+    test("Name with a period.", async() => {
+        mockCommandDirectory("nameWithPeriod");
+        let run = commandManager.run();
+        await expectInvalidCommand(run, "The name 'some.name' has invalid characters");
+    });
+
+    // ==============================
+    // =====DESCRIPTION PROPERTY=====
+    // ==============================
+
+    testMissingProperty("description");
+
+    testNotAStringProperty("description");
+
+    testLongProperty(
+        "description", 
+        "here is a description. it is very long. why so long? why not. " +
+        "this is a test. it can be whatever. it just needs to be long."
+    );
+
+    // ==========================
+    // =====EXECUTE PROPERTY=====
+    // ==========================
+
+    testMissingProperty("execute");
+
+    function mockCommandDirectory(commandScript)
+    {
+        fs.readdirSync = 
+            jest.fn(() => [`../../tests/_mocks/commands/${commandScript}.js`]);
+    }
+
+    async function expectInvalidCommand(run, message)
+    {
+        await expect(run).rejects.toThrow(InvalidCommand);
+        await expect(run).rejects.toThrow(message);
+    }
+
+    function testMissingProperty(property)
+    {
+        test(`Missing ${property} property.`, async() => {
+            mockCommandDirectory(`missing${capitalizeFirstLetter(property)}`);
+            let run = commandManager.run();
+            await expectInvalidCommand(run, `The ${property} property is missing`);
+        });
+    }
+
+    function testNotAStringProperty(property)
+    {
+        test(`${capitalizeFirstLetter(property)} is not a string.`, async() => {
+            mockCommandDirectory(`${property}NotString`);
+            let run = commandManager.run();
+            await expectInvalidCommand(
+                run, `The ${property} '3' must be a string.`
+            );
+        });
+    }
+
+    function testLongProperty(property, value)
+    {
+        test(`Long ${property}.`, async() => {
+            mockCommandDirectory(`${property}TooLong`);
+            let run = commandManager.run();
+            await expectInvalidCommand(run, `The ${property} '${value}' is too long`);
+        });
+    }
+
+    function capitalizeFirstLetter(text)
+    {
+        return text[0].toUpperCase() + text.substring(1);
+    }
+    
+});
 
 describe("Missing environment variables", () => {
 
