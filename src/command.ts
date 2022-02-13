@@ -344,7 +344,16 @@ export class CommandManager
                     );
                 }
             }
+        }
 
+        // validate isPrivate if provided
+        if (command.isPrivate != undefined && typeof command.isPrivate != "boolean")
+        {
+            throw new InvalidCommand(
+                file, 
+                `Property isPrivate on command '${command.name}' is defined, ` +
+                `but it is neither 'true' nor 'false'.`
+            );
         }
 
         function validateName(name: string, descriptor: string): void

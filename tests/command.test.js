@@ -4,8 +4,6 @@ const { ConfigError } = require("../src/util/config");
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
 
-// todo test isPrivate property on command
-
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
 });
@@ -133,6 +131,14 @@ describe("Testing run method", () => {
             let run = commandManager.run();
             await expectInvalidCommand(
                 run, "The execute property on command 'somename' is missing"
+            );
+        });
+    
+        test("Execute property not a function.", async() => {
+            mockCommandDirectory("executeNotFunction");
+            let run = commandManager.run();
+            await expectInvalidCommand(
+                run, "The execute property on command 'somename' must be a function"
             );
         });
     
@@ -267,7 +273,7 @@ describe("Testing run method", () => {
         // =====OPTION TYPE PROPERTY=====
         // ==============================
     
-        test("Option type is empty string.", async() => {
+        test("Option type is an empty string.", async() => {
             mockCommandDirectory("optionTypeEmpty");
             let run = commandManager.run();
             await expectInvalidCommand(
@@ -294,6 +300,20 @@ describe("Testing run method", () => {
                 run, 
                 "The type 'unknowntype' on command 'somename' option " +
                 "'someoptionname' is defined, but it is neither 'string' nor 'number'"
+            );
+        });
+
+        // =============================
+        // =====IS PRIVATE PROPERTY=====
+        // =============================
+
+        test("Is Private is not a boolean.", async() => {
+            mockCommandDirectory("isPrivateNotBoolean");
+            let run = commandManager.run();
+            await expectInvalidCommand(
+                run, 
+                "Property isPrivate on command 'somename' is defined, " +
+                "but it is neither 'true' nor 'false'"
             );
         });
     
