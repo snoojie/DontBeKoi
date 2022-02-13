@@ -120,6 +120,14 @@ describe("Validate command scripts.", () => {
         );
     });
 
+    test("Two commands with the same name.", async() => {
+        mockCommandDirectory("valid", "validDuplicate");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, "There exists multiple commands with the same name 'validcommand'"
+        );
+    });
+
     // ==============================
     // =====DESCRIPTION PROPERTY=====
     // ==============================
