@@ -272,6 +272,20 @@ export class CommandManager
             {
                 throw new InvalidCommand(FILE, "Missing a default export.");
             }
+            if (typeof command != "object")
+            {
+                throw new InvalidCommand(
+                    FILE, 
+                    `Expected default export to be of type object. ` +
+                    `Instead, it is of type '${typeof command}'.`
+                );
+            }
+            if (Object.keys(command).length == 0)
+            {
+                throw new InvalidCommand(
+                    FILE, "Default export is empty. Was nothing exported?"
+                );
+            }
 
             this.validateCommand(command, FILE);
 

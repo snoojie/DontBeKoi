@@ -10,6 +10,7 @@ const { default: Logger } = require("../src/util/logger");
 let commandManager;
 const ORIGINAL_FS_EXISTSSYNC = fs.existsSync;
 const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
+const MOCK_COMMANDS_DIRECTORY = "../../tests/_mocks/commands";
 
 beforeEach(() => commandManager = new CommandManager());
 afterEach(() => {
@@ -33,6 +34,42 @@ test("Missing commands/ directory.", async() => {
 });
 
 describe("Validate command scripts.", () => {
+
+    // ================
+    // =====EXPORT=====
+    // ================
+
+    test("Command script is empty.", async() => {
+        mockCommandDirectory("emptyFile");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, "Default export is empty. Was nothing exported?"
+        );
+    });
+
+    test("Command script not empty but nothing was exported.", async() => {
+        mockCommandDirectory("exportNothing");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, "Default export is empty. Was nothing exported?"
+        );
+    });
+
+    test("Number exported.", async() => {
+        mockCommandDirectory("exportNumber");
+        let run = commandManager.run();
+        await expectInvalidCommand(
+            run, 
+            "Expected default export to be of type object. " +
+            "Instead, it is of type 'number'"
+        );
+    });
+
+    test("Multiple exports.", async() => {
+        mockCommandDirectory("exportMany");
+        let run = commandManager.run();
+        await expectInvalidCommand(run, "Missing a default export.");
+    });
 
     // =======================
     // =====NAME PROPERTY=====
@@ -319,9 +356,11 @@ describe("Validate command scripts.", () => {
 
 describe("Test parameters to REST call to discord.", () => {
     
-    const ORIGINAL_REST_PUT = REST.put;
+    const ORIGINAL_REST_PUT = REST.prototype.put;
     beforeEach(() => REST.prototype.put = jest.fn(async () => {}));
     afterEach(() => REST.prototype.put = ORIGINAL_REST_PUT);
+
+    test("stuff", () => expect(3).toBe(3));
 
     test("CommandManagerError when REST call to deploy to discord fails.", async() => {
         REST.prototype.put = jest.fn(async () => 
@@ -463,13 +502,25 @@ describe("Missing environment variables", () => {
     }
 });
 
+test("Skip .txt and .js.map files in commands/", async() => {
+    fs.readdirSync = jest.fn(() => [
+        `${MOCK_COMMANDS_DIRECTORY}/notACommand.txt`,
+        `${MOCK_COMMANDS_DIRECTORY}/notACommand.js.map`
+    ]);
+
+    // confirm there is no error running this
+    await commandManager.run();
+
+    // peak into commandManager. There shouldn't be any commands
+    expect(commandManager.commands.size).toBe(0);
+});
+
 function mockCommandDirectory(...commandScripts)
 {
-    const DIRECTORY = "../../tests/_mocks/commands";
     let files = [];
     for (const SCRIPT of commandScripts)
     {
-        files.push(`${DIRECTORY}/${SCRIPT}.js`);
+        files.push(`${MOCK_COMMANDS_DIRECTORY}/${SCRIPT}.js`);
     }
     fs.readdirSync = jest.fn(() => files);
 }
@@ -695,7 +746,7 @@ describe("Test execute method.", () => {
             let regex = /^\d+ ms$/;
             if (checkForSeconds)
             {
-                regex = /^1.\d{3} s$/;
+                regex = /^1(.\d{1,3})? s$/;
             }
             expect(SECOND_LOG.substring(
                 commandInfo.length + 16, SECOND_LOG.indexOf("\n"))
