@@ -234,9 +234,6 @@ export class CommandManager
             commandBuilders.push(commandBuilder);
         }
 
-        let x = commandBuilders.map(commandBuilder => commandBuilder.toJSON());
-        console.log(JSON.stringify(x, null, 2));
-
         // finally deploy the commands 
         await new REST({ version: "9" })
             .setToken(TOKEN)

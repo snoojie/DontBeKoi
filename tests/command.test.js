@@ -483,13 +483,29 @@ function mockCommandDirectory(...commandScripts)
 // todo: add tests for execute public error vs other error
 
 describe("Mocking interaction.", () => {
-   
-    let interaction;
-    beforeEach(() => interaction = {
-        isCommand: () => true
-    } );
 
-    test("Interaction note a command interaction.", async() => {
+    const COMMAND_RESPONSE = "some response";
+    let command;   
+    let interaction;
+    beforeEach(() => {
+
+        command = {
+            name: "somecommand",
+            description: "some description",
+            execute: async() => COMMAND_RESPONSE
+        };
+
+        interaction = { 
+            isCommand: () => true,
+            commandName: command.name,
+            user: { username: "someuser" },
+            deferReply: async() => {}, 
+            editReply: async() => {}
+        };
+
+    });
+
+    test("Interaction not a command interaction.", async() => {
         interaction.isCommand = () => false;
         let execute = commandManager.executeCommand(interaction);
         await expectCommandExecutionError(
@@ -507,21 +523,61 @@ describe("Mocking interaction.", () => {
 
     test("Response of command's execute sent to discord as a reply.", async() => {
         
-        commandManager.commands.set("somecommand", {
-            name: "somecommand",
-            description: "some description",
-            execute: async() => { return "some response" }
-        });
-
-        interaction.commandName = "somecommand";
-        interaction.deferReply = async() => {};
-        interaction.user = { username: "someuser" };
-        interaction.editReply = jest.fn(async (reply) => {});
+        commandManager.commands.set(command.name, command);
+        interaction.editReply = jest.fn(async () => {});
 
         await commandManager.executeCommand(interaction);
         expect(interaction.editReply.mock.calls.length).toBe(1);
-        expect(interaction.editReply.mock.calls[0][0]).toBe("some response");
+        expect(interaction.editReply.mock.calls[0][0]).toBe(COMMAND_RESPONSE);
     });
+
+    // ====================
+    // =====IS PRIVATE=====
+    // ====================
+
+    describe(
+        "Command property isPrivate affects whether bot responses are private.", () => 
+    {
+
+        testIsPrivate(
+            "Setting command property isPrivate to true makes response private.",
+            true);
+
+        testIsPrivate(
+            "Setting command property isPrivate to false makes response public.",
+            false
+        );
+            
+        testIsPrivate(
+            "Not setting command property isPrivate makes response public."
+        );
+
+        function testIsPrivate(testName, isPrivate)
+        {
+            test(testName, async() => {
+                command.isPrivate = isPrivate;
+                commandManager.commands.set(command.name, command);
+                interaction.deferReply = jest.fn(async () => {});
+        
+                await commandManager.executeCommand(interaction);
+
+                expect(interaction.deferReply.mock.calls.length).toBe(1);
+
+                if (isPrivate)
+                {
+                    expect(interaction.deferReply.mock.calls[0][0].ephemeral)
+                        .toBeTruthy();
+                }
+                else
+                {
+                    expect(interaction.deferReply.mock.calls[0][0].ephemeral)
+                        .toBeFalsy();
+                }
+            });
+        }
+    });
+
+    
 
     async function expectCommandExecutionError(execute, message)
     {
