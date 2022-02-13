@@ -1,10 +1,11 @@
-const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError } 
-    = require("../src/command");
+const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError, 
+        DeployCommandsError } = require("../src/command");
 const { ConfigError } = require("../src/util/config");
 const PublicError = require("../src/util/publicError").default;
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
 const { expectErrorAsync } = require("./_setup/testUtil");
+const { default: Logger } = require("../src/util/logger");
 
 let commandManager;
 const ORIGINAL_FS_EXISTSSYNC = fs.existsSync;
@@ -327,7 +328,7 @@ describe("Test parameters to REST call to discord.", () => {
             { throw new Error("mock rest error"); }
         );
         let run = commandManager.run();
-        await expect(run).rejects.toThrow(CommandManagerError);
+        await expect(run).rejects.toThrow(DeployCommandsError);
         await expect(run).rejects.toThrow("Failed to deploy commands to discord");
     });
 
@@ -477,8 +478,6 @@ function mockCommandDirectory(...commandScripts)
 // =====EXECUTE COMMAND=====
 // =========================
 
-// todo: log?
-
 describe("Test execute method.", () => {
 
     const COMMAND_RESPONSE = "some response";
@@ -600,15 +599,112 @@ describe("Test execute method.", () => {
 
     });
 
+    // =====================
+    // =====LOG EXECUTE=====
+    // =====================
+
+    describe("Logging the command.", () => {
+
+        const ORIGINAL_LOG = Logger.log;
+        beforeEach(() => Logger.log = jest.fn());
+        afterEach(() => Logger.log = ORIGINAL_LOG);
+
+        test("Log a command.", async() => {
+            commandManager.commands.set(command.name, command);
+    
+            await commandManager.executeCommand(interaction);
+
+            expectCommandLogged("someuser: /somecommand");
+        });
+
+        test("Log a command with string option.", async() => {
+            command.options = [ { 
+                name: "someoption", description: "description for option" 
+            } ];
+            commandManager.commands.set(command.name, command);
+            interaction.options = { getString: () => "some value" }
+    
+            await commandManager.executeCommand(interaction);
+
+            expectCommandLogged("someuser: /somecommand someoption:some value");
+        });
+
+        test("Log a command with number option.", async() => {
+            command.options = [ { 
+                name: "someoption", description: "description for option", type: "number"
+            } ];
+            commandManager.commands.set(command.name, command);
+            interaction.options = { getNumber: () => 3 }
+    
+            await commandManager.executeCommand(interaction);
+
+            expectCommandLogged("someuser: /somecommand someoption:3");
+        });
+
+        test("Log a command with several options.", async() => {
+            command.options = [ 
+                { 
+                    name: "firstoption", 
+                    description: "description for option 1" 
+                },
+                { 
+                    name: "secondoption", 
+                    description: "description for option 2", 
+                    type: "string"
+                }
+            ];
+            commandManager.commands.set(command.name, command);
+            interaction.options = { getString: (name) => `value for option ${name}` }
+    
+            await commandManager.executeCommand(interaction);
+
+            expectCommandLogged(
+                "someuser: /somecommand " +
+                "firstoption:value for option firstoption " +
+                "secondoption:value for option secondoption"
+            );
+        });
+        
+        test("Log a command that takes at least a second.", async() => {
+            command.execute = async() => {
+                await new Promise(resolve => setTimeout(resolve, 1100));
+                return "some response";
+            }
+            commandManager.commands.set(command.name, command);
+    
+            await commandManager.executeCommand(interaction);
+
+            expectCommandLogged("someuser: /somecommand", true);
+        }, 1500);
+
+        function expectCommandLogged(commandInfo, checkForSeconds)
+        {
+            expect(Logger.log.mock.calls.length).toBe(2);
+
+            // first log
+            expect(Logger.log.mock.calls[0][0]).toBe(`Starting... ${commandInfo}`);
+
+            // second log message should be something like
+            // Finished someuser: /somecommand ...13 ms
+            //     some response
+            const SECOND_LOG = Logger.log.mock.calls[1][0];
+            expect(SECOND_LOG.startsWith(`...Finished ${commandInfo} ...`)).toBeTruthy();
+            expect(SECOND_LOG.endsWith("\n    some response")).toBeTruthy();
+
+            // by default, we look for milliseconds
+            let regex = /^\d+ ms$/;
+            if (checkForSeconds)
+            {
+                regex = /^1.\d{3} s$/;
+            }
+            expect(SECOND_LOG.substring(
+                commandInfo.length + 16, SECOND_LOG.indexOf("\n"))
+            ).toMatch(regex);
+        }
+    });
+
     async function expectCommandExecutionError(execute, message)
     {
         await expectErrorAsync(execute, CommandExecutionError, message);
     }
 });
-
-
-
-
-
-
-

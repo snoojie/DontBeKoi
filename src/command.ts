@@ -9,8 +9,14 @@ import * as fs from "fs";
 import PublicError from "./util/publicError";
 import EnhancedError from "./util/enhancedError";
 
+/**
+ * Base error that is thrown.
+ */
 export class CommandManagerError extends EnhancedError {}
 
+/**
+ * Error thrown when a command in the commands/ directory is not programmed correctly.
+ */
 export class InvalidCommand extends CommandManagerError
 {
     constructor(file: string, reason: string)
@@ -19,26 +25,108 @@ export class InvalidCommand extends CommandManagerError
     }
 }
 
+/**
+ * Error thrown when slash commands could not be deployed to discord.
+ */
+export class DeployCommandsError extends CommandManagerError
+{
+    constructor(error: any)
+    {
+        super("Failed to deploy commands to discord.", error);
+    }
+}
+
+/**
+ * Error thrown when a slash command could not be executed.
+ * This error should never happen. If it does, something is very, very wrong.
+ */
 export class CommandExecutionError extends CommandManagerError {}
 
+/**
+ * An option of a discord slash command.
+ */
 export interface Option
 {
+    /**
+     * Name of the slash command option. For example, consider '/google spreadsheet'. 
+     * The option name is 'spreadsheet'
+     * 
+     * The name can have up to 32 characters and consist only of
+     * lowercase letters, numbers, underscores, and dashes.
+     */
     name: string;
+
+    /**
+     * Description of the slash command option.
+     * This will appear in discord as people view the slash command option.
+     * 
+     * Description can have up to 100 characters.
+     */
     description: string;
+    
+    /**
+     * The type of value the discord user can enter for this slash command option.
+     * For example, if type is 'number', then the discord user must provide a number.
+     * If this property is not set, the type will default to 'string'.
+     */
     type?: "string" | "number";
 }
 
+/**
+ * A discord slash command.
+ */
 export interface Command
 {
+
+    /**
+     * Name of the slash command. 
+     * For example, if name is 'google', then in discord you can do '/google'
+     * 
+     * The name can have up to 32 characters and consist only of
+     * lowercase letters, numbers, underscores, and dashes.
+     */
     name: string;
+
+    /**
+     * Description of the slash command.
+     * This will appear in discord as people view the slash command.
+     * 
+     * Description can have up to 100 characters.
+     */
     description: string;
+
+    /**
+     * Method that is called when a discord user enters the slash command.
+     * The string that this method returns is what the bot responds with in discord.
+     */
     execute: (interaction: CommandInteraction) => Promise<string>;
+
+    /**
+     * Options of the slash command. For example, consider the google command
+     * '/google spreadsheet:', here 'spreadsheet' is an option and would be defined as
+     * [ { name: "spreadsheet", description: "ID of your google spreadsheet" } ]
+     * 
+     * There can only be up to 25 options.
+     */
     options?: Option[];
+
+    /**
+     * Whether the bot responds privately or not to the discord user that 
+     * executed this command. If this property is not set, then by default, the reply
+     * will be public.
+     */
     isPrivate?: boolean;
 }
 
 type CommandCollection = Map<string, Command>;
 
+/**
+ * Manages discord slash commands.
+ * 
+ * Call run() to deploy slash commands to discord.
+ * 
+ * Call executeCommand() to execute a specific command given an interaction in discord.
+ */
 export class CommandManager
 {
     private commands: CommandCollection;
@@ -129,7 +217,7 @@ export class CommandManager
         const DURATION: number = getCurrentTimestamp() - START_TIME;
         const DURATION_MESSAGE: string = DURATION < 1000
             ? DURATION + " ms"
-            : DURATION/1000 + "s";
+            : DURATION/1000 + " s";
         
         // log the results of this command including how long it took to run, ex:
         // ...Finished Snooj: /who color:nedai pattern:sakyu ...349 ms
@@ -137,7 +225,7 @@ export class CommandManager
         //     <@669702480833019954>
         Logger.log(
             `...Finished ${commandInfo} `+
-            `...${DURATION_MESSAGE} ` +
+            `...${DURATION_MESSAGE}` +
             `${("\n"+REPLY).split("\n").join("\n    ")}`
         );
 
@@ -260,9 +348,7 @@ export class CommandManager
                 { body: commandBuilders.map(commandBuilder => commandBuilder.toJSON()) }
             )
             .catch(error => {
-                throw new CommandManagerError(
-                    "Failed to deploy commands to discord.", error
-                );
+                throw new DeployCommandsError(error);
             });
     }
 
@@ -426,6 +512,9 @@ export class CommandManager
 
 }
 
+/**
+ * Helper function to get the current timestamp.
+ */
 function getCurrentTimestamp(): number
 {
     return new Date().getTime();

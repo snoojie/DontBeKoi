@@ -1,7 +1,16 @@
 import * as dotenv from "dotenv";
 import EnhancedError from "./enhancedError";
 
-export class ConfigError extends EnhancedError {}
+/**
+ * Error thrown when an environment variable was not found.
+ */
+export class ConfigError extends EnhancedError
+{
+    constructor(envKey: string)
+    {
+        super(`Did you forget to set ${envKey} as an environment variable?`);
+    }
+}
 
 // init environment variables
 dotenv.config();
@@ -11,9 +20,7 @@ function get(key: string): string
     const VALUE: string | undefined = process.env[key];
     if (!VALUE)
     {
-        throw new ConfigError(
-            `Did you forget to set ${key} as an environment variable?`
-        );
+        throw new ConfigError(key)
     }
     return VALUE;
 }
