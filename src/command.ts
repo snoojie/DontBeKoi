@@ -90,8 +90,9 @@ export class CommandManager
             ephemeral: COMMAND.isPrivate
         });
 
-        // log the command
-        let logMessage: string = 
+        // get information about this command to log it, ex:
+        // Snooj: /who color:nedai pattern:sakyu
+        let commandInfo: string = 
             `${interaction.user.username}: /${interaction.commandName}`;
         if (COMMAND.options)
         {
@@ -100,11 +101,16 @@ export class CommandManager
                 const VALUE: string = "" + (OPTION.type == "number" 
                     ? interaction.options.getNumber(OPTION.name)
                     : interaction.options.getString(OPTION.name));
-                logMessage += ` ${OPTION.name}:${VALUE}`;
+                    commandInfo += ` ${OPTION.name}:${VALUE}`;
             }
         }
-        Logger.log(logMessage);
-        console.time(logMessage);
+
+        // log the command, ex:
+        // Starting... Snooj: /who color:nedai pattern:sakyu
+        Logger.log(`Starting... ${commandInfo}`);
+
+        // time how long this command takes
+        const START_TIME: number = getCurrentTimestamp();
 
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
@@ -119,13 +125,25 @@ export class CommandManager
                 return "Uh oh. Something went wrong.";
             });
         
-        // print the amount of time this command took
-        console.timeEnd(logMessage); 
+        // since the command is done, we can see how long it took
+        const DURATION: number = getCurrentTimestamp() - START_TIME;
+        const DURATION_MESSAGE: string = DURATION < 1000
+            ? DURATION + " ms"
+            : DURATION/1000 + "s";
+        
+        // log the results of this command including how long it took to run, ex:
+        // ...Finished Snooj: /who color:nedai pattern:sakyu ...349 ms
+        //     Needing common 10h nedai sakyu:
+        //     <@669702480833019954>
+        Logger.log(
+            `...Finished ${commandInfo} `+
+            `...${DURATION_MESSAGE} ` +
+            `${("\n"+REPLY).split("\n").join("\n    ")}`
+        );
 
         // reply 
-        // note that this will throw
+        // note if we are logged into two places, this will throw
         // DiscordAPIError: Unknown interaction
-        // if we are logged in to two places
         await interaction.editReply(REPLY)
     }
 
@@ -406,4 +424,9 @@ export class CommandManager
 
     }
 
+}
+
+function getCurrentTimestamp(): number
+{
+    return new Date().getTime();
 }
