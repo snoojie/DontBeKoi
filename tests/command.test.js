@@ -316,15 +316,144 @@ describe("Testing run method", () => {
                 "but it is neither 'true' nor 'false'"
             );
         });
+
+        describe("Test REST call to discord.", () => {
+        
+            const ORIGINAL_REST_PUT = REST.put;
+            afterEach(() => REST.prototype.put = ORIGINAL_REST_PUT);
+    
+            test("CommandManagerError when REST call to deploy to discord fails.", async() => {
+                REST.prototype.put = jest.fn(async () => 
+                    { throw new Error("mock rest error"); }
+                );
+                let run = commandManager.run();
+                await expect(run).rejects.toThrow(CommandManagerError);
+                await expect(run).rejects.toThrow("Failed to deploy commands to discord");
+            });
+
+            describe("Testing command properties in REST call.", () => {
+
+                beforeEach(() => REST.prototype.put = jest.fn(async () => {}));
+
+                testCommandInRestCall(
+                    "Command properties sent to discord",
+                    "valid",
+                    "validcommand",
+                    "This command is valid."
+                );
+
+                testCommandInRestCall(
+                    "Can attach string option to command without specifying type.",
+                    "validStringOption",
+                    "stringcommand",
+                    "This command has a string option.",
+                    "stringoption",
+                    "option with string value",
+                    3
+                );
+
+                testCommandInRestCall(
+                    "Can attach string option to command with specifying type.",
+                    "validStringOptionType",
+                    "stringcommandwithtype",
+                    "This command has a string option and defined type.",
+                    "stringoption",
+                    "option with string value",
+                    3
+                );
+            
+                testCommandInRestCall(
+                    "Can attach number option to command.",
+                    "validNumberOption",
+                    "numbercommand",
+                    "This command has a number option.",
+                    "numberoption",
+                    "option with number value",
+                    10
+                );
+    
+                test("Properties of several commands sent to discord.", async() => {
+                    mockCommandDirectory("valid", "validStringOption");
+                    await commandManager.run();
+                    let mockCalls = REST.prototype.put.mock.calls;
+                    expect(mockCalls.length).toBe(1);
+
+                    let commandList = mockCalls[0][1].body;
+                    expect(commandList.length).toBe(2);
+
+                    let basicCommand = commandList[0];
+                    expect(basicCommand.name).toBe("validcommand");
+                    expect(basicCommand.description).toBe("This command is valid.");
+                    expect(basicCommand.options.length).toBe(0);
+
+                    let optionCommand = commandList[1];
+                    expect(optionCommand.name).toBe("stringcommand");
+                    expect(optionCommand.description)
+                        .toBe("This command has a string option.")
+                    expect(optionCommand.options.length).toBe(1);
+                });
+
+                
+
+                function testCommandInRestCall(
+                    testName, 
+                    script, 
+                    name, 
+                    description, 
+                    optionName, 
+                    optionDescription, 
+                    typeNumber
+                )
+                {
+                    test(testName, async() => {
+                        mockCommandDirectory(script);
+                        await commandManager.run();
+                        let mockCalls = REST.prototype.put.mock.calls;
+                        expect(mockCalls.length).toBe(1);
+
+                        let commandList = mockCalls[0][1].body;
+                        expect(commandList.length).toBe(1);
+
+                        let command = commandList[0];
+                        expect(command.name).toBe(name);
+                        expect(command.description).toBe(description);
+
+                        let optionList = command.options;
+                        if (!optionName)
+                        {
+                            expect(optionList.length).toBe(0);
+                        }
+                        else
+                        {
+                            expect(optionList.length).toBe(1);
+
+                            let option = optionList[0];
+                            expect(option.name).toBe(optionName);
+                            expect(option.description).toBe(optionDescription);
+                            expect(option.required).toBeTruthy();
+
+                            // type 3 is string
+                            // type 10 is number
+                            expect(option.type).toBe(typeNumber);
+                        }
+                    });
+                }
+            });
+        });
     
         // ==========================
         // =====HELPER FUNCTIONS=====
         // ==========================
     
-        function mockCommandDirectory(commandScript)
+        function mockCommandDirectory(commandScript, secondCommandScript)
         {
-            fs.readdirSync = 
-                jest.fn(() => [`../../tests/_mocks/commands/${commandScript}.js`]);
+            const DIRECTORY = "../../tests/_mocks/commands";
+            let files = [`${DIRECTORY}/${commandScript}.js`];
+            if (secondCommandScript)
+            {
+                files.push(`${DIRECTORY}/${secondCommandScript}.js`);
+            }
+            fs.readdirSync = jest.fn(() => files);
         }
     
         async function expectInvalidCommand(run, message)
@@ -334,7 +463,7 @@ describe("Testing run method", () => {
         }
         
     });
-
+    
     describe("Missing environment variables", () => {
 
         const ORIGINAL_ENV = process.env;
@@ -354,25 +483,6 @@ describe("Testing run method", () => {
                 await expect(commandManager.run()).rejects.toThrow(ConfigError);
             });
         }
-    });
-
-    describe("Test REST call to discord.", () => {
-        
-        const ORIGINAL_REST_PUT = REST.put;
-        beforeAll(() => {
-            REST.prototype.put = jest.fn(async () => 
-                { throw new Error("mock rest error"); }
-            );
-        });
-        afterAll(() => {
-            REST.prototype.put = ORIGINAL_REST_PUT;
-        })
-
-        test("CommandManagerError when REST call to deploy to discord fails.", async() => {
-            let run = commandManager.run();
-            await expect(run).rejects.toThrow(CommandManagerError);
-            await expect(run).rejects.toThrow("Failed to deploy commands to discord");
-        });
     });
 });
 
