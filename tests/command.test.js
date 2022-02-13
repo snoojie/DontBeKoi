@@ -465,13 +465,13 @@ describe("Missing environment variables", () => {
     }
 });
 
-function mockCommandDirectory(commandScript, secondCommandScript)
+function mockCommandDirectory(...commandScripts)
 {
     const DIRECTORY = "../../tests/_mocks/commands";
-    let files = [`${DIRECTORY}/${commandScript}.js`];
-    if (secondCommandScript)
+    let files = [];
+    for (const SCRIPT of commandScripts)
     {
-        files.push(`${DIRECTORY}/${secondCommandScript}.js`);
+        files.push(`${DIRECTORY}/${SCRIPT}.js`);
     }
     fs.readdirSync = jest.fn(() => files);
 }
@@ -482,19 +482,14 @@ function mockCommandDirectory(commandScript, secondCommandScript)
 
 // todo: add tests for execute public error vs other error
 
-describe("Testing execute method", () => {
+describe("Mocking interaction.", () => {
    
-    let commandManager;
     let interaction;
-    beforeEach(() => {
-        commandManager = new CommandManager();
-        interaction = {};
-    });
+    beforeEach(() => interaction = {
+        isCommand: () => true
+    } );
 
-    test(
-        "CommandExecutionError when interaction is not a command interaction.", 
-        async() => 
-    {
+    test("Interaction note a command interaction.", async() => {
         interaction.isCommand = () => false;
         let execute = commandManager.executeCommand(interaction);
         await expectCommandExecutionError(
@@ -502,38 +497,30 @@ describe("Testing execute method", () => {
         );
     });
 
-    describe("Command interaction.", () => {
-        beforeEach(() => interaction.isCommand = () => true);
+    test("Unknown command name.", async() => {
+        interaction.commandName = "unknowncommand";
+        let execute = commandManager.executeCommand(interaction);
+        await expectCommandExecutionError(
+            execute, "Did not recognize the command name 'unknowncommand'"
+        );
+    });
 
-        test(
-            "CommandExecutionError when command is not recognized.", 
-            async() => 
-        {
-            interaction.commandName = "unknowncommand";
-            let execute = commandManager.executeCommand(interaction);
-            await expectCommandExecutionError(
-                execute, "Did not recognize the command name 'unknowncommand'"
-            );
+    test("Response of command's execute sent to discord as a reply.", async() => {
+        
+        commandManager.commands.set("somecommand", {
+            name: "somecommand",
+            description: "some description",
+            execute: async() => { return "some response" }
         });
 
-        test("Response of command's execute sent to discord as a reply.", async() => {
-            
-            commandManager.commands.set("somecommand", {
-                name: "somecommand",
-                description: "some description",
-                execute: async() => { return "some response" }
-            });
+        interaction.commandName = "somecommand";
+        interaction.deferReply = async() => {};
+        interaction.user = { username: "someuser" };
+        interaction.editReply = jest.fn(async (reply) => {});
 
-            interaction.commandName = "somecommand";
-            interaction.deferReply = async() => {};
-            interaction.user = { username: "someuser" };
-            interaction.editReply = jest.fn(async (reply) => {});
-
-            await commandManager.executeCommand(interaction);
-            expect(interaction.editReply.mock.calls.length).toBe(1);
-            expect(interaction.editReply.mock.calls[0][0]).toBe("some response");
-
-        });
+        await commandManager.executeCommand(interaction);
+        expect(interaction.editReply.mock.calls.length).toBe(1);
+        expect(interaction.editReply.mock.calls[0][0]).toBe("some response");
     });
 
     async function expectCommandExecutionError(execute, message)
