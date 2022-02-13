@@ -1,6 +1,7 @@
 const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError } 
     = require("../src/command");
 const { ConfigError } = require("../src/util/config");
+const PublicError = require("../src/util/publicError").default;
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
 
@@ -480,9 +481,9 @@ function mockCommandDirectory(...commandScripts)
 // =====EXECUTE COMMAND=====
 // =========================
 
-// todo: add tests for execute public error vs other error
+// todo: log?
 
-describe("Mocking interaction.", () => {
+describe("Test execute method.", () => {
 
     const COMMAND_RESPONSE = "some response";
     let command;   
@@ -519,16 +520,6 @@ describe("Mocking interaction.", () => {
         await expectCommandExecutionError(
             execute, "Did not recognize the command name 'unknowncommand'"
         );
-    });
-
-    test("Response of command's execute sent to discord as a reply.", async() => {
-        
-        commandManager.commands.set(command.name, command);
-        interaction.editReply = jest.fn(async () => {});
-
-        await commandManager.executeCommand(interaction);
-        expect(interaction.editReply.mock.calls.length).toBe(1);
-        expect(interaction.editReply.mock.calls[0][0]).toBe(COMMAND_RESPONSE);
     });
 
     // ====================
@@ -577,7 +568,41 @@ describe("Mocking interaction.", () => {
         }
     });
 
+    // ==================
+    // =====RESPONSE=====
+    // ==================
+
+    describe("Bot response to discord.", () => {
+
+        test("Reply with command's execute result.", async() => {
+            testBotResponse(COMMAND_RESPONSE);
+        });
     
+        test("Reply with PublicError message.", async() => {
+            command.execute = async () => {
+                throw new PublicError("mock public error message"); 
+            }
+            testBotResponse("mock public error message");
+        });
+    
+        test("Reply with general error message.", async() => {
+            command.execute = async () => {
+                throw new Error("mock private error message"); 
+            }
+            testBotResponse("Uh oh. Something went wrong.");
+        });
+
+        async function testBotResponse(response)
+        {
+            commandManager.commands.set(command.name, command);
+            interaction.editReply = jest.fn(async () => {});
+    
+            await commandManager.executeCommand(interaction);
+            expect(interaction.editReply.mock.calls.length).toBe(1);
+            expect(interaction.editReply.mock.calls[0][0]).toBe(response);
+        }
+
+    });
 
     async function expectCommandExecutionError(execute, message)
     {
