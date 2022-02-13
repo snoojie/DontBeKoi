@@ -602,8 +602,7 @@ describe("Test execute method.", () => {
 
     async function expectCommandExecutionError(execute, message)
     {
-        await expect(execute).rejects.toThrow(CommandExecutionError);
-        await expect(execute).rejects.toThrow(message);
+        await expectErrorAsync(execute, CommandExecutionError, message);
     }
 });
 
