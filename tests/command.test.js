@@ -4,6 +4,7 @@ const { ConfigError } = require("../src/util/config");
 const PublicError = require("../src/util/publicError").default;
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
+const { expectErrorAsync } = require("./_setup/testUtil");
 
 let commandManager;
 const ORIGINAL_FS_EXISTSSYNC = fs.existsSync;
@@ -308,14 +309,9 @@ describe("Validate command scripts.", () => {
         );
     });
 
-    // ==========================
-    // =====HELPER FUNCTIONS=====
-    // ==========================
-
     async function expectInvalidCommand(run, message)
     {
-        await expect(run).rejects.toThrow(InvalidCommand);
-        await expect(run).rejects.toThrow(message);
+        await expectErrorAsync(run, InvalidCommand, message);
     }
     
 });
