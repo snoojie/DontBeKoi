@@ -123,11 +123,10 @@ export class CommandManager
         console.timeEnd(logMessage); 
 
         // reply 
+        // note that this will throw
+        // DiscordAPIError: Unknown interaction
+        // if we are logged in to two places
         await interaction.editReply(REPLY)
-            //todo
-            //DiscordAPIError: Unknown interaction
-            //happens when bot logged in elsewhere
-            .catch(Logger.error); 
     }
 
     /**
