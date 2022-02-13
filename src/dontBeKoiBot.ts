@@ -81,7 +81,16 @@ const Bot = {
             Logger.log("...Setting up commands...");
             let commandManager: CommandManager = new CommandManager();
             discord.on("interactionCreate", async (interaction: Interaction) => { 
-                commandManager.executeCommand(interaction);
+                try
+                {
+                    commandManager.executeCommand(interaction);
+                }
+                catch (error)
+                {
+                    Logger.error("Error occured executing the interaction.");
+                    Logger.error(error);
+                    Logger.error(interaction);
+                }
             });
             await commandManager.run()
                 .then(_ => Logger.log("......Commands set up."));

@@ -20,36 +20,6 @@ const ErrorMessages =
 
     },
 
-    COMMAND_MANAGER: {
-
-        MISSING_COMMANDS_DIRECTORY: 
-            "Cannot initialize commands. The commands directory is missing.",
-
-        CANNOT_IMPORT_COMMAND_SCRIPT:
-            "Cannot initialize command. Error importing its script.",
-
-        COMMAND_SCRIPT_MISSING_DEFAULT_EXPORT: 
-            "Cannot initialize command without a default export.",
-
-        IS_NOT_COMMAND:
-            "Cannot initialize command when it is not actually a command.",
-
-        DUPLICATE_COMMAND: "Cannot initialize commands with duplicate names.",
-
-        CANNOT_BUILD_COMMAND: "Failed to build a command for deployment.",
-
-        FAILED_COMMAND_DEPLOYMENT: "Failed to deploy commands. " +
-            "Could the client ID or guild ID be wrong? Is the bot on the discord server?",
-
-        UNKNOWN_INTERACTON: "Cannot respond to interaction because it is not a command.",
-        
-        UNKNOWN_COMMAND: 
-            "Cannot respond to interaction because it is an unknown command.",
-
-        FAILED_COMMAND_EXECUTION: "Error while executing the command."
-
-    },
-
     SPREADSHEET: {
 
         INVALID_GOOGLE_API_KEY: "Invalid Google API key.",

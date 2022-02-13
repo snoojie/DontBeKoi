@@ -6,7 +6,6 @@ import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
 import { Config } from "./util/config";
 import * as fs from "fs";
-import ErrorMessages from "./errorMessages";
 import PublicError from "./util/publicError";
 import EnhancedError from "./util/enhancedError";
 
@@ -20,13 +19,7 @@ export class InvalidCommand extends CommandManagerError
     }
 }
 
-export class InvalidCommandName extends InvalidCommand
-{
-    constructor(file: string)
-    {
-        super(file, "dsf");
-    }
-}
+export class CommandExecutionError extends CommandManagerError {}
 
 export interface Option
 {
@@ -68,8 +61,8 @@ export class CommandManager
 
     /**
      * Executes the command defined by the interaction.
-     * Errors are logged instead of thrown.
      * @param interaction Interaction the command took place in.
+     * @throws CommandExecutionError if the interaction is not a command interaction.
      */
     public async executeCommand(interaction: Interaction): Promise<void>
     {
@@ -77,25 +70,20 @@ export class CommandManager
         // though this shouldn't happen
         if (!interaction.isCommand())
         {
-            Logger.error(ErrorMessages.COMMAND_MANAGER.UNKNOWN_INTERACTON);
-            Logger.error(interaction);
-            return;
-        }
-
-        // ignore unknown commands 
-        // though this shouldn't happen
-        if (!this.commands.has(interaction.commandName))
-        {
-            Logger.error(
-                ErrorMessages.COMMAND_MANAGER.UNKNOWN_COMMAND + " " + 
-                interaction.commandName
+            throw new CommandExecutionError(
+                "Cannot execute a command for a non command interaction."
             );
-            return;
         }
 
-        // we know this is a valid command,
-        // so get it
-        const COMMAND: Command = this.commands.get(interaction.commandName)!;
+        // get the command
+        const COMMAND: Command | undefined = this.commands.get(interaction.commandName);
+        if (!COMMAND)
+        {
+            // this shouldn't happen
+            throw new CommandExecutionError(
+                `Did not recognize the command name '${interaction.commandName}'.`
+            );
+        }
 
         // defer the reply
         await interaction.deferReply({
@@ -125,13 +113,14 @@ export class CommandManager
                 {
                     return error.message;
                 }
-                Logger.error(ErrorMessages.COMMAND_MANAGER.FAILED_COMMAND_EXECUTION);
+                Logger.error("Uncaught error when executing command.");
                 Logger.error(error);
+                Logger.error(interaction);
                 return "Uh oh. Something went wrong.";
             });
         
         // print the amount of time this command took
-        console.timeEnd(logMessage);        
+        console.timeEnd(logMessage); 
 
         // reply 
         await interaction.editReply(REPLY)
@@ -191,7 +180,7 @@ export class CommandManager
                 );
             }
 
-            // save the command is valid!
+            // save the command
             this.commands.set(command.name, command);
         }
     }

@@ -1,9 +1,10 @@
-const { CommandManager, InvalidCommand, CommandManagerError } = require("../src/command");
+const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError } 
+    = require("../src/command");
 const { ConfigError } = require("../src/util/config");
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
 
-const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
+// todo test isPrivate property on command
 
 test("Can create an instance of CommandManager.", () => {
     new CommandManager();
@@ -37,6 +38,8 @@ describe("Testing run method", () => {
     });
 
     describe("Validate command scripts.", () => {
+
+        const ORIGINAL_FS_READDIRSYNC = fs.readdirSync;
 
         afterEach(() => fs.readdirSync = ORIGINAL_FS_READDIRSYNC);
     
@@ -353,6 +356,72 @@ describe("Testing run method", () => {
     });
 });
 
+// =========================
+// =====EXECUTE COMMAND=====
+// =========================
+
+// todo: add tests for execute public error vs other error
+
+describe("Testing execute method", () => {
+   
+    let commandManager;
+    let interaction;
+    beforeEach(() => {
+        commandManager = new CommandManager();
+        interaction = {};
+    });
+
+    test(
+        "CommandExecutionError when interaction is not a command interaction.", 
+        async() => 
+    {
+        interaction.isCommand = () => false;
+        let execute = commandManager.executeCommand(interaction);
+        await expectCommandExecutionError(
+            execute, "Cannot execute a command for a non command interaction"
+        );
+    });
+
+    describe("Command interaction.", () => {
+        beforeEach(() => interaction.isCommand = () => true);
+
+        test(
+            "CommandExecutionError when command is not recognized.", 
+            async() => 
+        {
+            interaction.commandName = "unknowncommand";
+            let execute = commandManager.executeCommand(interaction);
+            await expectCommandExecutionError(
+                execute, "Did not recognize the command name 'unknowncommand'"
+            );
+        });
+
+        test("Response of command's execute sent to discord as a reply.", async() => {
+            
+            commandManager.commands.set("somecommand", {
+                name: "somecommand",
+                description: "some description",
+                execute: async() => { return "some response" }
+            });
+
+            interaction.commandName = "somecommand";
+            interaction.deferReply = async() => {};
+            interaction.user = { username: "someuser" };
+            interaction.editReply = jest.fn(async (reply) => {});
+
+            await commandManager.executeCommand(interaction);
+            expect(interaction.editReply.mock.calls.length).toBe(1);
+            expect(interaction.editReply.mock.calls[0][0]).toBe("some response");
+
+        });
+    });
+
+    async function expectCommandExecutionError(execute, message)
+    {
+        await expect(execute).rejects.toThrow(CommandExecutionError);
+        await expect(execute).rejects.toThrow(message);
+    }
+});
 
 
 
