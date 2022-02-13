@@ -334,43 +334,99 @@ describe("Testing run method", () => {
             describe("Testing command properties in REST call.", () => {
 
                 beforeEach(() => REST.prototype.put = jest.fn(async () => {}));
+    
+                test("Command properties sent to discord.", async() => {
+                    mockCommandDirectory("valid");
+                    await commandManager.run();
+                    let mockCalls = REST.prototype.put.mock.calls;
+                    expect(mockCalls.length).toBe(1);
 
-                testCommandInRestCall(
-                    "Command properties sent to discord",
-                    "valid",
-                    "validcommand",
-                    "This command is valid."
-                );
+                    let commandList = mockCalls[0][1].body;
+                    expect(commandList.length).toBe(1);
 
-                testCommandInRestCall(
-                    "Can attach string option to command without specifying type.",
-                    "validStringOption",
-                    "stringcommand",
-                    "This command has a string option.",
-                    "stringoption",
-                    "option with string value",
-                    3
-                );
+                    let command = commandList[0];
+                    expect(command.name).toBe("validcommand");
+                    expect(command.description).toBe("This command is valid.");
+                    expect(command.options.length).toBe(0);
+                });
 
-                testCommandInRestCall(
-                    "Can attach string option to command with specifying type.",
-                    "validStringOptionType",
-                    "stringcommandwithtype",
-                    "This command has a string option and defined type.",
-                    "stringoption",
-                    "option with string value",
-                    3
-                );
-            
-                testCommandInRestCall(
-                    "Can attach number option to command.",
-                    "validNumberOption",
-                    "numbercommand",
-                    "This command has a number option.",
-                    "numberoption",
-                    "option with number value",
-                    10
-                );
+                test(
+                    "Can attach string option to command without specifying type.", 
+                    async() =>
+                {
+                    mockCommandDirectory("validStringOption");
+                    await commandManager.run();
+                    let mockCalls = REST.prototype.put.mock.calls;
+                    expect(mockCalls.length).toBe(1);
+
+                    let commandList = mockCalls[0][1].body;
+                    expect(commandList.length).toBe(1);
+
+                    let command = commandList[0];
+                    expect(command.name).toBe("stringcommand");
+                    expect(command.description)
+                        .toBe("This command has a string option.");
+
+                    let optionList = command.options;
+                    expect(optionList.length).toBe(1);
+
+                    let option = optionList[0];
+                    expect(option.name).toBe("stringoption");
+                    expect(option.description).toBe("option with string value");
+                    expect(option.type).toBe(3); // type 3 is string
+                    expect(option.required).toBeTruthy();
+                });
+
+                test(
+                    "Can attach string option to command with specifying type.", 
+                    async() => 
+                {
+                    mockCommandDirectory("validStringOptionType");
+                    await commandManager.run();
+                    let mockCalls = REST.prototype.put.mock.calls;
+                    expect(mockCalls.length).toBe(1);
+
+                    let commandList = mockCalls[0][1].body;
+                    expect(commandList.length).toBe(1);
+
+                    let command = commandList[0];
+                    expect(command.name).toBe("stringcommandwithtype");
+                    expect(command.description)
+                        .toBe("This command has a string option and defined type.");
+
+                    let optionList = command.options;
+                    expect(optionList.length).toBe(1);
+
+                    let option = optionList[0];
+                    expect(option.name).toBe("stringoption");
+                    expect(option.description).toBe("option with string value");
+                    expect(option.type).toBe(3); // type 3 is string
+                    expect(option.required).toBeTruthy();
+                });
+
+                test("Can attach number option to command.", async() => {
+                    mockCommandDirectory("validNumberOption");
+                    await commandManager.run();
+                    let mockCalls = REST.prototype.put.mock.calls;
+                    expect(mockCalls.length).toBe(1);
+
+                    let commandList = mockCalls[0][1].body;
+                    expect(commandList.length).toBe(1);
+
+                    let command = commandList[0];
+                    expect(command.name).toBe("numbercommand");
+                    expect(command.description)
+                        .toBe("This command has a number option.");
+
+                    let optionList = command.options;
+                    expect(optionList.length).toBe(1);
+
+                    let option = optionList[0];
+                    expect(option.name).toBe("numberoption");
+                    expect(option.description).toBe("option with number value");
+                    expect(option.type).toBe(10); // type 10 is number
+                    expect(option.required).toBeTruthy();
+                });
     
                 test("Properties of several commands sent to discord.", async() => {
                     mockCommandDirectory("valid", "validStringOption");
@@ -392,52 +448,6 @@ describe("Testing run method", () => {
                         .toBe("This command has a string option.")
                     expect(optionCommand.options.length).toBe(1);
                 });
-
-                
-
-                function testCommandInRestCall(
-                    testName, 
-                    script, 
-                    name, 
-                    description, 
-                    optionName, 
-                    optionDescription, 
-                    typeNumber
-                )
-                {
-                    test(testName, async() => {
-                        mockCommandDirectory(script);
-                        await commandManager.run();
-                        let mockCalls = REST.prototype.put.mock.calls;
-                        expect(mockCalls.length).toBe(1);
-
-                        let commandList = mockCalls[0][1].body;
-                        expect(commandList.length).toBe(1);
-
-                        let command = commandList[0];
-                        expect(command.name).toBe(name);
-                        expect(command.description).toBe(description);
-
-                        let optionList = command.options;
-                        if (!optionName)
-                        {
-                            expect(optionList.length).toBe(0);
-                        }
-                        else
-                        {
-                            expect(optionList.length).toBe(1);
-
-                            let option = optionList[0];
-                            expect(option.name).toBe(optionName);
-                            expect(option.description).toBe(optionDescription);
-                            expect(option.required).toBeTruthy();
-
-                            // type 3 is string
-                            // type 10 is number
-                            expect(option.type).toBe(typeNumber);
-                        }
-                    });
-                }
             });
         });
     
