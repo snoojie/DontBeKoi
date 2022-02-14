@@ -1,13 +1,5 @@
 const ErrorMessages = 
 {
-    BOT: {
-
-        ALREADY_RUNNING: "Cannot start the bot. It is already running.",
-
-        FAILED_LOGIN: "Could not login to discord. Invalid token.",
-        
-    },
-
     DATABASE: {
 
         ALREADY_RUNNING: "Cannot start the database. It is already running.",

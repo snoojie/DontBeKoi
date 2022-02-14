@@ -3,8 +3,9 @@ import { Config } from "./util/config";
 import Logger from "./util/logger";
 import { CommandManager } from "./command";
 import Database from "./database/database";
-import ErrorMessages from "./errorMessages";
-import RethrownError from "./util/rethrownError";
+import EnhancedError from "./util/enhancedError";
+
+class BotError extends EnhancedError {}
 
 let discord: Client = getNewDiscordClient();
 
@@ -25,8 +26,8 @@ function getNewDiscordClient(): Client
 
 /**
  * Log in to discord.
- * @param token The discord bot token.
- * @throws if failed to login.
+ * @throws ConfigError if BOT_TOKEN not set in environment variables.
+ * @throws BotError if failed to login to discord.
  */
 async function login(): Promise<void>
 {    
@@ -36,32 +37,24 @@ async function login(): Promise<void>
     // login to discord
     await discord.login(TOKEN)
         .catch(error => {
-            throw new RethrownError(ErrorMessages.BOT.FAILED_LOGIN, error);
+            throw new BotError(
+                "Failed to login to discord. Could the token be invalid?", error
+            );
         })
 }
 
-/**
- * Sleep for a certain amount of time.
- * @param ms How long to sleep in milliseconds.
- * @returns after the provided ms time.
- */
-async function sleep(ms: number): Promise<void>
-{
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const Bot = {
+export const Bot = {
 
     /**
      * Start the bot.
-     * @throws if the bot could not be started.
      */
     start: async function(): Promise<void>
     {
         // if the bot is already running, there is nothing to do
         if (isBotOn)
         {
-            throw new Error(ErrorMessages.BOT.ALREADY_RUNNING);
+            Logger.log("Bot is already running.");
+            return;
         }
 
         isBotOn = true;
@@ -70,9 +63,6 @@ const Bot = {
         try
         {            
             // login
-            // cannot do this at the same time as setting up database with awaitingOn
-            // for some reason, if the database fails, if we logged in at the same time,
-            // the program will hang
             Logger.log("...Logging into discord...")
             await login()
                 .then(_ => Logger.log("......Logged into discord."));
@@ -107,17 +97,16 @@ const Bot = {
             if (!discord.isReady())
             {
                 Logger.log("...Waiting to be ready.");
-                await sleep(100);
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             Logger.log("Bot is ready!");
         }
         catch(error)
         {
+            Logger.error("Error occured. Stopping the bot...");
             Logger.error(error);
-            Logger.log("Error occured. Stopping the bot...");
             await Bot.stop();
-            throw error;
         }
     },
 
@@ -144,5 +133,3 @@ const Bot = {
         Logger.log("Bot stopped.");
     }
 };
-
-export default Bot;
