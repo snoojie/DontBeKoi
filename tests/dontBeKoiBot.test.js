@@ -1,5 +1,5 @@
 const Bot = require("../src/DontBeKoiBot").default;
-const { ConfigError } = require("../src/util/config");
+const { CommandManager } = require("../src/command");
 const { default: Logger } = require("../src/util/logger");
 
 // the first time the bot is started, it takes about half a second
@@ -7,6 +7,13 @@ const { default: Logger } = require("../src/util/logger");
 // The max recorded so far is just shy of a minute;
 // So, let's allow each startup to run for 1.5 minutes.
 const TIMEOUT = 90000;
+
+const ORIGINAL_ENV = process.env;
+beforeEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+    Logger.error = jest.fn();
+    Logger.log = jest.fn();
+});
 
 // after each test, 
 // stop the bot just in case a test fails. 
@@ -30,20 +37,6 @@ test("The bot can be safely stopped even if it has not started.", async () => {
     expectBotIsStoppedLogged();
 });
 
-test(
-    "The bot can be safely started several times without stopping inbetween.", 
-    async () => 
-{
-    await Bot.start();
-    expectBotIsReadyLogged();
-    
-    Logger.log = jest.fn();
-    await Bot.start();
-    expect(Logger.log.mock.calls.length).toBe(1);
-    expect(Logger.log.mock.calls[0][0]).toBe("Bot is already running.");
-
-}, 2 * TIMEOUT);
-
 test("The bot can be started and stopped multiple times.", async () => {
     await Bot.start();
     expectBotIsReadyLogged();
@@ -58,92 +51,89 @@ test("The bot can be started and stopped multiple times.", async () => {
     expectBotIsStoppedLogged();
 }, 2 * TIMEOUT);
 
-// =======================
-// =====ENV VARIABLES=====
-// =======================
+// ======================
+// =====START ERRORS=====
+// ======================
 
-describe("Modified environment variables.", () => {
+test(
+    "The bot logs that it is already running if it gets started twice without a stop.",
+    async () => 
+{
+    await Bot.start();
+    expectBotIsReadyLogged();
+    
+    Logger.log = jest.fn();
+    await Bot.start();
+    expect(Logger.log.mock.calls.length).toBe(1);
+    expect(Logger.log.mock.calls[0][0]).toBe("Bot is already running.");
 
-    const ORIGINAL_ENV = process.env;
-    beforeEach(() => {
-        process.env = { ...ORIGINAL_ENV };
-        Logger.error = jest.fn();
-        Logger.log = jest.fn();
-     });
-    afterEach(() => process.env = ORIGINAL_ENV);
+}, 2 * TIMEOUT);
 
-    describe("Invalid bot token.", () => {
-
-        beforeEach(() => delete process.env.BOT_TOKEN);
-        
-        test("No bot token.", async () => {
-            await Bot.start();
-            expectBotStartError(
-                ConfigError, 
-                "Did you forget to set BOT_TOKEN as an environment variable?"
-            );
-        });
-
-        testStartAfterFailedAttempt("login attempt");
-
-    });
-
-    // ==================
-    // =====COMMANDS=====
-    // ==================
-
-    describe("Command Manager in a failed state.", () => {
-
-        beforeEach(() => delete process.env.CLIENT_ID);
-        
-        test("Start the bot when cannot deploy commands.", async () =>  {
-            await Bot.start();
-            expectBotStartError(
-                ConfigError, 
-                "Did you forget to set CLIENT_ID as an environment variable?"
-            );    
-        });
-
-        testStartAfterFailedAttempt("command deployment attempt");
-
-    });
-
-    // todo test after failed database
-
-    function expectBotStartError(errorType, errorMessage)
-    {
-        // never log the bot is ready
-        for (const LOG_CALL of Logger.log.mock.calls)
-        {
-            expect(LOG_CALL[0]).not.toBe("Bot is ready!");
-        }
-
-        // error is logged
-   
-        expect(Logger.error.mock.calls.length).toBe(2);
-        expect(Logger.error.mock.calls[0][0]).toBe("Error occured. Stopping the bot...");
-   
-        const ERROR = Logger.error.mock.calls[1][0];
-        expect(ERROR).toBeInstanceOf(errorType)
-        expect(ERROR.message).toBe(errorMessage);
-    }
-
-    function testStartAfterFailedAttempt(failedDescription)
-    {
-        test(`Can start the bot after a failed ${failedDescription}.`, async () => {
-
-            // purposely fail the start
-            await Bot.start();
-
-            // run the bot successfully
-            process.env = ORIGINAL_ENV;
-            Logger.log = jest.fn();
-            await Bot.start();
-            expectBotIsReadyLogged();
-
-        }, 2 * TIMEOUT);
-    }
+test("No BOT_TOKEN environment variable.", async () => {
+    delete process.env.BOT_TOKEN;
+    await Bot.start();
+    expectBotStartError(
+        "ConfigError", 
+        "Did you forget to set BOT_TOKEN as an environment variable?"
+    );
 });
+
+test("Invalid BOT_TOKEN environment variable.", async () => {
+    process.env.BOT_TOKEN = "invalidtoken";
+    await Bot.start();
+    expectBotStartError(
+        "BotError", 
+        "Failed to login to discord. Could the token be invalid?"
+    );
+});
+
+test("Can start the bot after a failed start attempt.", async() => {
+    delete process.env.BOT_TOKEN;
+    await Bot.start();
+    expectBotStartError(
+        "ConfigError", 
+        "Did you forget to set BOT_TOKEN as an environment variable?"
+    );
+    
+    Logger.log = jest.fn();
+    process.env = ORIGINAL_ENV;
+    await Bot.start();
+    expectBotIsReadyLogged();
+
+}, 2 * TIMEOUT);
+
+describe("Running CommandManager errors.", () => {
+
+    const ORIGINAL_COMMAND_MANAGER_RUN = CommandManager.prototype.run;
+    afterEach(() => CommandManager.prototype.run = ORIGINAL_COMMAND_MANAGER_RUN );
+
+    test("Failed bot start.", async () => {
+        CommandManager.prototype.run = jest.fn(async() => { throw new Error("oops"); });
+        await Bot.start();
+        expectBotStartError("Error", "oops");
+    });
+});
+
+// todo: database
+
+function expectBotStartError(errorType, errorMessage)
+{
+    // never log the bot is ready
+    for (const LOG_CALL of Logger.log.mock.calls)
+    {
+        expect(LOG_CALL[0]).not.toBe("Bot is ready!");
+    }
+
+    // error is logged
+
+    expect(Logger.error.mock.calls.length).toBe(2);
+    expect(Logger.error.mock.calls[0][0]).toBe("Error occured. Stopping the bot...");
+
+    const ERROR = Logger.error.mock.calls[1][0];
+    expect(ERROR).toBeInstanceOf(Error)
+    expect(ERROR.name).toBe(errorType);
+    expect(ERROR.message).toBe(errorMessage);
+}
 
 function expectBotIsReadyLogged()
 {
