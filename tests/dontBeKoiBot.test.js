@@ -1,4 +1,4 @@
-const { Bot } = require("../src/DontBeKoiBot");
+const Bot = require("../src/DontBeKoiBot").default;
 const { ConfigError } = require("../src/util/config");
 const { default: Logger } = require("../src/util/logger");
 

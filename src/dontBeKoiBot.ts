@@ -43,7 +43,7 @@ async function login(): Promise<void>
         })
 }
 
-export const Bot = {
+const Bot = {
 
     /**
      * Start the bot.
@@ -133,3 +133,5 @@ export const Bot = {
         Logger.log("Bot stopped.");
     }
 };
+
+export default Bot;
