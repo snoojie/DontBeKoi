@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "npx ts-node-dev --respawn src/index.ts",
         "prod": "rm -rf build/ && npx tsc && node -r source-map-support/register build/index.js",
-        "test": "jest --coverage --runInBand && rm -rf coverage/"
+        "test": "jest --coverage --runInBand && rm -rf coverage/",
+        "build": "rm -rf build/ && npx tsc"
     },
     "dependencies": {
         "@discordjs/rest": "0.2.0-canary.0",
