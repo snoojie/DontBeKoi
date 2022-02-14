@@ -11,6 +11,7 @@ export type UsersMissingKoiResponse = {
     discordIds: string[];
     rarity: Rarity;
     hatchTime?: number;
+    discordIdsMissingPattern: string[];
 }
 
 export const DataAccessLayer = {
@@ -97,6 +98,7 @@ export const DataAccessLayer = {
         // get the users who do not have this koi
         let promises: Promise<void>[] = [];
         let discordUsers: string[] = [];
+        let discordUsersMissingPattern: string[] = [];
         const USERS: User[] = await User.findAll();
         for (const USER of USERS)
         {
@@ -106,14 +108,15 @@ export const DataAccessLayer = {
                 )
                 .catch(error => {
                     // The user may have forgotten to add this pattern to 
-                    // their spreadsheet. So, even though the pattern is valid,
-                    // they don't have it. In this case, assume they do not
-                    // have the koi.
+                    // their spreadsheet, maybe because it's a brand new pattern.
+                    // Or, their spreadsheet is broken. Either way, make sure they are
+                    // aware they need to update their sheet.
                     if (error instanceof Error)
                     {
                         if (error.message.startsWith(ErrorMessages.USER_SPREADSHEET.PATTERN_DOES_NOT_EXIST))
                         {
-                            return false;
+                            discordUsersMissingPattern.push(USER.discordId);
+                            return true;
                         }
                     }
 
@@ -135,7 +138,8 @@ export const DataAccessLayer = {
         return {
             discordIds: discordUsers,
             rarity: koi.rarity,
-            hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined
+            hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined,
+            discordIdsMissingPattern: discordUsersMissingPattern
         };
     }
 }
