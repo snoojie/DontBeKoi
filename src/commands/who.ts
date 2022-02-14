@@ -34,22 +34,43 @@ const WhoCommand: Command = {
         }
         koiDescription += `${COLOR} ${PATTERN}`;
 
-        // if no one needs the koi, return that
+        // if no one needs the koi, state that
+        let reply: string;
         if (USERS_MISSING_KOI.discordIds.length == 0)
         {
-            return `Nobody needs ${koiDescription}.`;
+            reply = `Nobody needs ${koiDescription}.`;
         }
 
-        // at least one person needs this koi,
+        // otherwise at least one person needs this koi,
         // so mention all discord users who need this koi
-        let mentions: string[] = [];
-        for (const DISCORD_ID of USERS_MISSING_KOI.discordIds)
+        else
         {
-            mentions.push(`<@${DISCORD_ID}>`);
+            const MENTIONS: string[] = getMentions(USERS_MISSING_KOI.discordIds);
+            reply = `Needing ${koiDescription}:\n${MENTIONS.join(" ")}`;
         }
-        return `Needing ${koiDescription}:\n${mentions.join(" ")}`;
+
+        // if anyone didn't have this pattern in their spreadsheet,
+        // call them out
+        if (USERS_MISSING_KOI.discordIdsMissingPattern.length > 0)
+        {
+            const MENTIONS: string[] = 
+                getMentions(USERS_MISSING_KOI.discordIdsMissingPattern);
+            reply += `\nCould not find pattern for ${MENTIONS.join(" ")}`;
+        }
+
+        return reply;
     }
 
 };
 
 export default WhoCommand;
+
+function getMentions(discordIds: string[]): string[]
+{
+    let mentions: string[] = [];
+    for (const DISCORD_ID of discordIds)
+    {
+        mentions.push(`<@${DISCORD_ID}>`);
+    }
+    return mentions;
+}
