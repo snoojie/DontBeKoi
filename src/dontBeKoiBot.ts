@@ -104,7 +104,6 @@ const Bot = {
         }
         catch(error)
         {
-            Logger.error("Error occured. Stopping the bot...");
             Logger.error(error);
             await Bot.stop();
         }
@@ -115,18 +114,20 @@ const Bot = {
      */
     stop: async function(): Promise<void>
     {
+        Logger.log("Stopping the bot...");
+
         // discord.destroy should alone work, but, 
         // if we try to login again after a destroy then stop again it hangs.
         // Weird things happen basically.
         // So, after destroy, let's recreate the discord client.
-        Logger.log("...Disconnecting from discord...");
+        Logger.logPartial("    Disconnecting from discord...");
         discord.destroy();
         discord = getNewDiscordClient();
-        Logger.log("......Disconnected from discord.");
+        Logger.logPartial("..Disconnected from discord.", true);
 
-        Logger.log("...Stopping the database...");
+        Logger.logPartial("    Stopping the database.....");
         await Database.stop();
-        Logger.log("......Database stopped.");
+        Logger.logPartial(".....Database stopped.", true);
 
         isBotOn = false;
 
