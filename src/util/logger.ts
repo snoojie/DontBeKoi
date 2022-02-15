@@ -4,19 +4,34 @@
 import { DatabaseError } from "sequelize";
 
 // https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#colors
-enum Color
+const COLOR =
 {
-    GREEN    = "\x1b[32m%s\x1b[0m",
-    RED      = "\x1b[31m%s\x1b[0m",
-    RED_GREY = "\x1b[38;5;131m%s\x1b[0m"
+    GREEN    : "\x1b[32m%s\x1b[0m",
+    RED      : "\x1b[31m%s\x1b[0m",
+    RED_GREY : "\x1b[38;5;131m%s\x1b[0m"
 };
 
-enum Theme
+const THEME =
 {
-    LOG        = Color.GREEN,
-    ERROR      = Color.RED,
-    STACKTRACE = Color.RED_GREY
+    LOG        : COLOR.GREEN,
+    ERROR      : COLOR.RED,
+    STACKTRACE : COLOR.RED_GREY
 };
+
+// View Logger.logPartial() comments for full details.
+// When logging partial messages, 
+// we need a flag specifying we are in a partial log state.
+// This is so if there is an error in the middle of logging partials,
+// the error will be printed on a newline.
+let partialLogState: boolean = false;
+function completePartialLog(): void
+{
+    if (partialLogState)
+    {
+        process.stdout.write("\n");
+        partialLogState = false;
+    }
+}
 
 const Logger = {
     
@@ -26,7 +41,36 @@ const Logger = {
      */
     log: function(message: any): void
     {
-        console.log(Theme.LOG, message);
+        completePartialLog();
+
+        console.log(THEME.LOG, message);
+    },
+
+    /**
+     * Similar to Logger.log, except this does not print a newline at the end.
+     * It is handy if you want to print on one line in several calls during execution.
+     * To signal that all the "partials" are done, set done to true.
+     * 
+     * For example, the following calls
+     * 
+     * Logger.logPartial("some");
+     * 
+     * Logger.logPartial("thing");
+     * 
+     * will print the following:
+     * 
+     * something
+     * @param message message to print
+     * @param done default false. If true, a newline will be added at the end.
+     */
+    logPartial: function(message: any, done: boolean = false)
+    {
+        partialLogState = true;
+        process.stdout.write(THEME.LOG.replace("%s", message));
+        if (done)
+        {
+            completePartialLog();
+        }
     },
 
     /**
@@ -36,6 +80,8 @@ const Logger = {
      */
     error: function(error: any): void
     {
+        completePartialLog();
+        
         if (error instanceof Error)
         {
             // normally, the first line of an error stack looks like
@@ -46,21 +92,21 @@ const Logger = {
             // so, for sequelize, we need to manually create the first line
             // also, for sequelize, we should print the sql
 
-            console.log(Theme.ERROR, error.name + ": " + error.message);
+            console.log(THEME.ERROR, error.name + ": " + error.message);
 
             if (error instanceof DatabaseError)
             {
-                console.log(Theme.ERROR, "SQL: " + error.sql);
+                console.log(THEME.ERROR, "SQL: " + error.sql);
             }
 
             if (error.stack)
             {
                 for (const STEP of error.stack.split("\n").slice(1))
                 {
-                    const THEME: Theme = STEP.startsWith("    at ") 
-                        ? Theme.STACKTRACE 
-                        : Theme.ERROR;
-                    console.log(THEME, STEP);
+                    const THEME_TYPE: string = STEP.startsWith("    at ") 
+                        ? THEME.STACKTRACE 
+                        : THEME.ERROR;
+                    console.log(THEME_TYPE, STEP);
                 }
             }
         }
@@ -68,7 +114,7 @@ const Logger = {
         // if error isn't of type Error, it's likely a string
         else
         {
-            console.log(Theme.ERROR, error);
+            console.log(THEME.ERROR, error);
         }
     }
 }

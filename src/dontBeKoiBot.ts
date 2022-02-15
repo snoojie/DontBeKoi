@@ -63,12 +63,12 @@ const Bot = {
         try
         {            
             // login
-            Logger.log("...Logging into discord...")
+            Logger.logPartial("    Logging into discord...")
             await login()
-                .then(_ => Logger.log("......Logged into discord."));
+                .then(_ => Logger.logPartial("..Logged in.", true));
 
             // set up commands
-            Logger.log("...Setting up commands...");
+            Logger.logPartial("    Setting up commands...");
             let commandManager: CommandManager = new CommandManager();
             discord.on("interactionCreate", async (interaction: Interaction) => { 
                 try
@@ -83,12 +83,12 @@ const Bot = {
                 }
             });
             await commandManager.run()
-                .then(_ => Logger.log("......Commands set up."));
+                .then(_ => Logger.logPartial("...Commands set up.", true));
 
             // set up database
-            Logger.log("...Setting up database...")
+            Logger.logPartial("    Setting up database...")
             await Database.start()
-                .then(_ => Logger.log("......Database set up."));
+                .then(_ => Logger.logPartial("...Database set up.", true));
 
             // Wait until discord is ready.
             // This is not immediate after logging in, but is soon after.
@@ -96,7 +96,7 @@ const Bot = {
             // it takes to set up commands.
             if (!discord.isReady())
             {
-                Logger.log("...Waiting to be ready.");
+                Logger.log("    Waiting to be ready...");
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
 
