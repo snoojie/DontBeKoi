@@ -14,17 +14,9 @@ const RollCommand: Command = {
     execute: async function (interaction: CommandInteraction): Promise<string>
     {
         // get sides option
-        const SIDES: number | null = interaction.options.getNumber("sides");
-
-        // blow up if sides option wasn't provided
-        // this should never happen
-        if (SIDES == null)
-        {
-            throw new Error(
-                "The 'sides' option is required. "+
-                "How did this command get executed without that?"
-            );
-        }
+        // note we can safely assume sides exists
+        // because this command could not be executed otherwise
+        const SIDES: number = interaction.options.getNumber("sides")!;
 
         // the dice needs at least 2 sides
         if (SIDES < 2)
