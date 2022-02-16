@@ -59,7 +59,7 @@ const Bot = {
 
         isBotOn = true;
         Logger.log("Starting bot...");
-
+        
         try
         {            
             // login
@@ -70,10 +70,10 @@ const Bot = {
             // set up commands
             Logger.logPartial("    Setting up commands...");
             let commandManager: CommandManager = new CommandManager();
-            discord.on("interactionCreate", async (interaction: Interaction) => { 
+            discord.on("interactionCreate", async (interaction: Interaction) => {
                 try
                 {
-                    commandManager.executeCommand(interaction);
+                    await commandManager.executeCommand(interaction);
                 }
                 catch (error)
                 {
@@ -90,15 +90,15 @@ const Bot = {
             await Database.start()
                 .then(_ => Logger.logPartial("...Database set up.", true));
 
-            // Wait until discord is ready.
-            // This is not immediate after logging in, but is soon after.
-            // We most likely do not need to wait though due to the time 
-            // it takes to set up commands.
-            if (!discord.isReady())
+            // Discord isn't ready immediately after logging in for... reasons?
+            // but, since we do other stuff like the database,
+            // enough time has passed
+            // still, leaving this code in just in case we need it again
+            /*if (!discord.isReady())
             {
                 Logger.log("    Waiting to be ready...");
                 await new Promise(resolve => setTimeout(resolve, 100));
-            }
+            }*/
 
             Logger.log("Bot is ready!");
         }

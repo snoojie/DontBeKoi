@@ -1,8 +1,9 @@
 const Bot = require("../src/DontBeKoiBot").default;
 const { CommandManager } = require("../src/command");
 const { default: Logger } = require("../src/util/logger");
+let { Client } = require("discord.js");
 
-const TIMEOUT = 120000;
+const TIMEOUT = 90000;
 
 beforeEach(() => resetLoggerMocks() );
 
@@ -94,7 +95,7 @@ describe("Modified BOT_TOKEN.", () => {
         expectLog(0, "Starting bot...");
         expectLogPartials(0, "    Logging into discord...");
 
-        expectLogError(errorType, errorMessage);
+        expectLogError(0, errorMessage, errorType);
 
         expectStopLogs(1, 1);
     }
@@ -103,7 +104,7 @@ describe("Modified BOT_TOKEN.", () => {
 describe("Modified CommandManager.", () => {
 
     const ORIGINAL_COMMAND_MANAGER_RUN = CommandManager.prototype.run;
-    afterAll(()   => CommandManager.prototype.run = ORIGINAL_COMMAND_MANAGER_RUN);
+    afterAll(() => CommandManager.prototype.run = ORIGINAL_COMMAND_MANAGER_RUN);
 
     test("Bot stops if there was an error running CommandManager.", async() => {
         CommandManager.prototype.run = 
@@ -114,10 +115,58 @@ describe("Modified CommandManager.", () => {
         expectLogPartials(0, "    Logging into discord...", "..Logged in.");
         expectLogPartials(2, "    Setting up commands...");
 
-        expectLogError("Error", "failed run");
+        expectLogError(0, "failed run", "Error");
 
         expectStopLogs(1, 3);
     }, TIMEOUT);
+});
+
+// todo fail start with database error
+
+// =========================
+// =====EXECUTE COMMAND=====
+// =========================
+
+describe("Executing commands.", () => {
+
+    const ORIGINAL_EXECUTE_COMMAND = CommandManager.prototype.executeCommand;
+    let discordSpy = jest.spyOn(Client.prototype, "on");
+    beforeEach(() => discordSpy.mockClear() );
+    afterEach(() => 
+        CommandManager.prototype.executeCommand = ORIGINAL_EXECUTE_COMMAND 
+    );
+
+    test("Command is executed on a discord interaction.", async() => {
+        CommandManager.prototype.executeCommand = jest.fn();
+        await Bot.start();
+        await triggerInteractionCreateEvent();
+        
+        expect(CommandManager.prototype.executeCommand.mock.calls.length).toBe(1);
+    }, TIMEOUT);
+
+    test("Logs when command execution errors.", async() => {
+        CommandManager.prototype.executeCommand = jest.fn(async() => {
+            throw new Error("failed execution");
+        });
+        await Bot.start();
+        resetLoggerMocks();
+        await triggerInteractionCreateEvent();
+
+        expectLogError(0, "Error occured executing the interaction.");
+        expectLogError(1, "failed execution", "Error");
+        expectLogError(2, { somekey: "i am an interaction"} );
+
+
+    }, TIMEOUT);
+
+    async function triggerInteractionCreateEvent()
+    {
+        let discord = discordSpy.mock.instances[0];
+        discord.emit("interactionCreate", { somekey: "i am an interaction" });
+        
+        // wait for the event handler code to finish executing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 });
 
 function resetLoggerMocks()
@@ -148,11 +197,18 @@ function expectLogPartials(i, firstHalf, secondHalf)
     }
 }
 
-function expectLogError(type, message)
+function expectLogError(i, message, type)
 {
-    const ERROR = Logger.error.mock.calls[0][0];
-    expect(ERROR.name).toBe(type);
-    expect(ERROR.message).toBe(message);
+    const ERROR = Logger.error.mock.calls[i][0];
+    if (type)
+    {
+        expect(ERROR.name).toBe(type);
+        expect(ERROR.message).toBe(message);
+    }
+    else
+    {
+        expect(ERROR).toEqual(message);
+    }
 }
 
 function expectStartLogs()
@@ -179,145 +235,3 @@ function expectStopLogs(startLogIndex, startLogPartialIndex)
     const ERROR_COUNT = !startLogIndex ? 0 : 1;
     expectLogCounts(startLogIndex+2, startLogPartialIndex+4, ERROR_COUNT);
 }
-
-
-
-/*
-
-function expectStartWithErrorLogs(maxLogPartialCalls)
-{
-    expectStartLogs(maxLogPartialCalls);
-    expectStopLogs(1, maxLogPartialCalls);
-}
-
-function expectStartLogs(maxLogPartialCalls)
-{
-    maxLogPartialCalls = maxLogPartialCalls==undefined ? 6 : maxLogPartialCalls;
-
-    const LOG_CALLS = Logger.log.mock.calls;
-    const LOG_PARTIAL_CALLS = Logger.logPartial.mock.calls;
-
-    expectLog(0, "Starting bot...");
-
-    if (maxLogPartialCalls < 2)
-    {
-        expectLogPartials(0, "    Logging into discord...");
-    }
-    else
-    {
-        expectLogPartials(0, "    Logging into discord...", "..Logged in.");
-
-        if (maxLogPartialCalls < 4)
-        {
-            expectLogPartials(2, "    Setting up commands...");
-        }
-        else
-        {
-            expectLogPartials(2, "    Setting up commands...", "...Commands set up.");
-            if (maxLogPartialCalls < 6)
-            {
-                expectLogPartials(4, "    Setting up database...");
-            }
-            else
-            {
-                expectLogPartials(4, "    Setting up database...", "...Database set up.");
-                expectLog(1, "Bot is ready!");
-            }
-        }
-    }
-
-    const LOG_COUNT   = maxLogPartialCalls < 6 ? 1 : 2;
-    const ERROR_COUNT = maxLogPartialCalls < 6 ? 1 : 0;
-    expectLogCounts(LOG_COUNT, maxLogPartialCalls, ERROR_COUNT);
-}
-
-function expectStopLogs(startLogIndex, startLogPartialIndex)
-{
-    startLogIndex        = !startLogIndex        ? 0 : startLogIndex;
-    startLogPartialIndex = !startLogPartialIndex ? 0 : startLogPartialIndex;
-    startErrorIndex      = !startLogIndex        ? 0 : 1;
-
-    expectLog(startLogIndex, 
-        "Stopping the bot...");
-    expectLogPartials(startLogPartialIndex,   
-        "    Disconnecting from discord...", "..Disconnected from discord.");
-    expectLogPartials(startLogPartialIndex+2, 
-        "    Stopping the database.....", ".....Database stopped.");
-    expectLog(startLogIndex, 
-        "Bot stopped.");
-
-    expectLogCounts(startLogIndex+2, startLogIndex+4, startErrorIndex);
-}
-*/
-
-
-// ================================
-// =====GENERAL START AND STOP=====
-// ================================
-/*
-
-
-// ======================
-// =====START ERRORS=====
-// ======================
-
-
-test("Can start the bot after a failed start attempt.", async() => {
-    delete process.env.BOT_TOKEN;
-    await Bot.start();
-    expectBotStartError(
-        "ConfigError", 
-        "Did you forget to set BOT_TOKEN as an environment variable?"
-    );
-    
-    Logger.log = jest.fn();
-    process.env = ORIGINAL_ENV;
-    await Bot.start();
-    expectBotIsReadyLogged();
-
-}, 2 * TIMEOUT);
-
-describe("Running CommandManager errors.", () => {
-
-    const ORIGINAL_COMMAND_MANAGER_RUN = CommandManager.prototype.run;
-    afterEach(() => CommandManager.prototype.run = ORIGINAL_COMMAND_MANAGER_RUN );
-
-    test("Failed bot start.", async () => {
-        CommandManager.prototype.run = jest.fn(async() => { throw new Error("oops"); });
-        await Bot.start();
-        expectBotStartError("Error", "oops");
-    });
-});
-
-// todo: database
-
-function expectBotStartError(errorType, errorMessage)
-{
-    // never log the bot is ready
-    for (const LOG_CALL of Logger.log.mock.calls)
-    {
-        expect(LOG_CALL[0]).not.toBe("Bot is ready!");
-    }
-
-    // error is logged
-
-    expect(Logger.error.mock.calls.length).toBe(2);
-    expect(Logger.error.mock.calls[0][0]).toBe("Error occured. Stopping the bot...");
-
-    const ERROR = Logger.error.mock.calls[1][0];
-    expect(ERROR).toBeInstanceOf(Error)
-    expect(ERROR.name).toBe(errorType);
-    expect(ERROR.message).toBe(errorMessage);
-}
-
-function expectBotIsReadyLogged()
-{
-    expect(Logger.log.mock.calls[Logger.log.mock.calls.length-1][0])
-        .toBe("Bot is ready!");
-}
-
-function expectBotIsStoppedLogged()
-{
-    expect(Logger.log.mock.calls[Logger.log.mock.calls.length-1][0])
-        .toBe("Bot stopped.");
-}*/
