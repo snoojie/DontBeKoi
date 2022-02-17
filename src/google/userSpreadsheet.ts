@@ -1,6 +1,6 @@
 import ErrorMessages from "../errorMessages";
 import { PatternType, Rarity } from "../types";
-import KoiSpreadsheet from "./koiSpreadsheet";
+import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
 const UserSpreadsheet = {
@@ -34,8 +34,7 @@ const UserSpreadsheet = {
         let patternNameRowIndex: number = -1;
         for (let i=0; i<TABLE.length; i+=7)
         {
-            const FOUND_PATTERN_NAME: string = 
-                KoiSpreadsheet.getPatternNameFromRow(TABLE, i);
+            const FOUND_PATTERN_NAME: string = KoiSpreadsheet.getPattern(TABLE, i);
             if (FOUND_PATTERN_NAME.toLowerCase() == PATTERN_LOWERCASE)
             {
                 // found the pattern!
@@ -57,7 +56,7 @@ const UserSpreadsheet = {
         for(let i=0; i<4; i++)
         {
             const ROW_INDEX: number = patternNameRowIndex + i + 2;
-            baseColor = KoiSpreadsheet.getBaseColorFromRow(TABLE, ROW_INDEX);
+            baseColor = KoiSpreadsheet.getBaseColor(TABLE, ROW_INDEX);
             if (COLOR_LOWERCASE.startsWith(baseColor.toLowerCase()))
             {
                 // found the base color!
@@ -87,7 +86,7 @@ const UserSpreadsheet = {
         {
             const COLUMN_INDEX: number = i + 1;
             const HIGHLIGHT_COLOR: string = 
-                KoiSpreadsheet.getHighlightColorFromColumn(
+                KoiSpreadsheet.getHighlightColor(
                     TABLE, patternNameRowIndex + 1, COLUMN_INDEX
                 );
             if (COLOR_LOWERCASE.endsWith(HIGHLIGHT_COLOR.toLowerCase()))
@@ -106,7 +105,7 @@ const UserSpreadsheet = {
         }
 
         // confirm the base and highlight color match the expected color
-        if ((baseColor + KoiSpreadsheet.getHighlightColorFromColumn(
+        if ((baseColor + KoiSpreadsheet.getHighlightColor(
             TABLE, patternNameRowIndex+1, highlightColorColumnIndex
         )).toLowerCase() != COLOR_LOWERCASE)
         {
@@ -119,7 +118,7 @@ const UserSpreadsheet = {
         // read the value of this pattern's color
         // if it is empty, the user does not have this koi
         // if it has "k" or "d", the user has this koi
-        const VALUE: string = KoiSpreadsheet.getStringFromCell(
+        const VALUE: string = KoiSpreadsheet.normalizeCell(
             TABLE, baseColorRowIndex, highlightColorColumnIndex
         ).toLowerCase();
         return VALUE == "k" || VALUE == "d";
@@ -143,7 +142,7 @@ function getHighlightColorColumnIndex(
     for (let i=0; i<4; i++)
     {
         const COLUMN_INDEX: number = i + RARITY_OFFSET;
-        const HIGHLIGHT_COLOR: string = KoiSpreadsheet.getHighlightColorFromColumn(
+        const HIGHLIGHT_COLOR: string = KoiSpreadsheet.getHighlightColor(
             table, patternNameRowIndex + 1, COLUMN_INDEX
         );
         if (colorLowercase.endsWith(HIGHLIGHT_COLOR.toLowerCase()))

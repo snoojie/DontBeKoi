@@ -1,5 +1,5 @@
 import { PatternType, Rarity } from "../types";
-import KoiSpreadsheet from "./koiSpreadsheet";
+import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet"
 
 const SPREADSHEET_ID: string = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
@@ -68,8 +68,7 @@ async function getProgressives(): Promise<SpreadsheetKoi[]>
         for (let j=0; j<3; j++)
         {
             const COLUMN_INDEX: number = 11 * j;
-            const PATTERN: string = 
-                KoiSpreadsheet.getStringFromCell(TABLE, i, COLUMN_INDEX);
+            const PATTERN: string = KoiSpreadsheet.normalizeCell(TABLE, i, COLUMN_INDEX);
             if (!PATTERN)
             {
                 throw new Error(
@@ -114,7 +113,7 @@ async function getCollectorsHalf(range: string): Promise<SpreadsheetKoi[]>
     for (let i=0; i<TABLE.length; i+=7)
     {
         // get the pattern name
-        const PATTERN: string = KoiSpreadsheet.getPatternNameFromRow(TABLE, i);
+        const PATTERN: string = KoiSpreadsheet.getPattern(TABLE, i);
         if (!PATTERN)
         {
             // must have reached near the end of the sheet
@@ -173,9 +172,7 @@ function getBaseColors(table: string[][], patternNameRowIndex: number): string[]
     let baseColors: string[] = [];
     for (let i=2; i<6; i++)
     {
-        baseColors.push(
-            KoiSpreadsheet.getBaseColorFromRow(table, patternNameRowIndex + i)
-        );
+        baseColors.push(KoiSpreadsheet.getBaseColor(table, patternNameRowIndex + i));
     }
     return baseColors;
 }
@@ -189,7 +186,7 @@ function getHighlightColors(table: string[][], patternNameRowIndex: number, rari
     let highlightColors: string[] = [];
     for (let i=0; i<4; i++)
     {
-        highlightColors.push(KoiSpreadsheet.getHighlightColorFromColumn(
+        highlightColors.push(KoiSpreadsheet.getHighlightColor(
             table, patternNameRowIndex + 1, i + OFFSET
         ));
     }

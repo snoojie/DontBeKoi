@@ -1,15 +1,23 @@
-const KoiSpreadsheet = {
+import EnhancedError from "../util/enhancedError";
+
+export class KoiSpreadsheetError extends EnhancedError {}
+
+/**
+ * Helper functions for a Koi google spreadsheet.
+ */
+export const KoiSpreadsheet = {
 
     /**
      * Gets the string in the table at (row, column).
      * Accent characters are replaced by their non accent characters.
-     * If there is no text in that cell, an empty string "" is returned.
+     * If there is no text in that cell, or the row or column index is out of bounds, 
+     * an empty string "" is returned.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to get the string from.
      * @param columnIndex index of the column to get the string from.
      * @returns string at (row, column).
      */
-    getStringFromCell(table: any[][], rowIndex: number, columnIndex: number): string
+    normalizeCell(table: string[][], rowIndex: number, columnIndex: number): string
     {
         const ROW: string[] = table[rowIndex] || [];
         let value: string = ROW[columnIndex] || "";
@@ -18,30 +26,39 @@ const KoiSpreadsheet = {
     },
 
     /**
-     * Given a table and row, returns the string at (row, 0).
-     * It is expected the pattern name is in the first column of that row.
-     * If there is no text in (row, 0), the empty string is returned.
+     * Given a row, it is expected the pattern name is in the first column.
+     * This method returns the normalized pattern name, ie, no accented characters.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the pattern name in.
-     * @returns string at (row, 0).
+     * @returns normalized string at (row, 0).
+     * @throws KoiSpreadsheetError if there is no pattern name in the row.
      */
-    getPatternNameFromRow(table: any[][], rowIndex: number): string
+    getPattern(table: string[][], rowIndex: number): string
     {
-        return KoiSpreadsheet.getStringFromCell(table, rowIndex, 0);
+        const PATTERN: string = KoiSpreadsheet.normalizeCell(table, rowIndex, 0);
+        if (!PATTERN)
+        {
+            throw new KoiSpreadsheetError(`Missing pattern name in row ${rowIndex}.`);
+        }
+        return PATTERN;
     },
 
     /**
-     * The string at (row, 0) will be stripped of dashes and returned.
-     * It is expected the base color is in (row, 0).
-     * For example, the text at (row, 0) may be "Cha-", but "Cha" will be returned.
-     * If there is no text in (row, 0), the empty string is returned.
+     * Given a row, it is expected the base color name will be at column 0.
+     * The base color name will be stripped of dashes and accents then returned.
+     * For example, if the text is "Cha-", the return value will be "Cha".
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the base color in.
-     * @returns string at (row, 0) without a dash.
+     * @returns normalized string at (row, 0) without a dash.
+     * @throws KoiSpreadsheetError if there is no base color in the row.
      */
-    getBaseColorFromRow(table: any[][], rowIndex: number): string
+    getBaseColor(table: string[][], rowIndex: number): string
     {
-        let color: string = KoiSpreadsheet.getStringFromCell(table, rowIndex, 0);
+        let color: string = KoiSpreadsheet.normalizeCell(table, rowIndex, 0);
+        if (!color)
+        {
+            throw new KoiSpreadsheetError(`Missing base color name in row ${rowIndex}.`);
+        }
         
         // strip dash if there is one
         if(color.endsWith("-"))
@@ -53,20 +70,24 @@ const KoiSpreadsheet = {
     },
 
     /**
-     * The string at (row, column) will be stripped of dashes and returned.
-     * It is expected the highlight color is in (row, column).
-     * For example, the text at (row, column) may be "-kura", but "kura" will be returned.
+     * It is assumed the highlight color is at (row, column).
+     * It will be stripped of dashes and accents then returned.
+     * For example, if the text is "-kura", the return value will be "kura".
      * If there is no text in (row, column), the empty string is returned.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the highlight color in.
-     * @returns string at (row, column) without a dash.
+     * @returns normalized string at (row, column) without a dash.
+     * @throws KoiSpreadsheetError if there is no highlight color in that cell.
      */
-    getHighlightColorFromColumn(
-        table: any[][], rowIndex: number, columnIndex: number
-    ): string
+    getHighlightColor(table: string[][], rowIndex: number, columnIndex: number): string
     {
-        let color: string = 
-            KoiSpreadsheet.getStringFromCell(table, rowIndex, columnIndex);
+        let color: string = KoiSpreadsheet.normalizeCell(table, rowIndex, columnIndex);
+        if (!color)
+        {
+            throw new KoiSpreadsheetError(
+                `Missing highlight color name in row ${rowIndex}, column ${columnIndex}.`
+            );
+        }
         
         // strip dash if there is one
         if(color.startsWith("-"))
@@ -78,5 +99,3 @@ const KoiSpreadsheet = {
     }
 
 }
-
-export default KoiSpreadsheet;
