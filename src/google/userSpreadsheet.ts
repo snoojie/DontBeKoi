@@ -1,7 +1,7 @@
 import ErrorMessages from "../errorMessages";
 import { PatternType, Rarity } from "../types";
 import KoiSpreadsheet from "./koiSpreadsheet";
-import Spreadsheet from "./spreadsheet";
+import { Spreadsheet } from "./spreadsheet";
 
 const UserSpreadsheet = {
 

@@ -1,7 +1,7 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
 import { DataAccessLayer } from "../database/dataAccessLayer";
-import Spreadsheet from "../google/spreadsheet";
+import { Spreadsheet } from "../google/spreadsheet";
 import RethrownError from "../util/rethrownError";
 
 const GoogleCommand: Command = {
@@ -26,7 +26,7 @@ const GoogleCommand: Command = {
         try 
         {
             const IS_SPREADSHEET_VALID: boolean = 
-                await Spreadsheet.validateId(SPREADSHEET_ID);
+                await Spreadsheet.exists(SPREADSHEET_ID);
             if (!IS_SPREADSHEET_VALID)
             {
                 return `Spreadsheet ID ${SPREADSHEET_ID} is not valid. ` +
