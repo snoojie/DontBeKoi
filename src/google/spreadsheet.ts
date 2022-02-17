@@ -3,9 +3,10 @@ import { google, sheets_v4 } from "googleapis";
 import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
 
+/**
+ * Error thrown when there was an issue accessing Google API.
+ */
 export class SpreadsheetError extends EnhancedError {}
-
-google.apikeys
 
 const SPREADSHEETS_API: sheets_v4.Resource$Spreadsheets = 
     google.sheets({version: "v4"}).spreadsheets;
@@ -19,6 +20,9 @@ function getApiKey(): string
     return Config.getGoogleApiKey();
 }
 
+/**
+ * Wrapper for reading from Google spreadsheets.
+ */
 export const Spreadsheet = {
 
     /**
@@ -77,7 +81,8 @@ export const Spreadsheet = {
      * @param range Range in the spreadsheet, for example, Progressives!A2:G
      * @returns List of rows from the specified range and spreadsheet
      * @throws ConfigError if the Google API key is not set in environment variable.
-     * @throws SpreadsheetError if the Google API key is invalid.
+     * @throws SpreadsheetError if the spreadsheet ID, range, 
+     *         or Google API key is invalid.
      */
     getValues: async function(spreadsheetId: string, range: string): Promise<string[][]>
     {
