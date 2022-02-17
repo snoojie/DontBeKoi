@@ -43,6 +43,14 @@ async function login(): Promise<void>
         })
 }
 
+/**
+ * The "main" application.
+ * 
+ * Call Bot.start() to run the bot. 
+ * This will log in to discord, set up slash commands, and set up the database.
+ * 
+ * Call Bot.stop() to stop the bot.
+ */
 const Bot = {
 
     /**
