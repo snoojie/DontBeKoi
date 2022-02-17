@@ -1,4 +1,4 @@
-const GOOGLE_QUOTA_TIMEOUT = 70000;
+const GOOGLE_QUOTA_TIMEOUT = 90000;
 
 module.exports = {
 
