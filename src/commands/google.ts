@@ -12,7 +12,7 @@ const GoogleCommand: Command = {
 
     options: [{
         name: "spreadsheet",
-        description: "ID of your google spreadsheet"
+        description: "ID of your google spreadsheet."
     }],
 
     isPrivate: true,
@@ -20,7 +20,7 @@ const GoogleCommand: Command = {
     execute: async function (interaction: CommandInteraction): Promise<string> {
 
         // get the value of the spreadsheet option
-        const SPREADSHEET_ID: string = interaction.options.getString("spreadsheet") || "";
+        const SPREADSHEET_ID: string = interaction.options.getString("spreadsheet")!;
 
         // make sure this is a valid spreadsheet
         try 
@@ -35,7 +35,7 @@ const GoogleCommand: Command = {
                     `has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo`;
             }
         }
-        catch(error)
+        catch(error) 
         {
             throw new RethrownError(
                 "Could not register spreadsheet due to an issue when validating it: " +

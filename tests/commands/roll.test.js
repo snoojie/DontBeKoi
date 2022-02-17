@@ -12,10 +12,16 @@ test("Has a description.", () => {
     expect(RollCommand.description).toBe("Roll a dice.");
 });
 
+test("Response is public.", () => {
+    expect(!RollCommand.isPrivate);
+});
+
 test("Has sides option.", () => {
-    expect(RollCommand.options).toEqual([{
-        name: "sides", type: "number", description: "Number of sides this dice has."
-    }]);
+    expect(RollCommand.options.length).toBe(1);
+    const OPTION = RollCommand.options[0];
+    expect(OPTION.name).toBe("sides");
+    expect(OPTION.description).toBe("Number of sides this dice has.");
+    expect(OPTION.type == "number").toBeTruthy();
 });
 
 // ========================
@@ -23,19 +29,23 @@ test("Has sides option.", () => {
 // ========================
 
 test("Cannot have one side.", async() => {
-    let response = await RollCommand.execute(mockInteraction(1));
-    expectResponseAtLeastTwoSides(response);
+    const RESPONSE = await RollCommand.execute(mockInteraction(1));
+    expectResponseAtLeastTwoSides(RESPONSE);
 });
 
 test("Cannot have zero sides.", async() => {
-    let response = await RollCommand.execute(mockInteraction(0));
-    expectResponseAtLeastTwoSides(response);
+    const RESPONSE = await RollCommand.execute(mockInteraction(0));
+    expectResponseAtLeastTwoSides(RESPONSE);
 });
 
 test("Cannot have negative sides.", async() => {
-    let response = await RollCommand.execute(mockInteraction(-2));
-    expectResponseAtLeastTwoSides(response);
+    const RESPONSE = await RollCommand.execute(mockInteraction(-2));
+    expectResponseAtLeastTwoSides(RESPONSE);
 });
+
+// ==============================
+// =====SUCCESSFUL EXECUTION=====
+// ==============================
 
 test("Can roll with only 2 sides.", async() => {
     let response = await RollCommand.execute(mockInteraction(2));
@@ -49,7 +59,7 @@ test("Can roll with many sides.", async() => {
 
 function mockInteraction(number)
 {
-    return{ 
+    return { 
         options: { getNumber: () => number }
     };
 }
