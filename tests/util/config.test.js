@@ -35,7 +35,7 @@ function testEnvironmentVariable(readableName)
 
         test("ConfigError getting the environment variable when it is not set.", () => {
             expect(() => Config[methodName]()).toThrow(ConfigError);
-            expect(() => Config[methodName]()).toThrow(ENV_KEY);
+            expect(() => Config[methodName]()).toThrow(`Did you forget to set ${ENV_KEY} as an environment variable?`);
         });
     });
 }
