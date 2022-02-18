@@ -1,6 +1,5 @@
 import { Op } from "sequelize";
-import ErrorMessages from "../errorMessages";
-import UserSpreadsheet from "../google/userSpreadsheet";
+import { UserSpreadsheet, UserSpreadsheetMissingPattern } from "../google/userSpreadsheet";
 import { Rarity } from "../types";
 import PublicError from "../util/publicError";
 import { Koi } from "./models/koi";
@@ -103,21 +102,16 @@ export const DataAccessLayer = {
         for (const USER of USERS)
         {
             promises.push(
-                UserSpreadsheet.hasKoi(
-                    USER.spreadsheetId, koiName, patternName, PATTERN.type
-                )
+                UserSpreadsheet.hasKoi(USER.spreadsheetId, koiName, patternName)
                 .catch(error => {
                     // The user may have forgotten to add this pattern to 
                     // their spreadsheet, maybe because it's a brand new pattern.
                     // Or, their spreadsheet is broken. Either way, make sure they are
                     // aware they need to update their sheet.
-                    if (error instanceof Error)
+                    if (error instanceof UserSpreadsheetMissingPattern)
                     {
-                        if (error.message.startsWith(ErrorMessages.USER_SPREADSHEET.PATTERN_DOES_NOT_EXIST))
-                        {
-                            discordUsersMissingPattern.push(USER.discordId);
-                            return true;
-                        }
+                        discordUsersMissingPattern.push(USER.discordId);
+                        return true;
                     }
 
                     // this error was caused for another reason.

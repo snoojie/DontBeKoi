@@ -1,157 +1,159 @@
-import ErrorMessages from "../errorMessages";
-import { PatternType, Rarity } from "../types";
+import EnhancedError from "../util/enhancedError";
 import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
-const UserSpreadsheet = {
+/**
+ * Error thrown when a pattern could not be found in the user spreadsheet.
+ */
+export class UserSpreadsheetMissingPattern extends EnhancedError 
+{
+    constructor(spreadsheetId: string, pattern: string)
+    {
+        super(`Spreadsheet '${spreadsheetId}' missing pattern '${pattern}'.`);
+    }
+}
+
+/**
+ * Error thrown when a pattern was found in the user spreadsheet, but not the color.
+ */
+export class UserSpreadsheetMissingColor extends EnhancedError 
+{
+    constructor(spreadsheetId: string, pattern: string, color: string)
+    {
+        super(
+            `Spreadsheet '${spreadsheetId}' missing color '${color}' ` +
+            `for pattern '${pattern}'.`
+        );
+    }
+}
+
+/**
+ * A user's google spreadsheet with their koi collection.
+ */
+export const UserSpreadsheet = {
 
     /**
      * Checks if this user has a specific koi or not.
      * @param spreadsheetId ID of the user's spreadsheet.
      * @param color Koi's color.
      * @param pattern Koi's pattern.
-     * @param type Koi's type, ie, Progressive or Collector.
      * @returns true or false.
+     * @throws ConfigError if missing Google API key env variables.
+     * @throws SpreadsheetError if spreadsheet ID or Google API key is not valid.
+     * @throws UserSpreadsheetMissingPattern if the spreadsheet does not have
+     *         the pattern.
+     * @throws UserSpreadsheetMissingColor if the spreadsheet has the pattern 
+     *         but not color.
      */
     hasKoi: async function(
-        spreadsheetId: string, color: string, pattern: string, type: PatternType
-    ): Promise<boolean>
+        spreadsheetId: string, color: string, pattern: string): Promise<boolean>
     {
         // todo, check progressive
-        if (!type) { return false; }
-
-        // lowercase pattern and color
-        const PATTERN_LOWERCASE: string = pattern.toLowerCase();
-        const COLOR_LOWERCASE: string = color.toLowerCase();
 
         // get the spreadsheet
-        const RANGE: string = PATTERN_LOWERCASE.slice(0,1) < "n" 
+        // throws ConfigError if Google API key not an env variable
+        // throws SpreadsheetError if Google API key, spreadsheet ID, 
+        // or range not valid
+        const RANGE: string = pattern.slice(0,1) < "n" 
             ? "A-M: Collectors!B2:K" 
             : "N-Z: Collectors!B2:K";
         const TABLE: string[][] = await Spreadsheet.getValues(spreadsheetId, RANGE);
 
-        // find the pattern in the table
-        let patternNameRowIndex: number = -1;
+        // find the pattern
+        let patternRowIndex: number = -1;
+        // note the pattern name appears every 7 rows
         for (let i=0; i<TABLE.length; i+=7)
         {
-            const FOUND_PATTERN_NAME: string = KoiSpreadsheet.getPattern(TABLE, i);
-            if (FOUND_PATTERN_NAME.toLowerCase() == PATTERN_LOWERCASE)
+            const FOUND_PATTERN: string = KoiSpreadsheet.getPattern(TABLE, i);
+            if (equalsIgnoreCase(FOUND_PATTERN, pattern))
             {
                 // found the pattern!
-                patternNameRowIndex = i;
+                patternRowIndex = i;
                 break;
             }
         }
-        if (patternNameRowIndex < 0)
+        if (patternRowIndex < 0)
         {
-            throw new Error(
-                `${ErrorMessages.USER_SPREADSHEET.PATTERN_DOES_NOT_EXIST} ` +
-                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}.`
-            );
+            throw new UserSpreadsheetMissingPattern(spreadsheetId, pattern);
         }
 
         // find the base color
         let baseColorRowIndex: number = -1;
         let baseColor: string = "";
-        for(let i=0; i<4; i++)
+        // note the base colors appear 2-4 rows after the pattern name
+        for(let i=patternRowIndex+2; i<patternRowIndex+6; i++)
         {
-            const ROW_INDEX: number = patternNameRowIndex + i + 2;
-            baseColor = KoiSpreadsheet.getBaseColor(TABLE, ROW_INDEX);
-            if (COLOR_LOWERCASE.startsWith(baseColor.toLowerCase()))
+            baseColor = KoiSpreadsheet.getBaseColor(TABLE, i);
+            if (startsWithIgnoreCase(color, baseColor))
             {
                 // found the base color!
-                baseColorRowIndex = ROW_INDEX;
+                baseColorRowIndex = i;
                 break;
             }
         }
         if (baseColorRowIndex < 0)
         {
-            throw new Error(
-                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
-                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
-            );
+            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
-        let highlightColorColumnIndex: number = getHighlightColorColumnIndex(
-            TABLE, patternNameRowIndex, COLOR_LOWERCASE, Rarity.Common
-        );
-        if (highlightColorColumnIndex < 0)
+        let highlightColorColumnIndex: number = -1;
+        let highlightColor: string = "";
+        for (let i=1; i<10; i++)
         {
-            highlightColorColumnIndex = getHighlightColorColumnIndex(
-                TABLE, patternNameRowIndex, COLOR_LOWERCASE, Rarity.Rare
+
+            // common highlight columns are in columns 1-4
+            // rare highlight columns are in columns 6-9
+            // column 5 is empty, so ignore it
+            if (i==5)
+            {
+                continue;
+            }
+
+            highlightColor = KoiSpreadsheet.getHighlightColor(
+                TABLE, patternRowIndex + 1, i
             );
-        }
-        for (let i=0; i<4; i++)
-        {
-            const COLUMN_INDEX: number = i + 1;
-            const HIGHLIGHT_COLOR: string = 
-                KoiSpreadsheet.getHighlightColor(
-                    TABLE, patternNameRowIndex + 1, COLUMN_INDEX
-                );
-            if (COLOR_LOWERCASE.endsWith(HIGHLIGHT_COLOR.toLowerCase()))
+            if (endsWithIgnoreCase(color, highlightColor))
             {
                 // found the highlight color!
-                highlightColorColumnIndex = COLUMN_INDEX;
+                highlightColorColumnIndex = i;
                 break;
             }
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new Error(
-                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
-                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
-            );
+            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
-        if ((baseColor + KoiSpreadsheet.getHighlightColor(
-            TABLE, patternNameRowIndex+1, highlightColorColumnIndex
-        )).toLowerCase() != COLOR_LOWERCASE)
+        if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new Error(
-                `${ErrorMessages.USER_SPREADSHEET.COLOR_DOES_NOT_EXIST} ` +
-                `Spreadsheet ID: ${spreadsheetId}, pattern: ${pattern}, color: ${color}.`
-            );
+            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
         }
 
-        // read the value of this pattern's color
-        // if it is empty, the user does not have this koi
-        // if it has "k" or "d", the user has this koi
+        // Finally, we know the row and column of this koi.
+        // Go read the value.
+        // It should be empty if the user does not have the koi.
+        // It should have "k" or "d" if the user has the koi.
         const VALUE: string = KoiSpreadsheet.normalizeCell(
             TABLE, baseColorRowIndex, highlightColorColumnIndex
-        ).toLowerCase();
-        return VALUE == "k" || VALUE == "d";
+        );
+        return equalsIgnoreCase(VALUE, "k") || equalsIgnoreCase(VALUE, "d");
     } 
 
 };
 
-export default UserSpreadsheet;
-
-function getHighlightColorColumnIndex(
-    table: string[][], 
-    patternNameRowIndex: number, 
-    colorLowercase: string, 
-    rarity: Rarity
-): number
+function equalsIgnoreCase(first: string, second: string): boolean
 {
-    let index: number = -1;
+    return first.toLowerCase() == second.toLowerCase();
+}
 
-    const RARITY_OFFSET: number = rarity == Rarity.Common ? 1 : 6;
+function startsWithIgnoreCase(first: string, second: string): boolean
+{
+    return first.toLowerCase().startsWith(second.toLowerCase());
+}
 
-    for (let i=0; i<4; i++)
-    {
-        const COLUMN_INDEX: number = i + RARITY_OFFSET;
-        const HIGHLIGHT_COLOR: string = KoiSpreadsheet.getHighlightColor(
-            table, patternNameRowIndex + 1, COLUMN_INDEX
-        );
-        if (colorLowercase.endsWith(HIGHLIGHT_COLOR.toLowerCase()))
-        {
-            // found the highlight color!
-            index = COLUMN_INDEX;
-            break;
-        }
-    }
-
-    return index;
+function endsWithIgnoreCase(first: string, second: string): boolean
+{
+    return first.toLowerCase().endsWith(second.toLowerCase());
 }

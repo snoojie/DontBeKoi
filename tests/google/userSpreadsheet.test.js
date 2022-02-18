@@ -1,16 +1,44 @@
-const UserSpreadsheet = require("../../src/google/userSpreadsheet").default;
+const { UserSpreadsheet, UserSpreadsheetMissingPattern, UserSpreadsheetMissingColor } = require("../../src/google/userSpreadsheet");
 const ErrorMessages = require("../../src/errorMessages").default;
-const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, getSpreadsheetErrorMessage, 
+        testWithModifiedEnv } = require("../_setup/spreadsheet");
+const { expectErrorAsync } = require("../_setup/testUtil");
 
 // ID of test user sheet
 const SPREADSHEET_ID = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-beforeAll(async() => {
+/*beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout + 30000);
+}, googleQuotaTimeout);*/
 
+testWithModifiedEnv(
+    "Has koi", 
+    async () => UserSpreadsheet.hasKoi(SPREADSHEET_ID, "shigin", "aishite"),
+    getSpreadsheetErrorMessage(SPREADSHEET_ID, "A-M: Collectors!B2:K")
+)
+
+test("User missing pattern.", async() => {
+    let promise = UserSpreadsheet.hasKoi(SPREADSHEET_ID, "shigin", "invalidpattern");
+    await expectErrorAsync(
+        promise, 
+        UserSpreadsheetMissingPattern, 
+        `Spreadsheet '${SPREADSHEET_ID}' missing pattern 'invalidpattern'.`
+    );
+});
+
+test("User missing color.", async() => {
+    let promise = UserSpreadsheet.hasKoi(SPREADSHEET_ID, "invalidcolor", "natsu");
+    await expectErrorAsync(
+        promise, 
+        UserSpreadsheetMissingColor, 
+        `Spreadsheet '${SPREADSHEET_ID}' missing color 'invalidcolor' ` +
+        "for pattern 'natsu'."
+    );
+});
+
+/*
 test("User with common collector koi.", async() => {
     const HAS_KOI = 
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "ryomido", "akua", "Collector");
@@ -60,7 +88,7 @@ test("User missing rare progressive koi.", async() => {
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "kuburu", "katame", "Progressive");
     expect(HAS_KOI).not.toBeTruthy();
 });*/
-
+/*
 test("User has draggoned koi", async() => {
     const HAS_KOI = 
         await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "akaouka", "beta", "Collector");
@@ -157,4 +185,4 @@ test(
     await expect(
         UserSpreadsheet.hasKoi("bad ID", "neshiro", "rozu", "Collector")
     ).rejects.toThrow(ErrorMessages.SPREADSHEET.CANNOT_GET_SPREADSHEET);
-});
+});*/

@@ -1,7 +1,6 @@
 const { Spreadsheet, SpreadsheetError } = require("../../src/google/spreadsheet");
-const { ConfigError } = require("../../src/util/config");
-const ErrorMessages = require("../../src/errorMessages").default;
-const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, getSpreadsheetErrorMessage, 
+        testWithModifiedEnv } = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
 
 // this is the community spreadsheet
@@ -10,9 +9,9 @@ const VALID_RANGE = "Progressives!I16";
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-beforeAll(async() => {
+/*beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);
+}, googleQuotaTimeout);*/
 
 // ================
 // =====EXISTS=====
@@ -42,7 +41,7 @@ test("Invalid spreadshet does not exist.", async() => {
 testWithModifiedEnv(
     "Get values", 
     async () => Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE),
-    getValuesSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, VALID_RANGE)
+    getSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, VALID_RANGE)
 )
 
 test("Get values of invalid spreadsheet.", async() => {
@@ -50,7 +49,7 @@ test("Get values of invalid spreadsheet.", async() => {
     await expectErrorAsync(
         promise, 
         SpreadsheetError,
-        getValuesSpreadsheetErrorMessage("invalidid", VALID_RANGE)
+        getSpreadsheetErrorMessage("invalidid", VALID_RANGE)
     );
 });
 
@@ -59,7 +58,7 @@ test("Get values of invalid range.", async() => {
     await expectErrorAsync(
         promise, 
         SpreadsheetError,
-        getValuesSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, "invalidrange")
+        getSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, "invalidrange")
     );
 });
 
@@ -115,37 +114,3 @@ test("Get values of several rows with last row empty.", async() => {
         await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I7:I8");
     expect(VALUES).toEqual([ [ "Ku-" ] ]);
 });
-
-function getValuesSpreadsheetErrorMessage(spreadsheetId, range)
-{
-    `Could not get range '${range}' at spreadsheet '${spreadsheetId}'. ` +
-    "Could the spreadsheet ID, range, or Google API key be invalid?"
-}
-
-function testWithModifiedEnv(description, methodToTest, spreadsheetErrorMessage)
-{
-    describe(`${description} with modified environment variables.`, () => {
-        
-        const ORIGINAL_ENV = process.env;
-        beforeEach(() => process.env = { ...ORIGINAL_ENV });
-        afterAll(() => process.env = { ...ORIGINAL_ENV });
-
-        test("ConfigError without GOOGLE_API_KEY.", async() => {
-            delete process.env.GOOGLE_API_KEY;
-            let promise = methodToTest();
-            await expectErrorAsync(
-                promise, 
-                ConfigError,
-                "Did you forget to set GOOGLE_API_KEY as an environment variable?"
-            );
-        });
-
-        test("SpreadsheetError with invalid GOOGLE_API_KEY.", async() => {
-            process.env.GOOGLE_API_KEY = "invalidkey";
-            let promise = methodToTest();
-            await expectErrorAsync(
-                promise, SpreadsheetError, spreadsheetErrorMessage
-            );
-        });
-    });
-}

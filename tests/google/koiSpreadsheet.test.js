@@ -5,9 +5,9 @@ const { expectError } = require("../_setup/testUtil");
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-/*beforeAll(async() => {
+beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);*/
+}, googleQuotaTimeout);
 
 // ========================
 // =====NORMALIZE CELL=====
