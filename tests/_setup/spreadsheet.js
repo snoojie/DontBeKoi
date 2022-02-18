@@ -1,5 +1,4 @@
-const { SpreadsheetError } = require("../../src/google/spreadsheet");
-const { ConfigError } = require("../../src/util/config");
+const { InvalidGoogleApiKey } = require("../../src/google/spreadsheet");
 const { expectErrorAsync } = require("./testUtil");
 
 const GOOGLE_QUOTA_TIMEOUT = 90000;
@@ -23,7 +22,7 @@ module.exports = {
             "Could the spreadsheet ID, range, or Google API key be invalid?";
     },
     
-    testWithModifiedEnv: function(description, methodToTest, spreadsheetErrorMessage)
+    testWithModifiedEnv: function(description, methodToTest)
     {
         describe(`${description} with modified environment variables.`, () => {
             
@@ -31,23 +30,24 @@ module.exports = {
             beforeEach(() => process.env = { ...ORIGINAL_ENV });
             afterAll(() => process.env = { ...ORIGINAL_ENV });
 
-            test("ConfigError without GOOGLE_API_KEY.", async() => {
+            test("InvalidGoogleApiKey without GOOGLE_API_KEY.", async() => {
                 delete process.env.GOOGLE_API_KEY;
-                let promise = methodToTest();
-                await expectErrorAsync(
-                    promise, 
-                    ConfigError,
-                    "Did you forget to set GOOGLE_API_KEY as an environment variable?"
-                );
+                await expectInvalidGoogleApiKey(methodToTest);
             });
 
-            test("SpreadsheetError with invalid GOOGLE_API_KEY.", async() => {
+            test("InvalidGoogleApiKey with invalid GOOGLE_API_KEY.", async() => {
                 process.env.GOOGLE_API_KEY = "invalidkey";
-                let promise = methodToTest();
-                await expectErrorAsync(
-                    promise, SpreadsheetError, spreadsheetErrorMessage
-                );
+                await expectInvalidGoogleApiKey(methodToTest);
             });
+
+            async function expectInvalidGoogleApiKey(methodToTest)
+            {
+                await expectErrorAsync(
+                    methodToTest(), 
+                    InvalidGoogleApiKey, 
+                    "The Google API key is invalid or missing."
+                );
+            }
         });
     }
 };

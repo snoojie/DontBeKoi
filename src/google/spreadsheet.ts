@@ -4,20 +4,63 @@ import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
 
 /**
- * Error thrown when there was an issue accessing Google API.
+ * Base error that should never be directly thrown.
  */
-export class SpreadsheetError extends EnhancedError {}
+export abstract class SpreadsheetError extends EnhancedError {}
+
+/**
+ * Error thrown when the Google API key is not set in environment variables, 
+ * or when it is set but not valid.
+ */
+export class InvalidGoogleApiKey extends SpreadsheetError
+{
+    constructor(error: any)
+    {
+        super("The Google API key is invalid or missing.", error);
+    }
+}
+
+/**
+ * Error thrown when the spreadsheet could not be found due to an invalid ID.
+ */
+export class SpreadsheetNotFound extends SpreadsheetError 
+{
+    constructor(spreadsheetId: string, error: any)
+    {
+        super(`Spreadsheet ID '${spreadsheetId}' does not exist.`, error);
+    }
+}
+
+/**
+ * Error thrown when the spreadsheet exists, but the range does not.
+ */
+export class RangeNotFound extends SpreadsheetError 
+{
+    constructor(spreadsheetId: string, range: string, error: any)
+    {
+        super(
+            `Spreadsheet ID '${spreadsheetId}' does not have range '${range}'.`, error
+        );
+    }
+}
 
 const SPREADSHEETS_API: sheets_v4.Resource$Spreadsheets = 
     google.sheets({version: "v4"}).spreadsheets;
 
 /**
  * @returns Google API key
- * @throws CongigError if the Google API key cannot be obtained.
+ * @throws InvalidGoogleApiKey if the Google API key cannot be obtained.
  */
 function getApiKey(): string
 {
-    return Config.getGoogleApiKey();
+    try
+    {
+        return Config.getGoogleApiKey();
+    }
+    catch(error)
+    {
+        throw new InvalidGoogleApiKey(error);
+    }
 }
 
 /**
@@ -30,8 +73,8 @@ export const Spreadsheet = {
      * https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit#gid=1848229055
      * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
      * @returns whether this spreadsheet exists or not 
-     * @throws ConfigError if the Google API key is not set in environment variable.
-     * @throws SpreadsheetError if the Google API key is invalid.
+     * @throws InvalidGoogleApiKey if the Google API key is not set in
+     *         environment variable or is invalid.
      */
     exists: async function(spreadsheetId: string): Promise<boolean>
     {
@@ -51,22 +94,14 @@ export const Spreadsheet = {
         }
         catch(error)
         {
-            if (error instanceof GaxiosError)
+            if (isGoogleErrorOfInvalidGoogleApiKey(error))
             {
-                // 404 should accompany error.message 
-                // "Requested entity was not found."
-                if (error.code == "404")
-                {
-                    return false;
-                }
+                throw new InvalidGoogleApiKey(error);
             }
-            
-            // otherwise the google api key could be wrong
-            throw new SpreadsheetError(
-                `Could not check if the spreadsheet '${spreadsheetId}' exists. ` +
-                "Could the Google API key be invalid?", 
-                error
-            );
+            if (isGoogleErrorOfSpreadsheetNotFound(error))
+            {
+                return false;
+            }
         }
 
         // since there was no error, the spreadsheet is valid
@@ -80,9 +115,9 @@ export const Spreadsheet = {
      * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
      * @param range Range in the spreadsheet, for example, Progressives!A2:G
      * @returns List of rows from the specified range and spreadsheet
-     * @throws ConfigError if the Google API key is not set in environment variable.
-     * @throws SpreadsheetError if the spreadsheet ID, range, 
-     *         or Google API key is invalid.
+     * @throws InvalidGoogleApiKey if the Google API key is invalid.
+     * @throws SpreadsheetNotFound if the spreadsheet ID is invalid.
+     * @throws RangeNotFound if the spreadsheet exists but the range is invalid.
      */
     getValues: async function(spreadsheetId: string, range: string): Promise<string[][]>
     {
@@ -103,11 +138,18 @@ export const Spreadsheet = {
         }
         catch(error)
         {
-            throw new SpreadsheetError(
-                `Could not get range '${range}' at spreadsheet '${spreadsheetId}'. ` +
-                "Could the spreadsheet ID, range, or Google API key be invalid?",
-                error
-            );
+            if(isGoogleErrorOfInvalidGoogleApiKey(error))
+            {
+                throw new InvalidGoogleApiKey(error);
+            }
+            if(isGoogleErrorOfSpreadsheetNotFound(error))
+            {
+                throw new SpreadsheetNotFound(spreadsheetId, error);
+            }
+            if(isGoogleErrorOfRangeNotFound(error))
+            {
+                throw new RangeNotFound(spreadsheetId, range, error);
+            }
         }
         
         // when all the values are empty text,
@@ -128,3 +170,24 @@ export const Spreadsheet = {
     }
 
 };
+
+function isGoogleErrorOfInvalidGoogleApiKey(error: any): boolean
+{
+    return error instanceof GaxiosError && 
+           error.code == "400" && 
+           error.message == "API key not valid. Please pass a valid API key.";
+}
+
+function isGoogleErrorOfSpreadsheetNotFound(error: any): boolean
+{
+    return error instanceof GaxiosError && 
+           error.code == "404" && 
+           error.message == "Requested entity was not found.";
+}
+
+function isGoogleErrorOfRangeNotFound(error: any): boolean
+{
+    return error instanceof GaxiosError && 
+           error.code == "400" && 
+           error.message.startsWith("Unable to parse range: ");
+}

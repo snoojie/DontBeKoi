@@ -38,6 +38,20 @@ test("User missing color.", async() => {
     );
 });
 
+test("Invalid spreadsheet.", async() => {
+    let promise = UserSpreadsheet.hasKoi("invalidspreadsheet", "shigin", "natsu");
+    await expectErrorAsync(
+        promise, 
+        UserSpreadsheetMissingColor, 
+        `Spreadsheet '${SPREADSHEET_ID}' missing color 'invalidcolor' ` +
+        "for pattern 'natsu'."
+    );
+});
+
+test("User has common koi.", async() => {
+    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID)
+})
+
 /*
 test("User with common collector koi.", async() => {
     const HAS_KOI = 

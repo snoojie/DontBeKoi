@@ -1,6 +1,7 @@
-const { Spreadsheet, SpreadsheetError } = require("../../src/google/spreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, getSpreadsheetErrorMessage, 
-        testWithModifiedEnv } = require("../_setup/spreadsheet");
+const { Spreadsheet, SpreadsheetError, InvalidGoogleApiKey, SpreadsheetNotFound, 
+        RangeNotFound } = require("../../src/google/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+    = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
 
 // this is the community spreadsheet
@@ -18,10 +19,7 @@ const VALID_RANGE = "Progressives!I16";
 // ================
 
 testWithModifiedEnv(
-    "Check if spreadsheet exists", 
-    async () => Spreadsheet.exists(VALID_SPREADSHEET_ID),
-    `Could not check if the spreadsheet '${VALID_SPREADSHEET_ID}' exists. ` +
-    "Could the Google API key be invalid?"
+    "Check if spreadsheet exists", async () => Spreadsheet.exists(VALID_SPREADSHEET_ID)
 )
 
 test("Valid spreadsheet exists.", async() => {
@@ -29,7 +27,7 @@ test("Valid spreadsheet exists.", async() => {
     expect(EXISTS).toBeTruthy();
 });
 
-test("Invalid spreadshet does not exist.", async() => {
+test("Invalid spreadsheet does not exist.", async() => {
     const EXISTS = await Spreadsheet.exists("invalidspreadsheet");
     expect(EXISTS).toBeFalsy();
 });
@@ -39,17 +37,15 @@ test("Invalid spreadshet does not exist.", async() => {
 // ====================
 
 testWithModifiedEnv(
-    "Get values", 
-    async () => Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE),
-    getSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, VALID_RANGE)
+    "Get values", async () => Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE)
 )
 
 test("Get values of invalid spreadsheet.", async() => {
     let promise = Spreadsheet.getValues("invalidid", VALID_RANGE);
     await expectErrorAsync(
         promise, 
-        SpreadsheetError,
-        getSpreadsheetErrorMessage("invalidid", VALID_RANGE)
+        SpreadsheetNotFound,
+        "Spreadsheet ID 'invalidid' does not exist."
     );
 });
 
@@ -57,8 +53,8 @@ test("Get values of invalid range.", async() => {
     let promise = Spreadsheet.getValues(VALID_SPREADSHEET_ID, "invalidrange");
     await expectErrorAsync(
         promise, 
-        SpreadsheetError,
-        getSpreadsheetErrorMessage(VALID_SPREADSHEET_ID, "invalidrange")
+        RangeNotFound,
+        `Spreadsheet ID '${VALID_SPREADSHEET_ID}' does not have range 'invalidrange'.`
     );
 });
 
@@ -113,4 +109,23 @@ test("Get values of several rows with last row empty.", async() => {
     const VALUES = 
         await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I7:I8");
     expect(VALUES).toEqual([ [ "Ku-" ] ]);
+});
+
+// =========================================
+// =====ERRORS EXTEND SPREADSHEET ERROR=====
+// =========================================
+
+test("InvalidGoogleApiKey extends SpreadsheetError.", () => {
+    let error = new InvalidGoogleApiKey("some error");
+    expect(error instanceof SpreadsheetError);
+});
+
+test("SpreadsheetNotFound extends SpreadsheetError.", () => {
+    let error = new SpreadsheetNotFound("some spreadsheet", "some error");
+    expect(error instanceof SpreadsheetError);
+});
+
+test("RangeNotFound extends SpreadsheetError.", () => {
+    let error = new RangeNotFound("some spreadsheet", "some range", "some error");
+    expect(error instanceof SpreadsheetError);
 });
