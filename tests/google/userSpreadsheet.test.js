@@ -1,8 +1,8 @@
 const { SpreadsheetNotFound } = require("../../src/google/spreadsheet");
 const { UserSpreadsheet, PatternNotFound, ColorNotFound, UnexpectedKoiMark } 
     = require("../../src/google/userSpreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, getSpreadsheetErrorMessage, 
-        testWithModifiedEnv } = require("../_setup/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+    = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
 
 // ID of test user sheet

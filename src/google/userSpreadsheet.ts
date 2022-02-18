@@ -143,7 +143,7 @@ export const UserSpreadsheet = {
         // Go read the value.
         // It should be empty if the user does not have the koi.
         // It should have "k" or "d" if the user has the koi.
-        let VALUE: string = KoiSpreadsheet.normalizeCell(
+        let VALUE: string = KoiSpreadsheet.getValue(
             TABLE, baseColorRowIndex, highlightColorColumnIndex
         );
         if (equalsIgnoreCase(VALUE, "k") || equalsIgnoreCase(VALUE, "d"))

@@ -1,7 +1,7 @@
 const { InvalidGoogleApiKey } = require("../../src/google/spreadsheet");
 const { expectErrorAsync } = require("./testUtil");
 
-const GOOGLE_QUOTA_TIMEOUT = 90000;
+const GOOGLE_QUOTA_TIMEOUT = 70000;
 
 module.exports = {
 
@@ -14,7 +14,7 @@ module.exports = {
         return new Promise(resolve => setTimeout(resolve, GOOGLE_QUOTA_TIMEOUT));
     },
 
-    googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT,
+    googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT+20000,
 
     getSpreadsheetErrorMessage: function(spreadsheetId, range)
     {

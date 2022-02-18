@@ -17,7 +17,7 @@ export const KoiSpreadsheet = {
      * @param columnIndex index of the column to get the string from.
      * @returns string at (row, column).
      */
-    normalizeCell(table: string[][], rowIndex: number, columnIndex: number): string
+    getValue(table: string[][], rowIndex: number, columnIndex: number): string
     {
         const ROW: string[] = table[rowIndex] || [];
         let value: string = ROW[columnIndex] || "";
@@ -27,24 +27,30 @@ export const KoiSpreadsheet = {
 
     /**
      * Given a row, it is expected the pattern name is in the first column.
+     * The column assumption can be overwritten though. 
+     * This is useful for the Progressives sheet which has 3 patterns per row.
      * This method returns the normalized pattern name, ie, no accented characters.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the pattern name in.
      * @returns normalized string at (row, 0).
      * @throws KoiSpreadsheetError if there is no pattern name in the row.
      */
-    getPattern(table: string[][], rowIndex: number): string
+    getPattern(table: string[][], rowIndex: number, columnIndex: number = 0): string
     {
-        const PATTERN: string = KoiSpreadsheet.normalizeCell(table, rowIndex, 0);
+        const PATTERN: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!PATTERN)
         {
-            throw new KoiSpreadsheetError(`Missing pattern name in row ${rowIndex}.`);
+            throw new KoiSpreadsheetError(
+                `Missing pattern name in row ${rowIndex}, column ${columnIndex}.`
+            );
         }
         return PATTERN;
     },
 
     /**
      * Given a row, it is expected the base color name will be at column 0.
+     * The column assumption can be overwritten though. 
+     * This is useful for the Progressives sheet which has 3 patterns per row.
      * The base color name will be stripped of dashes and accents then returned.
      * For example, if the text is "Cha-", the return value will be "Cha".
      * @param table array of arrays representing the google spreadsheet values.
@@ -52,12 +58,14 @@ export const KoiSpreadsheet = {
      * @returns normalized string at (row, 0) without a dash.
      * @throws KoiSpreadsheetError if there is no base color in the row.
      */
-    getBaseColor(table: string[][], rowIndex: number): string
+    getBaseColor(table: string[][], rowIndex: number, columnIndex: number = 0): string
     {
-        let color: string = KoiSpreadsheet.normalizeCell(table, rowIndex, 0);
+        let color: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!color)
         {
-            throw new KoiSpreadsheetError(`Missing base color name in row ${rowIndex}.`);
+            throw new KoiSpreadsheetError(
+                `Missing base color name in row ${rowIndex}, column ${columnIndex}.`
+            );
         }
         
         // strip dash if there is one
@@ -81,7 +89,7 @@ export const KoiSpreadsheet = {
      */
     getHighlightColor(table: string[][], rowIndex: number, columnIndex: number): string
     {
-        let color: string = KoiSpreadsheet.normalizeCell(table, rowIndex, columnIndex);
+        let color: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!color)
         {
             throw new KoiSpreadsheetError(

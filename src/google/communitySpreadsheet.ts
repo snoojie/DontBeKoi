@@ -4,237 +4,151 @@ import { Spreadsheet } from "./spreadsheet"
 
 const SPREADSHEET_ID: string = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 
-export type OverviewEntry = {
+export interface Pattern
+{
     name: string;
     hatchTime?: number;
+    kois: Koi[];
     type: PatternType;
-};
-export type Overview = OverviewEntry[];
-
-export type SpreadsheetKoi = {
-    name: string;
-    rarity: Rarity;
-    pattern: string;
 }
 
-type PatternColors = {
-    base: string[];
-    common: string[];
-    rare: string[];
+export interface Koi
+{
+    name: string;
+    rarity: Rarity;
 }
 
 export const CommunitySpreadsheet = {
     
-    getOverview: async function(): Promise<Overview>
+    getAllPatterns: async function(): Promise<Pattern[]>
     {
-        let overviewPromises: Promise<Overview>[] = [
-            getOverview(PatternType.Collector),
-            getOverview(PatternType.Progressive)
-        ];
-        const OVERVIEW: Overview = (await Promise.all(overviewPromises)).flat();
-        return OVERVIEW;
-    },
+        let patterns: Pattern[] = [];
 
-    getKois: async function(): Promise<SpreadsheetKoi[]>
-    {
-        // for the progressive and collector sheets,
-        // every seven rows there's a pattern that looks like:
-        // Inazuma |        |       |      |       | |        |       |       |
-        //         | -shiro | -ukon | -dai | -kuro | | -pinku | -mura | -mido | -buru
-        // Shi-    |        |       |      |       | |        |       |       |
-        // Ki-     |        |       |      |       | |        |       |       |
-        // Aka-    |        |       |      |       | |        |       |       |
-        // Ku -    |        |       |      |       | |        |       |       |
+        // get the hatch times of collectors
+        let hatchTimes: Map<string, number> = new Map();
+        const OVERVIEW: string[][] = 
+            await Spreadsheet.getValues(SPREADSHEET_ID, "Overview!A3:I");
+        for (let i=0; i<OVERVIEW.length; i++)
+        {
+            const PATTERN: string = KoiSpreadsheet.getValue(OVERVIEW, i, 0);
+            // skip the blank row between m- and n- patterns
+            if (PATTERN)
+            {
+                const HATCH_TIME: number = 
+                    parseInt(KoiSpreadsheet.getValue(OVERVIEW, i, 8).substring(8));
+                hatchTimes.set(PATTERN, HATCH_TIME);
+            }
+        }
 
-        let getKoisPromises: Promise<SpreadsheetKoi[]>[] = [
-            getProgressives(), getCollectors()
-        ];
-        const KOIS: SpreadsheetKoi[] = (await Promise.all(getKoisPromises)).flat();
-        return KOIS;
+        // get the pattern names and all their koi names
+        await Promise.all([ 
+            getPatternsFromSheet("Progressives!I2:AN70"),
+            getPatternsFromSheet("A-M: Collectors!B2:K", hatchTimes), 
+            getPatternsFromSheet("N-Z: Collectors!B2:K", hatchTimes)
+        ]).then((patternsByType: Pattern[][]) => 
+            patterns.push(...patternsByType.flat())
+        );
+        return patterns;
     }
 
 }
 
-async function getProgressives(): Promise<SpreadsheetKoi[]>
+async function getPatternsFromSheet(
+    range: string, hatchTimes?: Map<string, number>): Promise<Pattern[]>
 {
-    // get the values from the spreadsheet
-    const TABLE: string[][] = 
-        await Spreadsheet.getValues(SPREADSHEET_ID, "Progressives!I2:AN70");
+    let patterns: Pattern[] = [];
 
-    // get the list of progressive patterns
-    let patterns: string[] = [];
-    for (let i=0; i<=TABLE.length; i+=7)
+    // determine the type of pattern
+    const TYPE: PatternType = range.startsWith("Progressive") 
+        ? PatternType.Progressive 
+        : PatternType.Collector
+
+    // get the the spreadsheet
+    const TABLE: string[][] = 
+        await Spreadsheet.getValues(SPREADSHEET_ID, range);
+
+    // find each pattern
+    // note there is a pattern every 7 rows
+    for (let patternRow=0; patternRow<TABLE.length; patternRow+=7)
     {
-        for (let j=0; j<3; j++)
+
+        // note that on the progressives sheet, 
+        // there are three sets of patterns per row, every 11 columns
+        const PATTERNS_PER_ROW = TYPE==PatternType.Progressive ? 3 : 1;
+        for (let patternColumn=0; patternColumn<PATTERNS_PER_ROW*11; patternColumn+=11)
         {
-            const COLUMN_INDEX: number = 11 * j;
-            const PATTERN: string = KoiSpreadsheet.normalizeCell(TABLE, i, COLUMN_INDEX);
-            if (!PATTERN)
+
+            let pattern: Pattern = {
+                name: KoiSpreadsheet.getPattern(TABLE, patternRow, patternColumn),
+                type: TYPE,
+                kois: []
+            };
+
+            // find all base colors
+            let baseColors: string[] = [];
+            for (let colorRow=patternRow+2; colorRow<patternRow+6; colorRow++)
             {
-                throw new Error(
-                    `Missing name for progressive pattern in (row, column) ` +
-                    `(${i}, ${COLUMN_INDEX}).`
+                baseColors.push(
+                    KoiSpreadsheet.getBaseColor(TABLE, colorRow, patternColumn)
                 );
             }
-            patterns.push(PATTERN);
+
+            // find all highlight colors
+            let commonHighlightColors: string[] = 
+                getHighlightColors(TABLE, patternRow, patternColumn+1);
+            let rareHighlightColors: string[] = 
+                getHighlightColors(TABLE, patternRow, patternColumn+6);
+
+            // we know all the colors, so we can set the kois for this pattern
+            for (const BASE_COLOR of baseColors)
+            {
+                pattern.kois.push(
+                    ...getKoiCollection(BASE_COLOR, commonHighlightColors, Rarity.Common)
+                );
+                pattern.kois.push(
+                    ...getKoiCollection(BASE_COLOR, rareHighlightColors, Rarity.Rare)
+                );
+            }
+
+            // see if we know the hatch time for this pattern
+            if (hatchTimes && hatchTimes.has(pattern.name))
+            {
+                pattern.hatchTime = hatchTimes.get(pattern.name);
+            }
+
+            // add this pattern to our list of patterns
+            patterns.push(pattern);
         }
     }
 
-    // get the colors
-    const COLORS = getColors(TABLE, 0);
-
-    // we have all the info about progressives!
-    let progressives: SpreadsheetKoi[] = [];
-    for (const PATTERN of patterns)
-    {
-        progressives = progressives.concat(getKoisOfPattern(COLORS, PATTERN));
-    }
-
-    return progressives;
+    return patterns;
 }
 
-async function getCollectors(): Promise<SpreadsheetKoi[]>
+
+function getHighlightColors(
+    table: string[][], patternRowIndex: number, startingColumnIndex: number
+): string[]
 {
-    let collectorsPromises: Promise<SpreadsheetKoi[]>[] = [
-        getCollectorsHalf("A-M: Collectors!B2:K"),
-        getCollectorsHalf("N-Z: Collectors!B2:K")
-    ];
-    const COLLECTORS: SpreadsheetKoi[] = (await Promise.all(collectorsPromises)).flat();
-    return COLLECTORS;
-}
-
-async function getCollectorsHalf(range: string): Promise<SpreadsheetKoi[]>
-{
-    // get the values from the spreadsheet
-    const TABLE: string[][] = await Spreadsheet.getValues(SPREADSHEET_ID, range);
-
-    let collectors: SpreadsheetKoi[] = [];
-
-    for (let i=0; i<TABLE.length; i+=7)
+    let highlightColors: string[] = [];
+    for (let j=startingColumnIndex; j<startingColumnIndex+4; j++)
     {
-        // get the pattern name
-        const PATTERN: string = KoiSpreadsheet.getPattern(TABLE, i);
-        if (!PATTERN)
-        {
-            // must have reached near the end of the sheet
-            break;
-        }
-
-        // get the colors
-        const COLORS: PatternColors = getColors(TABLE, i);
-
-        // we have the colors and pattern name
-        // get the list of kois of this pattern
-        collectors = collectors.concat(getKoisOfPattern(COLORS, PATTERN));
-    }
-
-    return collectors;
-}
-
-function getKoisOfPattern(colors: PatternColors, pattern: string): SpreadsheetKoi[]
-{
-    let kois: SpreadsheetKoi[] = [];
-    for (const BASE_COLOR of colors.base)
-    {
-        kois = kois.concat(
-            getKoisOfRarity(BASE_COLOR, colors.common, Rarity.Common, pattern),
-            getKoisOfRarity(BASE_COLOR, colors.rare,   Rarity.Rare,   pattern)
+        highlightColors.push(
+            KoiSpreadsheet.getHighlightColor(table, patternRowIndex+1, j)
         );
     }
-    return kois;
+    return highlightColors;
 }
 
-function getKoisOfRarity(baseColor: string, highlightColors: string[], rarity: Rarity, pattern: string): SpreadsheetKoi[]
+function getKoiCollection(
+    baseColor: string, highlightColors: string[], rarity: Rarity): Koi[]
 {
-    let kois: SpreadsheetKoi[] = [];
+    let kois: Koi[] = [];
     for (const HIGHLIGHT_COLOR of highlightColors)
     {
         kois.push({
             name: baseColor + HIGHLIGHT_COLOR,
-            rarity: rarity,
-            pattern: pattern
+            rarity: rarity
         });
     }
     return kois;
-}
-
-function getColors(table: string[][], patternNameRowIndex: number): PatternColors
-{
-    return {
-        base: getBaseColors(table, patternNameRowIndex),
-        common: getHighlightColors(table, patternNameRowIndex, Rarity.Common),
-        rare: getHighlightColors(table, patternNameRowIndex, Rarity.Rare)
-    };
-}
-
-function getBaseColors(table: string[][], patternNameRowIndex: number): string[]
-{
-    let baseColors: string[] = [];
-    for (let i=2; i<6; i++)
-    {
-        baseColors.push(KoiSpreadsheet.getBaseColor(table, patternNameRowIndex + i));
-    }
-    return baseColors;
-}
-
-function getHighlightColors(table: string[][], patternNameRowIndex: number, rarity: Rarity): string[]
-{
-    // common highlight colors are in columns 1-4
-    // rare highlight colors are in columns 6-9
-    const OFFSET: number = rarity == Rarity.Common ? 1 : 6;
-
-    let highlightColors: string[] = [];
-    for (let i=0; i<4; i++)
-    {
-        highlightColors.push(KoiSpreadsheet.getHighlightColor(
-            table, patternNameRowIndex + 1, i + OFFSET
-        ));
-    }
-    
-    return highlightColors;
-}
-
-async function getOverview(type: PatternType): Promise<Overview>
-{
-    // determine the range used based on whether this is collectors or progressives
-    const RANGE: string = 
-        type == PatternType.Collector ? "Overview!A4:I" : "Progressives!A2:A31";
-
-    // get the values from the spreadsheet
-    const TABLE: string[][] = await Spreadsheet.getValues(SPREADSHEET_ID, RANGE);
-    
-    // get the overview
-    let overview: Overview = [];
-    for (const ROW of TABLE)
-    {
-        // skip empty row
-        // this happens on the overview sheet, there's an empty row between m and n
-        if (!ROW[0])
-        {
-            continue;
-        }
-
-        let overviewEntry: OverviewEntry = { 
-            name: ROW[0],
-            type: type
-        };
-
-        // get the hatch time for collectors
-        if (type == PatternType.Collector)
-        {
-            const COVID_VALUE: string = ROW[8] || "";
-            if (!COVID_VALUE)
-            {
-                throw new Error(
-                    `Expected a value in the last overview column, ` +
-                    `but there wasn't one: ${ROW}`
-                );
-            }
-            overviewEntry.hatchTime = parseInt(COVID_VALUE.substring(8));
-        }
-
-        overview.push(overviewEntry);
-    }
-
-    return overview;
 }

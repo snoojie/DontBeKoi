@@ -9,45 +9,45 @@ beforeAll(async() => {
     await waitGoogleQuota();
 }, googleQuotaTimeout);
 
-// ========================
-// =====NORMALIZE CELL=====
-// ========================
+// ===================
+// =====GET VALUE=====
+// ===================
 
-test("Normalize when provided a single cell.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([ [ "café" ] ], 0, 0);
+test("Get value when provided a single cell.", () => {
+    const VALUE = KoiSpreadsheet.getValue([ [ "cafe" ] ], 0, 0);
     expect(VALUE).toBe("cafe");
 });
 
-test("Normalize when provided a cell without accents.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([ [ "cafe" ] ], 0, 0);
+test("Get value remoevs accents.", () => {
+    const VALUE = KoiSpreadsheet.getValue([ [ "café" ] ], 0, 0);
     expect(VALUE).toBe("cafe");
 });
 
-test("Normalize empty string.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([ [ "" ] ], 0, 0);
+test("Get value of an empty string.", () => {
+    const VALUE = KoiSpreadsheet.getValue([ [ "" ] ], 0, 0);
     expect(VALUE).toBe("");
 });
 
-test("Normalize when provided several rows and columns.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell(
+test("Get value when provided several rows and columns.", () => {
+    const VALUE = KoiSpreadsheet.getValue(
         [ [ "", "", "not it" ], [ "", "", "Jalapeños are delicious!" ] ], 
         1, 2
     );
     expect(VALUE).toBe("Jalapenos are delicious!");
 });
 
-test("Normalize when rowIndex out of bounds.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([ [ "not it" ] ], 3, 0);
+test("Get value when rowIndex out of bounds.", () => {
+    const VALUE = KoiSpreadsheet.getValue([ [ "not it" ] ], 3, 0);
     expect(VALUE).toBe("");
 });
 
-test("Normalize when columnIndex out of bounds.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([ [ "not it" ] ], 0, 3);
+test("Get value when columnIndex out of bounds.", () => {
+    const VALUE = KoiSpreadsheet.getValue([ [ "not it" ] ], 0, 3);
     expect(VALUE).toBe("");
 });
 
-test("Normalize when table is empty.", () => {
-    const VALUE = KoiSpreadsheet.normalizeCell([], 0, 0);
+test("Get value when table is empty.", () => {
+    const VALUE = KoiSpreadsheet.getValue([], 0, 0);
     expect(VALUE).toBe("");
 });
 
@@ -72,8 +72,14 @@ test("Get pattern when row is empty.", () => {
     expectError(
         () => KoiSpreadsheet.getPattern([ [ "", "wrong column" ] ], 0), 
         KoiSpreadsheetError, 
-        "Missing pattern name in row 0."
+        "Missing pattern name in row 0, column 0."
     );
+});
+
+test("Get pattern when specifying column.", () => {
+    const PATTERN = 
+        KoiSpreadsheet.getPattern([ [ "wrong column", "somepattern" ] ], 0, 1);
+    expect(PATTERN).toBe("somepattern");
 });
 
 // ========================
@@ -97,8 +103,13 @@ test("Getting base color when row is empty.", () => {
     expectError(
         () => KoiSpreadsheet.getBaseColor([ [] ], 1),
         KoiSpreadsheetError,
-        "Missing base color name in row 1."
+        "Missing base color name in row 1, column 0."
     );
+});
+
+test("Getting base color when specifying column.", () => {
+    const COLOR = KoiSpreadsheet.getBaseColor([ [ "wrong column", "somecolor" ] ], 0, 1);
+    expect(COLOR).toBe("somecolor");
 });
 
 // =============================

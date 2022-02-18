@@ -1,191 +1,188 @@
 const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+    = require("../_setup/spreadsheet");
 
-// get overview and kois once for the tests
-// this is to lower the read count because of google's quota
-let overview;
-let kois;
-beforeAll(async () => {
-    await waitGoogleQuota();
-    overview = await CommunitySpreadsheet.getOverview();
-    kois = await CommunitySpreadsheet.getKois();
-}, googleQuotaTimeout + 30000);
+testWithModifiedEnv("Get all patterns", CommunitySpreadsheet.getAllPatterns);
 
-// ==================
-// =====OVERVIEW=====
-// ==================
+describe("Get all patterns before tests.", () => {
 
-testOverviewHasType("Collector");
-testOverviewHasType("Progressive");
-function testOverviewHasType(type)
-{
-    test(`Overview includes ${type.toLowerCase()}s.`, () => {
-        let hasType = false;
-        for (const ENTRY of overview)
-        {
-            if (ENTRY.type == type)
-            {
-                hasType = true;
-                break;
-            }
-        }
-        expect(hasType).toBeTruthy();
-    })
-}
+    let patterns;
+    beforeAll(async() => patterns = await CommunitySpreadsheet.getAllPatterns());
 
-test("Overview has no types other than progressive and collector.", () => {
-    let hasWrongType = false;
-    for (const ENTRY of overview)
-    {
-        if (ENTRY.type != "Progressive" && ENTRY.type != "Collector")
-        {
-            hasWrongType = true;
-            break;
-        }
-    }
-    expect(hasWrongType).toBeFalsy();
-})
+    // ======================
+    // =====PATTERN TYPE=====
+    // ======================
 
-test("There are 30 progressives.", () => {
-    const COUNT = getOverviewCountOfType("Progressive");
-    expect(COUNT).toBe(30);
-});
-
-test("There are at least 208 collectors.", () => {
-    let COUNT = getOverviewCountOfType("Collector");
-    expect(COUNT).toBeLessThanOrEqual(208);
-});
-
-function getOverviewCountOfType(type)
-{
-    let count = 0;
-    for (const ENTRY of overview)
-    {
-        if (ENTRY.type == type)
-        {
-            count++;
-        }
-    }
-    return count;
-}
-
-testOverviewHasPattern("Daimon", "Collector", 5);
-testOverviewHasPattern("Totemu", "Collector", 9);
-testOverviewHasPattern("Shapu", "Progressive", undefined);
-function testOverviewHasPattern(name, type, hatchTime)
-{
-    test(
-        `${name} is a ${type.toLowerCase()} with a hatch time of ${hatchTime} hours.`, 
-        () => 
-    {
-        let found = false;
-        for (const ENTRY of overview)
-        {
-            if (ENTRY.name == name && 
-                ENTRY.type == type && 
-                ENTRY.hatchTime == hatchTime
-            ) 
-            {
-                found = true;
-                break;
-            }
-        }
-        expect(found).toBeTruthy();
+    test("Has 30 progressives.", () => {
+        const COUNT = count(patterns, (pattern) => pattern.type == "Progressive");
+        expect(COUNT).toBe(30);
     });
-}
+    
+    test("Has at least 203 collectors.", () => {
+        const COUNT = count(patterns, (pattern) => pattern.type == "Collector");
+        expect(COUNT).toBeGreaterThanOrEqual(203);
+    });
 
-// ==============
-// =====KOIS=====
-// ==============
-
-testKoisIncludeRarity("Common");
-testKoisIncludeRarity("Rare");
-function testKoisIncludeRarity(rarity)
-{
-    test(`There are ${rarity.toLowerCase()} koi.`, () => {
-        let hasRarity = false;
-        for (const KOI of kois)
+    test("Type is either Progressive or Collector.", () => {
+        for (const PATTERN of patterns)
         {
-            if (KOI.rarity == rarity)
+            expect(PATTERN.type == "Progressive" || PATTERN.type == "Collector")
+                .toBeTruthy()
+        }
+    });
+
+    // =====================
+    // =====KOI RARITY=====
+    // =====================
+
+    test("Each pattern has 16 common kois.", () => {
+        for (const PATTERN of patterns)
+        {
+            const COUNT = count(PATTERN.kois, koi => koi.rarity == "Common");
+            expect(COUNT).toBe(16);
+        }
+    });
+
+    test("Each pattern has 16 rare kois.", () => {
+        for (const PATTERN of patterns)
+        {
+            const COUNT = count(PATTERN.kois, koi => koi.rarity == "Rare");
+            expect(COUNT).toBe(16);
+        }
+    });
+
+    test("Each pattern has 32 kois.", () => {
+        for (const PATTERN of patterns)
+        {
+            expect(PATTERN.kois.length).toBe(32);
+        }
+    });
+
+    // ====================
+    // =====HATCH TIME=====
+    // ====================
+
+    test("All collectors have a hatch time.", () => {
+        for (const PATTERN of patterns)
+        {
+            if (PATTERN.type == "Collector")
             {
-                hasRarity = true;
-                break;
+                expect(PATTERN.hatchTime).toBeDefined();
+                expect(PATTERN.hatchTime).toBeGreaterThan(1);
             }
         }
-        expect(hasRarity).toBeTruthy();
     });
-}
 
-test("Kois are only common or rare.", () => {
-    let hasWrongRarity = false;
-    for (const KOI of kois)
+    test("No progressive has a hatch time.", () => {
+        for (const PATTERN of patterns)
+        {
+            if (PATTERN.type == "Progressive")
+            {
+                expect(PATTERN.hatchTime).not.toBeDefined();
+            }
+        }
+    });
+
+    // ==========================================
+    // =====ALL VALUES OF A SPECIFIC PATTERN=====
+    // ==========================================
+/*
+    test("Collector kubiwa is correct.", () => {
+        let pattern = patterns.find(pattern => pattern.name == "Kubiwa");
+        expect(pattern).toEqual({
+            name: "Kubiwa",
+            type: "Collector",
+            hatchTime: 6,
+            kois: [
+                { name: "Choshiro", rarity: "Common" },
+                { name: "Chogure", rarity: "Common" },
+                { name: "Choukon", rarity: "Common" },
+                { name: "Chomarun", rarity: "Common" },
+                { name: "Neshiro", rarity: "Common" },
+                { name: "Negure", rarity: "Common" },
+                { name: "Neukon", rarity: "Common" },
+                { name: "Nemarun", rarity: "Common" },
+                { name: "Mashiro", rarity: "Common" },
+                { name: "Magure", rarity: "Common" },
+                { name: "Maukon", rarity: "Common" },
+                { name: "Mamarun", rarity: "Common" },
+                { name: "Seishiro", rarity: "Common" },
+                { name: "Seigure", rarity: "Common" },
+                { name: "Seiukon", rarity: "Common" },
+                { name: "Seimarun", rarity: "Common" },
+                { name: "Chousu", rarity: "Rare" },
+                { name: "Chomido", rarity: "Rare" },
+                { name: "Chokatsu", rarity: "Rare" },
+                { name: "Chopinku", rarity: "Rare" },
+                { name: "Neusu", rarity: "Rare" },
+                { name: "Nemido", rarity: "Rare" },
+                { name: "Nekatsu", rarity: "Rare" },
+                { name: "Nepinku", rarity: "Rare" },
+                { name: "Mausu", rarity: "Rare" },
+                { name: "Mamido", rarity: "Rare" },
+                { name: "Makatsu", rarity: "Rare" },
+                { name: "Mapinku", rarity: "Rare" },
+                { name: "Seiusu", rarity: "Rare" },
+                { name: "Seimido", rarity: "Rare" },
+                { name: "Seikatsu", rarity: "Rare" },
+                { name: "Seipinku", rarity: "Rare" },
+            ]
+        });
+    });
+
+    test("Progressive ogon is correct.", () => {
+        let pattern = patterns.find(pattern => pattern.name == "Ogon");
+        expect(pattern).toEqual({
+            name: "Ogon",
+            type: "Progressive",
+            kois: [
+                { name: "Shishiro", rarity: "Common" },
+                { name: "Shiukon", rarity: "Common" },
+                { name: "Shidai", rarity: "Common" },
+                { name: "Shikuro", rarity: "Common" },
+                { name: "Kishiro", rarity: "Common" },
+                { name: "Kiukon", rarity: "Common" },
+                { name: "Kidai", rarity: "Common" },
+                { name: "Kikuro", rarity: "Common" },
+                { name: "Akashiro", rarity: "Common" },
+                { name: "Akaukon", rarity: "Common" },
+                { name: "Akadai", rarity: "Common" },
+                { name: "Akakuro", rarity: "Common" },
+                { name: "Kushiro", rarity: "Common" },
+                { name: "Kuukon", rarity: "Common" },
+                { name: "Kudai", rarity: "Common" },
+                { name: "Kukuro", rarity: "Common" },
+                { name: "Shipinku", rarity: "Rare" },
+                { name: "Shimura", rarity: "Rare" },
+                { name: "Shimido", rarity: "Rare" },
+                { name: "Shiburu", rarity: "Rare" },
+                { name: "Kipinku", rarity: "Rare" },
+                { name: "Kimura", rarity: "Rare" },
+                { name: "Kimido", rarity: "Rare" },
+                { name: "Kiburu", rarity: "Rare" },
+                { name: "Akapinku", rarity: "Rare" },
+                { name: "Akamura", rarity: "Rare" },
+                { name: "Akamido", rarity: "Rare" },
+                { name: "Akaburu", rarity: "Rare" },
+                { name: "Kupinku", rarity: "Rare" },
+                { name: "Kumura", rarity: "Rare" },
+                { name: "Kumido", rarity: "Rare" },
+                { name: "Kuburu", rarity: "Rare" },
+            ]
+        });
+    });
+*/
+    function count(list, include)
     {
-        if (KOI.rarity != "Common" && KOI.rarity != "Rare")
+        let count = 0;
+        for (const ITEM of list)
         {
-            hasWrongRarity = true;
-            break;
+            if (include(ITEM))
+            {
+                count++;
+            }
         }
+        return count;
     }
-    expect(hasWrongRarity).toBeFalsy();
-});
 
-test("There are at least 7,616 koi.", () => {
-    expect(kois.length).toBeGreaterThanOrEqual(7616);
-});
-
-test("There are the same number of common as rare koi.", () => {
-    let commonCount = 0;
-    let rareCount = 0;
-    for (const KOI of kois)
-    {
-        if (KOI.rarity == "Common")
-        {
-            commonCount++;
-        }
-        else if (KOI.rarity == "Rare")
-        {
-            rareCount++;
-        }
-    }
-    expect(commonCount).toBe(rareCount);
-});
-
-test("Getting koi ignores accented characters", () => {
-    // normally color chakoji for pattern mukei is accented
-    const KOI = kois.find(koi => koi.pattern == "Mukei" && koi.name == "Chakoji");
-    expect(KOI).toBeDefined();
-});
-
-// ===========================
-// =====OVERVIEW AND KOIS=====
-// ===========================
-
-test("There are 32 times more koi than patterns.", () => {
-    expect(32 * overview.length).toBe(kois.length);
-});
-
-test("Each koi has a pattern defined in the overview.", () => {
-    let koiHasPatternNotInOverview = false;
-    for (const KOI of kois)
-    {
-        if (!overview.find(entry => KOI.pattern == entry.name))
-        {
-            koiHasPatternNotInOverview = true;
-            break;
-        }
-    }
-    expect(koiHasPatternNotInOverview).toBeFalsy();
-});
-
-test("Each pattern in the overview has koi.", () => {
-    let overviewHasPatternWithoutKoi = false;
-    for (const OVERVIEW_ENTRY of overview)
-    {
-        if (!kois.find(koi => koi.pattern == OVERVIEW_ENTRY.name))
-        {
-            overviewHasPatternWithoutKoi = true;
-            break;
-        }
-    }
-    expect(overviewHasPatternWithoutKoi).toBeFalsy();
 });

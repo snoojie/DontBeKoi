@@ -2,7 +2,8 @@ import { Sequelize } from "sequelize";
 import { initModel as initUser } from "./models/user";
 import { Pattern, initModel as initPattern, PatternAttributes } from "./models/pattern";
 import { Koi, initModel as initKoi, KoiAttributes } from "./models/koi";
-import { CommunitySpreadsheet, Overview, SpreadsheetKoi } from "../google/communitySpreadsheet";
+import { CommunitySpreadsheet, Pattern as SpreadsheetPattern, Koi as SpreadsheetKoi } 
+    from "../google/communitySpreadsheet";
 
 export default async function initModels(sequelize: Sequelize): Promise<void>
 {
@@ -15,35 +16,37 @@ export default async function initModels(sequelize: Sequelize): Promise<void>
     await sequelize.sync();
 
     // add data to the tables
-    await populatePatterns();
-    await populateKois();
+    const SPREADSHEET_PATTERNS: SpreadsheetPattern[] = 
+        await CommunitySpreadsheet.getAllPatterns();
+    await populatePatterns(SPREADSHEET_PATTERNS);
+    await populateKois(SPREADSHEET_PATTERNS);
 }
 
-async function populatePatterns(): Promise<void>
+async function populatePatterns(spreadsheetPatterns: SpreadsheetPattern[]): Promise<void>
 {
-    const OVERVIEW_SHEET: Overview = await CommunitySpreadsheet.getOverview();
     let patterns: PatternAttributes[] = [];
-    for (const ROW of OVERVIEW_SHEET)
+    for (const SPREADSHEET_PATTERN of spreadsheetPatterns)
     {
         patterns.push({
-            name: ROW.name, 
-            type: ROW.type,
-            hatchTime: ROW.hatchTime ? ROW.hatchTime : null
+            name: SPREADSHEET_PATTERN.name, 
+            type: SPREADSHEET_PATTERN.type,
+            hatchTime: 
+                SPREADSHEET_PATTERN.hatchTime ? SPREADSHEET_PATTERN.hatchTime : null
         });
     }
     await Pattern.bulkCreate(patterns, { updateOnDuplicate: [ "hatchTime" ] } );
 }
 
-async function populateKois(): Promise<void>
+async function populateKois(spreadsheetPatterns: SpreadsheetPattern[]): Promise<void>
 {
-    const KOIS: SpreadsheetKoi[] = await CommunitySpreadsheet.getKois();
     let kois: KoiAttributes[] = [];
-    for (const KOI of KOIS)
+    for (const SPREADSHEET_PATTERN of spreadsheetPatterns)
     {
+        for (const SPREADSHEET_KOI of SPREADSHEET_PATTERN.kois)
         kois.push({
-            name: KOI.name,
-            rarity: KOI.rarity,
-            patternName: KOI.pattern
+            name: SPREADSHEET_KOI.name,
+            rarity: SPREADSHEET_KOI.rarity,
+            patternName: SPREADSHEET_PATTERN.name
         });
     }
     await Koi.bulkCreate(kois, { ignoreDuplicates: true });
