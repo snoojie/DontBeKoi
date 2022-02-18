@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { UserSpreadsheet, UserSpreadsheetMissingPattern } from "../google/userSpreadsheet";
+import { UserSpreadsheet, PatternNotFound } from "../google/userSpreadsheet";
 import { Rarity } from "../types";
 import PublicError from "../util/publicError";
 import { Koi } from "./models/koi";
@@ -108,7 +108,7 @@ export const DataAccessLayer = {
                     // their spreadsheet, maybe because it's a brand new pattern.
                     // Or, their spreadsheet is broken. Either way, make sure they are
                     // aware they need to update their sheet.
-                    if (error instanceof UserSpreadsheetMissingPattern)
+                    if (error instanceof PatternNotFound)
                     {
                         discordUsersMissingPattern.push(USER.discordId);
                         return true;

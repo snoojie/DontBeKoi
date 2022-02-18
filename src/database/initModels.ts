@@ -2,7 +2,7 @@ import { Sequelize } from "sequelize";
 import { initModel as initUser } from "./models/user";
 import { Pattern, initModel as initPattern, PatternAttributes } from "./models/pattern";
 import { Koi, initModel as initKoi, KoiAttributes } from "./models/koi";
-import { CommunitySpreadsheet, Pattern as SpreadsheetPattern, Koi as SpreadsheetKoi } 
+import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "../google/communitySpreadsheet";
 
 export default async function initModels(sequelize: Sequelize): Promise<void>
