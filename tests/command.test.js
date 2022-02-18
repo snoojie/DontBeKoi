@@ -744,10 +744,10 @@ describe("Test execute method.", () => {
             expect(Logger.log.mock.calls[0][0]).toBe(`Starting... ${commandInfo}`);
 
             // second log message should be something like
-            // Finished someuser: /somecommand ...13 ms
+            // Finished... someuser: /somecommand ...13 ms
             //     some response
             const SECOND_LOG = Logger.log.mock.calls[1][0];
-            expect(SECOND_LOG.startsWith(`...Finished ${commandInfo} ...`)).toBeTruthy();
+            expect(SECOND_LOG.startsWith(`Finished... ${commandInfo} ...`)).toBeTruthy();
             expect(SECOND_LOG.endsWith("\n    some response")).toBeTruthy();
 
             // by default, we look for milliseconds

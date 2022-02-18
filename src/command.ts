@@ -220,11 +220,11 @@ export class CommandManager
             : DURATION/1000 + " s";
         
         // log the results of this command including how long it took to run, ex:
-        // ...Finished Snooj: /who color:nedai pattern:sakyu ...349 ms
+        // Finished... Snooj: /who color:nedai pattern:sakyu ...349 ms
         //     Needing common 10h nedai sakyu:
         //     <@669702480833019954>
         Logger.log(
-            `...Finished ${commandInfo} `+
+            `Finished... ${commandInfo} `+
             `...${DURATION_MESSAGE}` +
             `${("\n"+REPLY).split("\n").join("\n    ")}`
         );
