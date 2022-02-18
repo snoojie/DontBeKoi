@@ -2,10 +2,12 @@ import EnhancedError from "../util/enhancedError";
 import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
+abstract class UserSpreadsheetError extends EnhancedError {}
+
 /**
  * Error thrown when a pattern could not be found in the user spreadsheet.
  */
-export class UserSpreadsheetMissingPattern extends EnhancedError 
+export class PatternNotFound extends UserSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string)
     {
@@ -16,13 +18,24 @@ export class UserSpreadsheetMissingPattern extends EnhancedError
 /**
  * Error thrown when a pattern was found in the user spreadsheet, but not the color.
  */
-export class UserSpreadsheetMissingColor extends EnhancedError 
+export class ColorNotFound extends UserSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string, color: string)
     {
         super(
             `Spreadsheet '${spreadsheetId}' missing color '${color}' ` +
             `for pattern '${pattern}'.`
+        );
+    }
+}
+
+export class UnexpectedKoiMark extends UserSpreadsheetError
+{
+    constructor(spreadsheetId: string, color: string, pattern: string, value: string)
+    {
+        super(
+            `Spreadsheet '${spreadsheetId}' has koi '${color} ${pattern}' marked ` +
+            `with '${value}'. Expected to see 'k', 'd', or no text.`
         );
     }
 }
@@ -38,12 +51,10 @@ export const UserSpreadsheet = {
      * @param color Koi's color.
      * @param pattern Koi's pattern.
      * @returns true or false.
-     * @throws ConfigError if missing Google API key env variables.
-     * @throws SpreadsheetError if spreadsheet ID or Google API key is not valid.
-     * @throws UserSpreadsheetMissingPattern if the spreadsheet does not have
-     *         the pattern.
-     * @throws UserSpreadsheetMissingColor if the spreadsheet has the pattern 
-     *         but not color.
+     * @throws InvalidGoogleApiKey if Google API key is invalid or missing.
+     * @throws SpreadsheetNotFound if spreadsheet does not exist.
+     * @throws PatternNotFound if the spreadsheet does not have the pattern.
+     * @throws ColorNotFound if the spreadsheet has the pattern but not color.
      */
     hasKoi: async function(
         spreadsheetId: string, color: string, pattern: string): Promise<boolean>
@@ -51,9 +62,6 @@ export const UserSpreadsheet = {
         // todo, check progressive
 
         // get the spreadsheet
-        // throws ConfigError if Google API key not an env variable
-        // throws SpreadsheetError if Google API key, spreadsheet ID, 
-        // or range not valid
         const RANGE: string = pattern.slice(0,1) < "n" 
             ? "A-M: Collectors!B2:K" 
             : "N-Z: Collectors!B2:K";
@@ -74,7 +82,7 @@ export const UserSpreadsheet = {
         }
         if (patternRowIndex < 0)
         {
-            throw new UserSpreadsheetMissingPattern(spreadsheetId, pattern);
+            throw new PatternNotFound(spreadsheetId, pattern);
         }
 
         // find the base color
@@ -93,7 +101,7 @@ export const UserSpreadsheet = {
         }
         if (baseColorRowIndex < 0)
         {
-            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
+            throw new ColorNotFound(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
@@ -122,38 +130,46 @@ export const UserSpreadsheet = {
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
+            throw new ColorNotFound(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
         if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new UserSpreadsheetMissingColor(spreadsheetId, pattern, color);
+            throw new ColorNotFound(spreadsheetId, pattern, color);
         }
 
         // Finally, we know the row and column of this koi.
         // Go read the value.
         // It should be empty if the user does not have the koi.
         // It should have "k" or "d" if the user has the koi.
-        const VALUE: string = KoiSpreadsheet.normalizeCell(
+        let VALUE: string = KoiSpreadsheet.normalizeCell(
             TABLE, baseColorRowIndex, highlightColorColumnIndex
         );
-        return equalsIgnoreCase(VALUE, "k") || equalsIgnoreCase(VALUE, "d");
+        if (equalsIgnoreCase(VALUE, "k") || equalsIgnoreCase(VALUE, "d"))
+        {
+            return true;
+        }
+        if (VALUE.trim())
+        {
+            throw new UnexpectedKoiMark(spreadsheetId, color, pattern, VALUE);
+        }
+        return false;
     } 
 
 };
 
 function equalsIgnoreCase(first: string, second: string): boolean
 {
-    return first.toLowerCase() == second.toLowerCase();
+    return first.toLowerCase().trim() == second.toLowerCase().trim();
 }
 
 function startsWithIgnoreCase(first: string, second: string): boolean
 {
-    return first.toLowerCase().startsWith(second.toLowerCase());
+    return first.toLowerCase().trim().startsWith(second.toLowerCase().trim());
 }
 
 function endsWithIgnoreCase(first: string, second: string): boolean
 {
-    return first.toLowerCase().endsWith(second.toLowerCase());
+    return first.toLowerCase().trim().endsWith(second.toLowerCase().trim());
 }

@@ -1,5 +1,5 @@
-const { Spreadsheet, SpreadsheetError, InvalidGoogleApiKey, SpreadsheetNotFound, 
-        RangeNotFound } = require("../../src/google/spreadsheet");
+const { Spreadsheet, SpreadsheetNotFound, RangeNotFound } 
+    = require("../../src/google/spreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
@@ -10,9 +10,9 @@ const VALID_RANGE = "Progressives!I16";
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-/*beforeAll(async() => {
+beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);*/
+}, googleQuotaTimeout);
 
 // ================
 // =====EXISTS=====
@@ -109,23 +109,4 @@ test("Get values of several rows with last row empty.", async() => {
     const VALUES = 
         await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I7:I8");
     expect(VALUES).toEqual([ [ "Ku-" ] ]);
-});
-
-// =========================================
-// =====ERRORS EXTEND SPREADSHEET ERROR=====
-// =========================================
-
-test("InvalidGoogleApiKey extends SpreadsheetError.", () => {
-    let error = new InvalidGoogleApiKey("some error");
-    expect(error instanceof SpreadsheetError);
-});
-
-test("SpreadsheetNotFound extends SpreadsheetError.", () => {
-    let error = new SpreadsheetNotFound("some spreadsheet", "some error");
-    expect(error instanceof SpreadsheetError);
-});
-
-test("RangeNotFound extends SpreadsheetError.", () => {
-    let error = new RangeNotFound("some spreadsheet", "some range", "some error");
-    expect(error instanceof SpreadsheetError);
 });
