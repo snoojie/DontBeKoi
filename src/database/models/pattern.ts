@@ -2,6 +2,9 @@ import { Association, DataTypes, Model, Sequelize } from "sequelize";
 import { PatternType } from "../../types";
 import { Koi } from "./koi";
 
+/**
+ * Columns of the Pattern table in the database.
+ */
 export interface PatternAttributes
 {
     name: string;
@@ -9,6 +12,9 @@ export interface PatternAttributes
     hatchTime: number | null;
 }
 
+/**
+ * Represents a single record from the Pattern table in the database.
+ */
 export class Pattern extends Model<PatternAttributes> implements PatternAttributes
 {
     declare name: string;
@@ -25,7 +31,6 @@ export class Pattern extends Model<PatternAttributes> implements PatternAttribut
 /**
  * Initializes the model and creates the table if it does not yet exist.
  * @param sequelize Database connection
- * @throws if the model could not be instantiated.
  */
 export function initModel(sequelize: Sequelize): void
 {

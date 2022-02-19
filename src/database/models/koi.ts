@@ -1,9 +1,16 @@
 import { Association, DataTypes, Model, Sequelize } from "sequelize";
-import ErrorMessages from "../../errorMessages";
 import { Rarity } from "../../types";
-import RethrownError from "../../util/rethrownError";
+import EnhancedError from "../../util/enhancedError";
 import { Pattern } from "./pattern";
 
+/**
+ * Error thrown when Koi model initialization fails.
+ */
+export class KoiModelError extends EnhancedError {}
+
+/**
+ * Columns of the Koi table in the database.
+ */
 export interface KoiAttributes
 {
     name: string;
@@ -11,6 +18,9 @@ export interface KoiAttributes
     patternName: string;
 }
 
+/**
+ * Represents a single record from the Koi table in the database.
+ */
 export class Koi extends Model<KoiAttributes> implements KoiAttributes
 {
     declare name: string;
@@ -26,7 +36,7 @@ export class Koi extends Model<KoiAttributes> implements KoiAttributes
 /**
  * Initializes the model and creates the table if it does not yet exist.
  * @param sequelize Database connection
- * @throws if the model could not be instantiated.
+ * @throws KoiModelError if initialization fails.
  */
 export function initModel(sequelize: Sequelize): void
 {
@@ -60,7 +70,11 @@ export function initModel(sequelize: Sequelize): void
     }
     catch(error)
     {
-        throw new RethrownError(ErrorMessages.DATABASE.CANNOT_INITIALIZE_KOI, error);
+        console.log(error);
+        throw new KoiModelError("Could not associate Pattern to Koi. " +
+            "Did you forget to inititalize Pattern before initializing Koi?",
+            error
+        );
     }
 
     Koi.belongsTo(Pattern, {

@@ -1,5 +1,8 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
+/**
+ * Columns of the User table in the database.
+ */
 interface UserAttributes
 {
     discordId: string;
@@ -7,6 +10,9 @@ interface UserAttributes
     spreadsheetId: string;
 }
 
+/**
+ * Represents a single record from the User table in the database.
+ */
 export class User extends Model<UserAttributes> implements UserAttributes
 {
     declare discordId: string;
@@ -17,7 +23,6 @@ export class User extends Model<UserAttributes> implements UserAttributes
 /**
  * Initializes the model and creates the table if it does not yet exist.
  * @param sequelize Database connection
- * @throws if the model could not be instantiated.
  */
 export function initModel(sequelize: Sequelize): void
 {
