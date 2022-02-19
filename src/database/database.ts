@@ -40,7 +40,8 @@ export const Database = {
     /**
      * Initialize the database.
      * @throws DatabaseError if the database is already running.
-     * @throws ConfigError if the database URL is not set in the environment variables.
+     * @throws InvalidDatabaseUrl if the database URL is invalid or 
+     *         not set in the environment variables.
      */
     start: async function(): Promise<void>
     {

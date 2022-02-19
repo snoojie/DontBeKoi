@@ -216,7 +216,7 @@ function expectStartLogs()
     expectLog(0, "Starting bot...");
     expectLogPartials(0, "    Logging into discord...", "..Logged in.");
     expectLogPartials(2, "    Setting up commands...", "...Commands set up.");
-    expectLogPartials(4, "    Setting up database...", "...Database set up.");
+    expectLogPartials(4, "    Setting up data.....", ".....Data set up.");
     expectLog(1, "Bot is ready!");
 
     expectLogCounts(2, 6, 0);
@@ -228,8 +228,8 @@ function expectStopLogs(startLogIndex, startLogPartialIndex)
     startLogPartialIndex = !startLogPartialIndex ? 0 : startLogPartialIndex;
 
     expectLog(startLogIndex, "Stopping the bot...");
-    expectLogPartials(startLogPartialIndex,   "    Disconnecting from discord...", "..Disconnected from discord.");
-    expectLogPartials(startLogPartialIndex+2, "    Stopping the database.....", ".....Database stopped.");
+    expectLogPartials(startLogPartialIndex,   "    Disconnecting from discord...", "...Disconnected from discord.");
+    expectLogPartials(startLogPartialIndex+2, "    Stopping data services.....", ".....Data services stopped.");
     expectLog(startLogIndex+1, "Bot stopped.");
 
     const ERROR_COUNT = !startLogIndex ? 0 : 1;

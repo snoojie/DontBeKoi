@@ -1,8 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import { DataAccessLayer } from "../database/dataAccessLayer";
-import { Spreadsheet } from "../google/spreadsheet";
-import RethrownError from "../util/rethrownError";
+import { DataAccessLayer, SpreadsheetNotFound } from "../dataAccessLayer";
 
 const GoogleCommand: Command = {
 
@@ -17,45 +15,32 @@ const GoogleCommand: Command = {
 
     isPrivate: true,
     
-    execute: async function (interaction: CommandInteraction): Promise<string> {
+    execute: async function (interaction: CommandInteraction): Promise<string> 
+    {
 
         // get the value of the spreadsheet option
         const SPREADSHEET_ID: string = interaction.options.getString("spreadsheet")!;
 
-        // make sure this is a valid spreadsheet
+        // save this user with the spreadsheet ID in the database
         try 
         {
-            const IS_SPREADSHEET_VALID: boolean = 
-                await Spreadsheet.exists(SPREADSHEET_ID);
-            if (!IS_SPREADSHEET_VALID)
-            {
-                return `Spreadsheet ID ${SPREADSHEET_ID} is not valid. ` +
-                    `You can find the ID in the URL. For example, spreadsheet ` +
-                    `<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> ` +
-                    `has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo`;
-            }
-        }
-        catch(error) 
-        {
-            throw new RethrownError(
-                "Could not register spreadsheet due to an issue when validating it: " +
-                SPREADSHEET_ID, 
-                error
-            );
-        }
-
-        // save this user with the spreadsheet ID in the database
-        try {
             await DataAccessLayer.saveUser(
                 interaction.user.id, interaction.user.username, SPREADSHEET_ID
             );
-        } catch(error)
+        } 
+        catch(error)
         {
-            throw new RethrownError(
-                "Could not register spreadsheet due to issue saving user.", error
-            );
+            // let the user know if the spreadsheet is not valid
+            if(error instanceof SpreadsheetNotFound)
+            {
+                return error.message;
+            }
+
+            // if there is another error, throw it up the chain
+            throw error;
         }
 
+        // let the user know that their spreadsheet has been saved
         return `Updated your spreadsheet to ${SPREADSHEET_ID}`;
     }
 

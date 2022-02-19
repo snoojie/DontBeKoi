@@ -2,8 +2,8 @@ import { Client, Interaction } from "discord.js";
 import { Config } from "./util/config";
 import Logger from "./util/logger";
 import { CommandManager } from "./command";
-import { Database } from "./database/database";
 import EnhancedError from "./util/enhancedError";
+import { DataAccessLayer } from "./dataAccessLayer";
 
 class BotError extends EnhancedError {}
 
@@ -72,8 +72,8 @@ const Bot = {
         {            
             // login
             Logger.logPartial("    Logging into discord...")
-            await login()
-                .then(_ => Logger.logPartial("..Logged in.", true));
+            await login();
+            Logger.logPartial("..Logged in.", true);
 
             // set up commands
             Logger.logPartial("    Setting up commands...");
@@ -90,13 +90,15 @@ const Bot = {
                     Logger.error(interaction);
                 }
             });
-            await commandManager.run()
-                .then(_ => Logger.logPartial("...Commands set up.", true));
+            await commandManager.run();
+            Logger.logPartial("...Commands set up.", true);
 
-            // set up database
-            Logger.logPartial("    Setting up database...")
-            await Database.start()
-                .then(_ => Logger.logPartial("...Database set up.", true));
+            // start the database connection
+            // and update the database with the latest patterns
+            Logger.logPartial("    Setting up data.....")
+            await DataAccessLayer.start();
+            await DataAccessLayer.updatePatterns();
+            Logger.logPartial(".....Data set up.", true);
 
             // Discord isn't ready immediately after logging in for... reasons?
             // but, since we do other stuff like the database,
@@ -131,11 +133,11 @@ const Bot = {
         Logger.logPartial("    Disconnecting from discord...");
         discord.destroy();
         discord = getNewDiscordClient();
-        Logger.logPartial("..Disconnected from discord.", true);
+        Logger.logPartial("...Disconnected from discord.", true);
 
-        Logger.logPartial("    Stopping the database.....");
-        await Database.stop();
-        Logger.logPartial(".....Database stopped.", true);
+        Logger.logPartial("    Stopping data services.....");
+        await DataAccessLayer.stop();
+        Logger.logPartial(".....Data services stopped.", true);
 
         isBotOn = false;
 

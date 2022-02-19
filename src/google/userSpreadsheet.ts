@@ -19,9 +19,10 @@ export class PatternNotFound extends UserSpreadsheetError
 }
 
 /**
- * Error thrown when a pattern was found in the user spreadsheet, but not the color.
+ * Error thrown when a pattern was found in the user spreadsheet, 
+ * but not the specific koi.
  */
-export class ColorNotFound extends UserSpreadsheetError 
+export class KoiNotFound extends UserSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string, color: string)
     {
@@ -57,7 +58,7 @@ export const UserSpreadsheet = {
      * @throws InvalidGoogleApiKey if Google API key is invalid or missing.
      * @throws SpreadsheetNotFound if spreadsheet does not exist.
      * @throws PatternNotFound if the spreadsheet does not have the pattern.
-     * @throws ColorNotFound if the spreadsheet has the pattern but not color.
+     * @throws KoiNotFound if the spreadsheet has the pattern but not color.
      */
     hasKoi: async function(
         spreadsheetId: string, color: string, pattern: string): Promise<boolean>
@@ -104,7 +105,7 @@ export const UserSpreadsheet = {
         }
         if (baseColorRowIndex < 0)
         {
-            throw new ColorNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
@@ -133,13 +134,13 @@ export const UserSpreadsheet = {
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new ColorNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
         if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new ColorNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // Finally, we know the row and column of this koi.

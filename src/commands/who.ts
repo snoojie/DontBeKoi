@@ -1,6 +1,7 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import { DataAccessLayer, UsersMissingKoiResponse } from "../database/dataAccessLayer";
+import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } 
+    from "../dataAccessLayer";
 
 const WhoCommand: Command = {
 
@@ -20,23 +21,37 @@ const WhoCommand: Command = {
         const PATTERN: string = interaction.options.getString("pattern") || "";
         
         // get everyone who does not have this koi
-        const USERS_MISSING_KOI: UsersMissingKoiResponse =
-            await DataAccessLayer.getUsersMissingKoi(COLOR, PATTERN);
+        let usersMissingKoi: UsersMissingKoiResponse;
+        try
+        {
+            usersMissingKoi = await DataAccessLayer.getUsersMissingKoi(COLOR, PATTERN);
+        }
+        catch(error)
+        {
+            // if the pattern or color are invalid, return that
+            if(error instanceof PatternNotFound || error instanceof KoiNotFound)
+            {
+                return error.message;
+            }
+
+            // otherwise, throw the error up the chain
+            throw error;
+        }
 
         // start building the reply message
         // to show information about the koi
         // note that not all patterns (progressives primarily) have a known hatch time
         // <rarity> <time> <color> <pattern>
-        let koiDescription: string = `${USERS_MISSING_KOI.rarity.toLowerCase()} `;
-        if (USERS_MISSING_KOI.hatchTime)
+        let koiDescription: string = `${usersMissingKoi.rarity.toLowerCase()} `;
+        if (usersMissingKoi.hatchTime)
         {
-            koiDescription += `${USERS_MISSING_KOI.hatchTime}h `;
+            koiDescription += `${usersMissingKoi.hatchTime}h `;
         }
         koiDescription += `${COLOR} ${PATTERN}`;
 
         // if no one needs the koi, state that
         let reply: string;
-        if (USERS_MISSING_KOI.discordIds.length == 0)
+        if (usersMissingKoi.discordIds.length == 0)
         {
             reply = `Nobody needs ${koiDescription}.`;
         }
@@ -45,18 +60,20 @@ const WhoCommand: Command = {
         // so mention all discord users who need this koi
         else
         {
-            const MENTIONS: string[] = getMentions(USERS_MISSING_KOI.discordIds);
-            reply = `Needing ${koiDescription}:\n${MENTIONS.join(" ")}`;
+            const MENTIONS: string = getMentions(usersMissingKoi.discordIds);
+            reply = `Needing ${koiDescription}:\n${MENTIONS}`;
         }
 
-        // if anyone didn't have this pattern in their spreadsheet,
-        // call them out
-        if (USERS_MISSING_KOI.discordIdsMissingPattern.length > 0)
-        {
-            const MENTIONS: string[] = 
-                getMentions(USERS_MISSING_KOI.discordIdsMissingPattern);
-            reply += `\nCould not find pattern for ${MENTIONS.join(" ")}`;
-        }
+        // call out anyone who does not have this pattern in their spreadsheet
+        reply += callOut(
+            usersMissingKoi.discordIdsMissingPattern, "Could not find pattern"
+        );
+
+        // call out anyone who does not have a valid spreadsheet
+        reply += callOut(
+            usersMissingKoi.discordIdsWithInvalidSpreadsheet, 
+            "Could not read spreadsheet"
+        );
 
         return reply;
     }
@@ -65,12 +82,22 @@ const WhoCommand: Command = {
 
 export default WhoCommand;
 
-function getMentions(discordIds: string[]): string[]
+function getMentions(discordIds: string[]): string
 {
-    let mentions: string[] = [];
+    let mentionList: string[] = [];
     for (const DISCORD_ID of discordIds)
     {
-        mentions.push(`<@${DISCORD_ID}>`);
+        mentionList.push(`<@${DISCORD_ID}>`);
     }
-    return mentions;
+    return mentionList.join(" ");
+}
+
+function callOut(discordIds: string[], reason: string): string
+{
+    if (discordIds.length > 0)
+    {
+        const MENTIONS: string = getMentions(discordIds);
+        return `\n${reason} for ${MENTIONS}`;
+    }
+    return "";
 }
