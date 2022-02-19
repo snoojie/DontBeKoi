@@ -1,15 +1,46 @@
 import { Options, Sequelize } from "sequelize";
-import ErrorMessages from "../errorMessages";
 import { Config } from "../util/config";
-import RethrownError from "../util/rethrownError";
+import EnhancedError from "../util/enhancedError";
 import initModels from "./initModels";
+
+/**
+ * Base error.
+ */
+export abstract class DatabaseError extends EnhancedError {}
+
+/**
+ * Error thrown when the database is started when it is already running.
+ */
+export class DatabaseAlreadyRunning extends DatabaseError
+{
+    constructor()
+    {
+        super("Cannot start the database. It is already running.")
+    }
+}
+
+/**
+ * Error thrown the database URL is either invalid or not set in environment variables.
+ */
+export class InvalidDatabaseUrl extends DatabaseError
+{
+    constructor(message: string, error: any)
+    {
+        super(message, error);
+    }
+}
 
 let sequelize: Sequelize | undefined;
 
-const Database = {
+/**
+ * Represents the database. Has two functions: start and stop.
+ */
+export const Database = {
 
     /**
      * Initialize the database.
+     * @throws DatabaseError if the database is already running.
+     * @throws ConfigError if the database URL is not set in the environment variables.
      */
     start: async function(): Promise<void>
     {
@@ -17,11 +48,21 @@ const Database = {
         // there is nothing to do
         if (sequelize)
         {
-            throw new Error(ErrorMessages.DATABASE.ALREADY_RUNNING);
+            throw new DatabaseAlreadyRunning();
         }
 
         // get the database URL
-        const URL = Config.getDatabaseUrl();
+        let url;
+        try
+        {
+            url = Config.getDatabaseUrl();
+        }
+        catch(error)
+        {
+            throw new InvalidDatabaseUrl(
+                "Database URL not set in environment variables.", error
+            );
+        }
 
         // connect to database
         try
@@ -40,7 +81,7 @@ const Database = {
             };
 
             // if using heroku, use ssl
-            if (URL.indexOf("@localhost") < 0)
+            if (url.indexOf("@localhost") < 0)
             {
                 options.dialectOptions = {
                     ssl: {
@@ -51,7 +92,7 @@ const Database = {
             }
 
             // create sequelize instance
-            sequelize = new Sequelize(URL, options);
+            sequelize = new Sequelize(url, options);
 
             // we run authetnicate because creating a sequelize instance
             // does not check if user, database name, etc, are valid
@@ -59,15 +100,17 @@ const Database = {
         }
         catch(error)
         {
-            throw new RethrownError(
-                ErrorMessages.DATABASE.FAILED_CONNECTION + " " + URL,
-                error
+            throw new InvalidDatabaseUrl(
+                "Could not connect to the database. Could the URL be invalid?", error
             );
         }
 
         await initModels(sequelize);
     },
 
+    /**
+     * Close the connection to the database.
+     */
     stop: async function() 
     {
         if (sequelize)
@@ -77,5 +120,3 @@ const Database = {
         }
     }
 }
-
-export default Database;

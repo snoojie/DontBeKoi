@@ -2,7 +2,7 @@ import { Client, Interaction } from "discord.js";
 import { Config } from "./util/config";
 import Logger from "./util/logger";
 import { CommandManager } from "./command";
-import Database from "./database/database";
+import { Database } from "./database/database";
 import EnhancedError from "./util/enhancedError";
 
 class BotError extends EnhancedError {}
