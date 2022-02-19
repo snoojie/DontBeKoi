@@ -1,13 +1,13 @@
-const BaseModelTester = require("./_baseModelTester");
-const { initModel, User } = require("../../../src/database/models/user");
+const { initUser, User } = require("../../../src/database/models/user");
+const { testModel } = require("../../_setup/database");
 
 const USER = { discordId: "did", name: "somename", "spreadsheetId": "sid" };
 
-BaseModelTester.runCommonTests({
+testModel({
 
     init: async function(sequelize)
     {
-        await initModel(sequelize);
+        await initUser(sequelize);
     },
 
     tableName: "users",

@@ -70,7 +70,6 @@ export function initKoi(sequelize: Sequelize): void
     }
     catch(error)
     {
-        console.log(error);
         throw new KoiModelError("Could not associate Pattern to Koi. " +
             "Did you forget to inititalize Pattern before initializing Koi?",
             error

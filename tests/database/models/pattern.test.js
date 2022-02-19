@@ -1,13 +1,13 @@
-const BaseModelTester = require("./_baseModelTester");
-const { initModel, Pattern } = require("../../../src/database/models/pattern");
+const { initPattern, Pattern } = require("../../../src/database/models/pattern");
+const { testModel } = require("../../_setup/database");
 
 const PATTERN = { name: "somename", type: "sometype", hatchTime: 99 };
 
-BaseModelTester.runCommonTests({
+testModel({
 
     init: async function(sequelize)
     {
-        await initModel(sequelize);
+        await initPattern(sequelize);
     },
 
     tableName: "patterns",
