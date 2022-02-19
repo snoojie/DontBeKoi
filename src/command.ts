@@ -6,7 +6,6 @@ import { Routes } from "discord-api-types/v9";
 import Logger from "./util/logger";
 import { Config } from "./util/config";
 import * as fs from "fs";
-import PublicError from "./util/publicError";
 import EnhancedError from "./util/enhancedError";
 
 /**
@@ -203,10 +202,6 @@ export class CommandManager
         // execute the command
         const REPLY: string = await COMMAND.execute(interaction)
             .catch(error => {
-                if (error instanceof PublicError)
-                {
-                    return error.message;
-                }
                 Logger.error("Uncaught error when executing command.");
                 Logger.error(error);
                 Logger.error(interaction);

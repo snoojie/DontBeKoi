@@ -1,7 +1,6 @@
 const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError, 
         DeployCommandsError } = require("../src/command");
 const { ConfigError } = require("../src/util/config");
-const PublicError = require("../src/util/publicError").default;
 const fs = require("fs");
 const { REST } = require("@discordjs/rest");
 const { expectErrorAsync } = require("./_setup/testUtil");
@@ -630,13 +629,6 @@ describe("Test execute method.", () => {
 
         test("Reply with command's execute result.", async() => {
             testBotResponse(COMMAND_RESPONSE);
-        });
-    
-        test("Reply with PublicError message.", async() => {
-            command.execute = async () => {
-                throw new PublicError("mock public error message"); 
-            }
-            testBotResponse("mock public error message");
         });
     
         test("Reply with general error message.", async() => {
