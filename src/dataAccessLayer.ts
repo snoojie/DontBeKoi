@@ -5,10 +5,8 @@ import { Pattern, PatternAttributes } from "./database/models/pattern";
 import { User } from "./database/models/user";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "./google/communitySpreadsheet";
-import { Spreadsheet, SpreadsheetNotFound as SpreadsheetNotFoundInSpreadsheet } 
-    from "./google/spreadsheet";
-import { PatternNotFound as PatterNotFoundInSpreadsheet, UserSpreadsheet } 
-    from "./google/userSpreadsheet";
+import { InvalidSpreadsheet, Spreadsheet } from "./google/spreadsheet";
+import { PatternNotInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
 
@@ -239,7 +237,7 @@ export const DataAccessLayer =
                     // their spreadsheet, maybe because it's a brand new pattern.
                     // Or, their spreadsheet is broken. Either way, make sure they are
                     // aware they need to update their sheet.
-                    if (error instanceof PatterNotFoundInSpreadsheet)
+                    if (error instanceof PatternNotInSpreadsheet)
                     {
                         usersMissingKoi.discordIdsMissingPattern.push(USER.discordId);
                         return;
@@ -247,7 +245,7 @@ export const DataAccessLayer =
 
                     // Let the user know if their spreadsheet cannot be read from.
                     // This is most likely due to read permission being revoked.
-                    if(error instanceof SpreadsheetNotFoundInSpreadsheet)
+                    if(error instanceof InvalidSpreadsheet)
                     {
                         usersMissingKoi.discordIdsWithInvalidSpreadsheet
                             .push(USER.discordId);

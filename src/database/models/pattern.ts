@@ -32,7 +32,7 @@ export class Pattern extends Model<PatternAttributes> implements PatternAttribut
  * Initializes the model and creates the table if it does not yet exist.
  * @param sequelize Database connection
  */
-export function initModel(sequelize: Sequelize): void
+export function initPattern(sequelize: Sequelize): void
 {
     Pattern.init(
         {

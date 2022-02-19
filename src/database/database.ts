@@ -1,7 +1,9 @@
 import { Options, Sequelize } from "sequelize";
 import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
-import initModels from "./initModels";
+import { initUser } from "./models/user";
+import { initPattern } from "./models/pattern";
+import { initKoi } from "./models/koi";
 
 /**
  * Base error.
@@ -106,7 +108,13 @@ export const Database = {
             );
         }
 
-        await initModels(sequelize);
+        // init the models
+        initUser(sequelize);
+        initPattern(sequelize);
+        initKoi(sequelize);
+    
+        // create the tables if they don't exist yet
+        await sequelize.sync();
     },
 
     /**

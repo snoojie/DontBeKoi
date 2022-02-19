@@ -1,5 +1,5 @@
-const { SpreadsheetNotFound } = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotFound, KoiNotFound, UnexpectedKoiMark } 
+const { InvalidSpreadsheet } = require("../../src/google/spreadsheet");
+const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, UnexpectedKoiMark } 
     = require("../../src/google/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
@@ -26,7 +26,7 @@ testWithModifiedEnv(
 test("User missing pattern.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(SPREADSHEET_ID, "shigin", "invalidpattern"), 
-        PatternNotFound, 
+        PatternNotInSpreadsheet, 
         `Spreadsheet '${SPREADSHEET_ID}' missing pattern 'invalidpattern'.`
     );
 });
@@ -34,7 +34,7 @@ test("User missing pattern.", async() => {
 test("User missing base color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(SPREADSHEET_ID, "invalidcolor", "natsu"), 
-        KoiNotFound, 
+        KoiNotInSpreadsheet, 
         `Spreadsheet '${SPREADSHEET_ID}' missing color 'invalidcolor' ` +
         "for pattern 'natsu'."
     );
@@ -43,7 +43,7 @@ test("User missing base color.", async() => {
 test("User missing highlight color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(SPREADSHEET_ID, "neinvalid", "robotto"), 
-        KoiNotFound, 
+        KoiNotInSpreadsheet, 
         `Spreadsheet '${SPREADSHEET_ID}' missing color 'neinvalid' ` +
         "for pattern 'robotto'."
     );
@@ -52,7 +52,7 @@ test("User missing highlight color.", async() => {
 test("User missing color even though base and highlight are correct.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(SPREADSHEET_ID, "seiinvalidkoji", "toransu"), 
-        KoiNotFound, 
+        KoiNotInSpreadsheet, 
         `Spreadsheet '${SPREADSHEET_ID}' missing color 'seiinvalidkoji' ` +
         "for pattern 'toransu'."
     );
@@ -61,7 +61,7 @@ test("User missing color even though base and highlight are correct.", async() =
 test("Invalid spreadsheet.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi("invalidspreadsheet", "shigin", "natsu"), 
-        SpreadsheetNotFound, 
+        InvalidSpreadsheet, 
         "Spreadsheet ID 'invalidspreadsheet' does not exist."
     );
 });

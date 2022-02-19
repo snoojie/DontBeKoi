@@ -1,4 +1,4 @@
-const { Spreadsheet, SpreadsheetNotFound, RangeNotFound } 
+const { Spreadsheet, InvalidSpreadsheet, RangeNotFound } 
     = require("../../src/google/spreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
@@ -44,7 +44,7 @@ test("Get values of invalid spreadsheet.", async() => {
     let promise = Spreadsheet.getValues("invalidid", VALID_RANGE);
     await expectErrorAsync(
         promise, 
-        SpreadsheetNotFound,
+        InvalidSpreadsheet,
         "Spreadsheet ID 'invalidid' does not exist."
     );
 });

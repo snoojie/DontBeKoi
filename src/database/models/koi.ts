@@ -38,7 +38,7 @@ export class Koi extends Model<KoiAttributes> implements KoiAttributes
  * @param sequelize Database connection
  * @throws KoiModelError if initialization fails.
  */
-export function initModel(sequelize: Sequelize): void
+export function initKoi(sequelize: Sequelize): void
 {
     Koi.init(
         {

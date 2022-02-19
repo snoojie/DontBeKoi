@@ -24,7 +24,7 @@ export class User extends Model<UserAttributes> implements UserAttributes
  * Initializes the model and creates the table if it does not yet exist.
  * @param sequelize Database connection
  */
-export function initModel(sequelize: Sequelize): void
+export function initUser(sequelize: Sequelize): void
 {
     User.init(
         {

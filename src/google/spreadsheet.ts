@@ -23,7 +23,7 @@ export class InvalidGoogleApiKey extends SpreadsheetError
 /**
  * Error thrown when the spreadsheet could not be found due to an invalid ID.
  */
-export class SpreadsheetNotFound extends SpreadsheetError 
+export class InvalidSpreadsheet extends SpreadsheetError 
 {
     constructor(spreadsheetId: string, error: any)
     {
@@ -98,7 +98,7 @@ export const Spreadsheet = {
             {
                 throw new InvalidGoogleApiKey(error);
             }
-            if (isGoogleErrorOfSpreadsheetNotFound(error))
+            if (isGoogleErrorOfInvalidSpreadsheet(error))
             {
                 return false;
             }
@@ -116,7 +116,7 @@ export const Spreadsheet = {
      * @param range Range in the spreadsheet, for example, Progressives!A2:G
      * @returns List of rows from the specified range and spreadsheet
      * @throws InvalidGoogleApiKey if the Google API key is invalid.
-     * @throws SpreadsheetNotFound if the spreadsheet ID is invalid.
+     * @throws InivalidSpreadsheet if the spreadsheet ID is invalid.
      * @throws RangeNotFound if the spreadsheet exists but the range is invalid.
      */
     getValues: async function(spreadsheetId: string, range: string): Promise<string[][]>
@@ -142,9 +142,9 @@ export const Spreadsheet = {
             {
                 throw new InvalidGoogleApiKey(error);
             }
-            if(isGoogleErrorOfSpreadsheetNotFound(error))
+            if(isGoogleErrorOfInvalidSpreadsheet(error))
             {
-                throw new SpreadsheetNotFound(spreadsheetId, error);
+                throw new InvalidSpreadsheet(spreadsheetId, error);
             }
             if(isGoogleErrorOfRangeNotFound(error))
             {
@@ -178,7 +178,7 @@ function isGoogleErrorOfInvalidGoogleApiKey(error: any): boolean
            error.message == "API key not valid. Please pass a valid API key.";
 }
 
-function isGoogleErrorOfSpreadsheetNotFound(error: any): boolean
+function isGoogleErrorOfInvalidSpreadsheet(error: any): boolean
 {
     return error instanceof GaxiosError && 
            error.code == "404" && 
