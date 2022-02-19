@@ -41,5 +41,10 @@
     },
 
     // exclude the tests/ directory from appearing in build/
-    "exclude": ["tests/**/*", "node_modules/**/*", "jest.*"]
+    "exclude": ["tests/**/*", "node_modules/**/*", "jest.*"],
+
+    "typedocOptions": {
+        "entryPointStrategy": "expand",
+        "entryPoints": ["./src"]
+    }
 }
