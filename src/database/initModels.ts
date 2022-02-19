@@ -5,6 +5,11 @@ import { Koi, initModel as initKoi, KoiAttributes } from "./models/koi";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "../google/communitySpreadsheet";
 
+/**
+ * Initialize the models for the database.
+ * Also prepopulate the Pattern and Koi tables.
+ * @param sequelize 
+ */
 export default async function initModels(sequelize: Sequelize): Promise<void>
 {
     // initialize the models

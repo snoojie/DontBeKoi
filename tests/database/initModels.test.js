@@ -9,13 +9,8 @@ const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet")
 beforeAll(async() => {
     await waitGoogleQuota();
     await dropAllTables()
-}, googleQuotaTimeout + 30000);
-
+}, googleQuotaTimeout);
 afterAll(async () => await dropAllTables());
-
-// normally we would run the method to test, initModels, in each test directly
-// but, google has a read quota
-// so, let's run it in a before method where possible to limit how often it is done.
 
 describe("Init models once for the following tests.", () => {
 
