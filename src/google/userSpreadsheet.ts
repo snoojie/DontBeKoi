@@ -2,7 +2,10 @@ import EnhancedError from "../util/enhancedError";
 import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
-abstract class UserSpreadsheetError extends EnhancedError {}
+/**
+ * Base error.
+ */
+export abstract class UserSpreadsheetError extends EnhancedError {}
 
 /**
  * Error thrown when a pattern could not be found in the user spreadsheet.

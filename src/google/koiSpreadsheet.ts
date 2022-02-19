@@ -1,5 +1,8 @@
 import EnhancedError from "../util/enhancedError";
 
+/**
+ * Error thrown when a KoiSpreadsheet helper function fails.
+ */
 export class KoiSpreadsheetError extends EnhancedError {}
 
 /**

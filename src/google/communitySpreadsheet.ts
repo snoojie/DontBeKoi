@@ -18,8 +18,15 @@ export interface Koi
     rarity: Rarity;
 }
 
+/**
+ * Represents Coris's google spreadsheet.
+ */
 export const CommunitySpreadsheet = {
     
+    /**
+     * Read Coris's google spreadsheet to get information about all patterns.
+     * @returns Info on all patterns.
+     */
     getAllPatterns: async function(): Promise<Pattern[]>
     {
         let patterns: Pattern[] = [];
