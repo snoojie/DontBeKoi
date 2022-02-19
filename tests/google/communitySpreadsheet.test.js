@@ -2,6 +2,12 @@ const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet"
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
 
+// wait a minute before starting the tests
+// this is because google has a read quota
+beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout);
+
 testWithModifiedEnv("Get all patterns", CommunitySpreadsheet.getAllPatterns);
 
 describe("Get all patterns before tests.", () => {
