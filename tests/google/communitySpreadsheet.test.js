@@ -4,9 +4,9 @@ const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv }
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-beforeAll(async() => {
+/*beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);
+}, googleQuotaTimeout);*/
 
 testWithModifiedEnv("Get all patterns", CommunitySpreadsheet.getAllPatterns);
 
@@ -92,92 +92,89 @@ describe("Get all patterns before tests.", () => {
     // ==========================================
     // =====ALL VALUES OF A SPECIFIC PATTERN=====
     // ==========================================
-/*
+
     test("Collector kubiwa is correct.", () => {
-        let pattern = patterns.find(pattern => pattern.name == "Kubiwa");
-        expect(pattern).toEqual({
-            name: "Kubiwa",
-            type: "Collector",
-            hatchTime: 6,
-            kois: [
-                { name: "Choshiro", rarity: "Common" },
-                { name: "Chogure", rarity: "Common" },
-                { name: "Choukon", rarity: "Common" },
-                { name: "Chomarun", rarity: "Common" },
-                { name: "Neshiro", rarity: "Common" },
-                { name: "Negure", rarity: "Common" },
-                { name: "Neukon", rarity: "Common" },
-                { name: "Nemarun", rarity: "Common" },
-                { name: "Mashiro", rarity: "Common" },
-                { name: "Magure", rarity: "Common" },
-                { name: "Maukon", rarity: "Common" },
-                { name: "Mamarun", rarity: "Common" },
-                { name: "Seishiro", rarity: "Common" },
-                { name: "Seigure", rarity: "Common" },
-                { name: "Seiukon", rarity: "Common" },
-                { name: "Seimarun", rarity: "Common" },
-                { name: "Chousu", rarity: "Rare" },
-                { name: "Chomido", rarity: "Rare" },
-                { name: "Chokatsu", rarity: "Rare" },
-                { name: "Chopinku", rarity: "Rare" },
-                { name: "Neusu", rarity: "Rare" },
-                { name: "Nemido", rarity: "Rare" },
-                { name: "Nekatsu", rarity: "Rare" },
-                { name: "Nepinku", rarity: "Rare" },
-                { name: "Mausu", rarity: "Rare" },
-                { name: "Mamido", rarity: "Rare" },
-                { name: "Makatsu", rarity: "Rare" },
-                { name: "Mapinku", rarity: "Rare" },
-                { name: "Seiusu", rarity: "Rare" },
-                { name: "Seimido", rarity: "Rare" },
-                { name: "Seikatsu", rarity: "Rare" },
-                { name: "Seipinku", rarity: "Rare" },
-            ]
-        });
+        const PATTERN = patterns.find(pattern => pattern.name == "Kubiwa");
+        expect(PATTERN).toBeDefined();
+        expect(PATTERN.name).toBe("Kubiwa");
+        expect(PATTERN.type).toBe("Collector");
+        expect(PATTERN.hatchTime).toBe(6);
+        expect(PATTERN.kois.length).toBe(32);
+        expect(PATTERN.kois).toContainEqual({ name: "Choshiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chogure", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Choukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chomarun", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Neshiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Negure", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Neukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Nemarun", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Mashiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Magure", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Maukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Mamarun", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seishiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seigure", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seiukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seimarun", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chousu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chomido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chokatsu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Chopinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Neusu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Nemido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Nekatsu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Nepinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Mausu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Mamido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Makatsu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Mapinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seiusu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seimido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seikatsu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Seipinku", rarity: "Rare" });
     });
 
     test("Progressive ogon is correct.", () => {
-        let pattern = patterns.find(pattern => pattern.name == "Ogon");
-        expect(pattern).toEqual({
-            name: "Ogon",
-            type: "Progressive",
-            kois: [
-                { name: "Shishiro", rarity: "Common" },
-                { name: "Shiukon", rarity: "Common" },
-                { name: "Shidai", rarity: "Common" },
-                { name: "Shikuro", rarity: "Common" },
-                { name: "Kishiro", rarity: "Common" },
-                { name: "Kiukon", rarity: "Common" },
-                { name: "Kidai", rarity: "Common" },
-                { name: "Kikuro", rarity: "Common" },
-                { name: "Akashiro", rarity: "Common" },
-                { name: "Akaukon", rarity: "Common" },
-                { name: "Akadai", rarity: "Common" },
-                { name: "Akakuro", rarity: "Common" },
-                { name: "Kushiro", rarity: "Common" },
-                { name: "Kuukon", rarity: "Common" },
-                { name: "Kudai", rarity: "Common" },
-                { name: "Kukuro", rarity: "Common" },
-                { name: "Shipinku", rarity: "Rare" },
-                { name: "Shimura", rarity: "Rare" },
-                { name: "Shimido", rarity: "Rare" },
-                { name: "Shiburu", rarity: "Rare" },
-                { name: "Kipinku", rarity: "Rare" },
-                { name: "Kimura", rarity: "Rare" },
-                { name: "Kimido", rarity: "Rare" },
-                { name: "Kiburu", rarity: "Rare" },
-                { name: "Akapinku", rarity: "Rare" },
-                { name: "Akamura", rarity: "Rare" },
-                { name: "Akamido", rarity: "Rare" },
-                { name: "Akaburu", rarity: "Rare" },
-                { name: "Kupinku", rarity: "Rare" },
-                { name: "Kumura", rarity: "Rare" },
-                { name: "Kumido", rarity: "Rare" },
-                { name: "Kuburu", rarity: "Rare" },
-            ]
-        });
+        const PATTERN = patterns.find(pattern => pattern.name == "Ogon");
+        expect(PATTERN).toBeDefined();
+        expect(PATTERN.name).toBe("Ogon");
+        expect(PATTERN.type).toBe("Progressive");
+        expect(PATTERN.hatchTime).not.toBeDefined();
+        expect(PATTERN.kois.length).toBe(32);
+        expect(PATTERN.kois).toContainEqual({ name: "Shishiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shiukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shidai", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shikuro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kishiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kiukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kidai", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kikuro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akashiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akaukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akadai", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akakuro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kushiro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kuukon", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kudai", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kukuro", rarity: "Common" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shipinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shimura", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shimido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Shiburu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kipinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kimura", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kimido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kiburu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akapinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akamura", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akamido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Akaburu", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kupinku", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kumura", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kumido", rarity: "Rare" });
+        expect(PATTERN.kois).toContainEqual({ name: "Kuburu", rarity: "Rare" });
     });
-*/
+
     function count(list, include)
     {
         let count = 0;
