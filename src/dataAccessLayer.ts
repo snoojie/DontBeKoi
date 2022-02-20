@@ -65,19 +65,19 @@ export const DataAccessLayer =
      * @throws InvalidDatabaseUrl if the database URL is invalid or
      *         not in the environment variables.
      */
-     start: async function(): Promise<void>
-     {
+    start: async function(): Promise<void>
+    {
          // start the database
-         await Database.start();
-     },
+        await Database.start();
+    },
  
      /**
       * Close the database connection.
       */
-     stop: async function(): Promise<void>
-     {
-         await Database.stop();
-     },
+    stop: async function(): Promise<void>
+    {
+        await Database.stop();
+    },
 
     /**
      * Gets the latest patterns and kois from Coris's google spreadsheet,
