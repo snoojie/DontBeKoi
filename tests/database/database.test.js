@@ -1,4 +1,3 @@
-const { user } = require("pg/lib/defaults");
 const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } 
     = require("../../src/database/database");
 const { Koi } = require("../../src/database/models/koi");
@@ -127,17 +126,17 @@ test("Start initializes Koi model.", async() => {
 
 test("Start creates the users table.", async() => {
     await Database.start();
-    expectTableExists("users");
+    await expectTableExists("users");
 });
 
 test("Start creates the patterns table.", async() => {
     await Database.start();
-    expectTableExists("patterns");
+    await expectTableExists("patterns");
 });
 
 test("Start creates the kois table.", async() => {
     await Database.start();
-    expectTableExists("kois");
+    await expectTableExists("kois");
 });
 
 // ========================================================

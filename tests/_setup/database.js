@@ -13,36 +13,11 @@ function initSequelize()
     );
 }
 
-async function select(tableName, whereClause, isPlain)
-{
-    let sequelize = initSequelize();
-    let query = `SELECT * FROM ${tableName}`;
-    if (whereClause)
-    {
-        query += " WHERE " + whereClause;
-    }
-
-    const RECORD = await sequelize.query(
-        query,
-        { type: QueryTypes.SELECT, raw: true, plain: isPlain }
-    );
-    await sequelize.close();
-    return RECORD;
-}
-
 async function dropAllTables()
 {
     let sequelize = initSequelize();
     await sequelize.getQueryInterface().dropAllTables();
     await sequelize.close();
-}
-
-async function getColumns(tableName)
-{
-    let sequelize = initSequelize();
-    const COLUMNS = await sequelize.getQueryInterface().describeTable(tableName);
-    await sequelize.close();
-    return COLUMNS;
 }
 
 module.exports = {
@@ -54,53 +29,14 @@ module.exports = {
         await dropAllTables();
     },
 
-    countRecords: async function(tableName, whereClause)
-    {
-        let sequelize = initSequelize();
-        let query = `SELECT COUNT(*) FROM ${tableName}`;
-        if (whereClause)
-        {
-            query += ` WHERE ${whereClause}`;
-        }
-        const RECORD = await sequelize.query(
-            query,
-            { type: QueryTypes.SELECT, raw: true, plain: true }
-        );
-        await sequelize.close();
-        return parseInt(RECORD.count);
-    },
-
-    select: async function(tableName, whereClause)
-    {
-        return select(tableName, whereClause, false);
-    },
-
-    selectOne: async function(tableName, whereClause)
-    {
-        return select(tableName, whereClause, true);
-    },
-
-    insert: async function(tableName, record)
-    {
-        // add timestamps to each record
-        record.created_at = new Date();
-        record.updated_at = new Date();
-
-        let sequelize = initSequelize();
-        await sequelize.getQueryInterface().bulkInsert(tableName, [record]);
-        await sequelize.close();
-    },
-
-    getColumns: async function(tableName)
-    {
-        return getColumns(tableName);
-    },
-
     expectTableExists: async function(tableName)
     {
-        const TABLES = await select(
-            "information_schema.tables", `table_name='${tableName}'`
+        let sequelize = initSequelize();
+        const TABLES = await sequelize.query(
+            `SELECT * FROM information_schema.tables WHERE table_name='${tableName}'`,
+            { type: QueryTypes.SELECT, raw: true }
         );
+        await sequelize.close();
         expect(TABLES.length).toBe(1);
     },
 
@@ -142,9 +78,9 @@ module.exports = {
             describe("Database columns.", () => {
                 
                 let columns;
-
                 beforeEach(async() => {
-                    columns = await getColumns(TABLE_NAME);
+                    columns = 
+                        await sequelize.getQueryInterface().describeTable(TABLE_NAME);
                 });
             
                 // =======================
