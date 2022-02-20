@@ -96,6 +96,14 @@ module.exports = {
         return getColumns(tableName);
     },
 
+    expectTableExists: async function(tableName)
+    {
+        const TABLES = await select(
+            "information_schema.tables", `table_name='${tableName}'`
+        );
+        expect(TABLES.length).toBe(1);
+    },
+
     testModel: function(data)
     {
         const init = data.init;
