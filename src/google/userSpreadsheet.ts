@@ -19,6 +19,20 @@ export class PatternNotInSpreadsheet extends UserSpreadsheetError
 }
 
 /**
+ * Error thrown when the spreadsheet is not readable due to permissions.
+ */
+export class PrivateSpreadsheet extends UserSpreadsheetError
+{
+    constructor(spreadsheetId: string)
+    {
+        super(
+            `Could not read from spreadsheet '${spreadsheetId}'. ` +
+            "Can anyone with a link read it?"
+        );
+    }
+}
+
+/**
  * Error thrown when a pattern was found in the user spreadsheet, 
  * but not the specific koi.
  */
@@ -70,6 +84,13 @@ export const UserSpreadsheet = {
             ? "A-M: Collectors!B2:K" 
             : "N-Z: Collectors!B2:K";
         const TABLE: string[][] = await Spreadsheet.getValues(spreadsheetId, RANGE);
+
+        // if the table is empty, 
+        // most likely the bot lost read access to the spreadsheet
+        if (TABLE.length == 0)
+        {
+            throw new PrivateSpreadsheet(spreadsheetId);
+        }
 
         // find the pattern
         let patternRowIndex: number = -1;

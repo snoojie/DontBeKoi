@@ -1,5 +1,5 @@
 const { InvalidSpreadsheet } = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, UnexpectedKoiMark } 
+const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, UnexpectedKoiMark, PrivateSpreadsheet } 
     = require("../../src/google/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
@@ -63,6 +63,17 @@ test("Invalid spreadsheet.", async() => {
         UserSpreadsheet.hasKoi("invalidspreadsheet", "shigin", "natsu"), 
         InvalidSpreadsheet, 
         "Spreadsheet ID 'invalidspreadsheet' does not exist."
+    );
+});
+
+test("Private spreadsheet.", async() => {
+    await expectErrorAsync(
+        UserSpreadsheet.hasKoi(
+            "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8", "shigin", "natsu"
+        ), 
+        PrivateSpreadsheet, 
+        "Could not read from spreadsheet " +
+        "'1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8'. Can anyone with a link read it?"
     );
 });
 

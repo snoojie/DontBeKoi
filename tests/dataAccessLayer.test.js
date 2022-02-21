@@ -10,6 +10,7 @@ const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
 
 const VALID_SPREADSHEET = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
+const READONLY_SPREADSHEET = "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8";
 
 afterEach(async() => await DataAccessLayer.stop());
 
@@ -235,4 +236,319 @@ describe("Save user.", () => {
         expect(USER.name).toBe("somename");
         expect(USER.spreadsheetId).toBe(TEST_SPREADSHEET);
     });
+});
+
+// ===========================
+// =====USERS MISSING KOI=====
+// ===========================
+
+describe("Get users missing koi.", () => {
+
+    beforeAll(async() => {
+        await dropAllTables();
+        await DataAccessLayer.start();
+        await DataAccessLayer.updatePatterns();
+        await DataAccessLayer.saveUser(
+            "did1", "name1", "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU"
+        );
+        await DataAccessLayer.saveUser(
+            "did2", "name2", "1fMMI5wGrD7d4Z5M9APlwoMzHG6QeZQvXK4qQ91yFDaQ"
+        );
+        await DataAccessLayer.stop();
+    })
+    beforeEach(async() => {
+        await DataAccessLayer.start();
+    });
+    afterAll(async() => await dropAllTables());
+
+    test("Pattern not found.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.getUsersMissingKoi("makuro", "invalidpattern"),
+            PatternNotFound,
+            "Pattern 'invalidpattern' does not exist."
+        );
+    });
+    
+    test("Koi not found.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.getUsersMissingKoi("invalidkoi", "botan"),
+            KoiNotFound,
+            "Pattern 'botan' does not have koi 'invalidkoi'."
+        );
+    });
+
+    test("Get users missing common collector a-m.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("aidai", "kiruto");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1", "did2"],
+                rarity: "Common",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Get users missing rare collector a-m.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("shimosu", "kirinu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1", "did2"],
+                rarity: "Rare",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+
+    test("Get users missing common collector n-z.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("chashiro", "wanwan");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1", "did2"],
+                rarity: "Common",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Get users missing rare collector a-m.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("mapapu", "naisu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Rare",
+                hatchTime: 11,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("No one missing koi.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("nedai", "kajitsu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: [],
+                rarity: "Common",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Pattern casing is ignored.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("gumura", "oriito");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1", "did2"],
+                rarity: "Rare",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Koi casing is ignored.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("MAYUKI", "rabu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Common",
+                hatchTime: 5,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Missing valid pattern in spreadsheet.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("kucheri", "rozu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Rare",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: ["did1"],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Koi typo in spreadsheet.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("aoshiro", "hoseki");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Common",
+                hatchTime: 9,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: ["did1"],
+                    formatBroken: [],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    test("Spreadsheet has an extra empty row.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("mashiro", "mukei");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1"],
+                rarity: "Common",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: ["did2"],
+                    spreadsheetNotFound: []
+                }
+            }
+        );
+    });
+
+    describe("User has read only spreadsheet.", () => {
+        let user;
+        afterEach(async() => await user.destroy());
+
+        test("Spreadsheet is set to read only.", async() => {
+            user = await User.create({
+                discordId: "did3", name: "name3", spreadsheetId: READONLY_SPREADSHEET
+            })
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("mamido", "habu");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did1", "did2"],
+                    rarity: "Rare",
+                    hatchTime: 5,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: ["did3"]
+                    }
+                }
+            );
+        });
+
+        
+
+        test("Spreadsheet does not exist.", async() => {
+            user = await User.create({
+                discordId: "did3", name: "name3", spreadsheetId: "invalid"
+            })
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("mamido", "habu");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did1", "did2"],
+                    rarity: "Rare",
+                    hatchTime: 5,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: ["did3"]
+                    }
+                }
+            );
+        });
+    });
+
+    function expectUsersMissingKoi(received, expected)
+    {
+        expectList(received.discordIds, expected.discordIds)
+        expect(received.rarity).toBe(expected.rarity);
+        expect(received.hatchTime).toBe(expected.hatchTime);
+        expectList(
+            received.discordIdsWithSpreadsheetErrors.patternNotFound, 
+            expected.discordIdsWithSpreadsheetErrors.patternNotFound
+        );
+        expectList(
+            received.discordIdsWithSpreadsheetErrors.koiNotFound, 
+            expected.discordIdsWithSpreadsheetErrors.koiNotFound
+        );
+        expectList(
+            received.discordIdsWithSpreadsheetErrors.formatBroken, 
+            expected.discordIdsWithSpreadsheetErrors.formatBroken
+        );
+        expectList(
+            received.discordIdsWithSpreadsheetErrors.spreadsheetNotFound, 
+            expected.discordIdsWithSpreadsheetErrors.spreadsheetNotFound
+        );
+    }
+
+    function expectList(receivedList, expectedList)
+    {
+        expect(receivedList.length).toBe(expectedList.length);
+        for (const EXPECTED_ITEM of expectedList)
+        {
+            expect(receivedList).toContain(EXPECTED_ITEM);
+        }
+    }
+
 });

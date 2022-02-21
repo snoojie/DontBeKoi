@@ -5,8 +5,9 @@ import { Pattern, PatternAttributes } from "./database/models/pattern";
 import { User } from "./database/models/user";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "./google/communitySpreadsheet";
+import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
 import { InvalidSpreadsheet, Spreadsheet } from "./google/spreadsheet";
-import { PatternNotInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
+import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, PrivateSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
 
@@ -46,8 +47,12 @@ export interface UsersMissingKoiResponse
     discordIds: string[];
     rarity: Rarity;
     hatchTime?: number;
-    discordIdsMissingPattern: string[];
-    discordIdsWithInvalidSpreadsheet: string[];
+    discordIdsWithSpreadsheetErrors: {
+        spreadsheetNotFound: string[],
+        formatBroken: string[]
+        patternNotFound: string[],
+        koiNotFound: string[]
+    };
 }
 
 /**
@@ -195,7 +200,7 @@ export const DataAccessLayer =
         let koi: Koi | undefined;
         for (const KOI of PATTERN.kois)
         {
-            if (KOI.name.localeCompare(koiName))
+            if (KOI.name.toLowerCase() == koiName.toLowerCase())
             {
                 // found it!
                 koi = KOI;
@@ -212,8 +217,12 @@ export const DataAccessLayer =
             discordIds: [],
             rarity: koi.rarity,
             hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined,
-            discordIdsMissingPattern: [],
-            discordIdsWithInvalidSpreadsheet: []
+            discordIdsWithSpreadsheetErrors: {
+                spreadsheetNotFound: [],
+                formatBroken: [],
+                patternNotFound: [],
+                koiNotFound: []
+            }
         };
 
         // Get the users who do not have this koi.
@@ -232,23 +241,45 @@ export const DataAccessLayer =
                     }
                 })
                 .catch(error => {
-                    
-                    // The user may have forgotten to add this pattern to 
-                    // their spreadsheet, maybe because it's a brand new pattern.
-                    // Or, their spreadsheet is broken. Either way, make sure they are
-                    // aware they need to update their sheet.
-                    if (error instanceof PatternNotInSpreadsheet)
+
+                    // Let the user know if their spreadsheet cannot be read from,
+                    // either because read access has been revoked or because the
+                    // spreadsheet has been deleted.
+                    if(error instanceof InvalidSpreadsheet || 
+                       error instanceof PrivateSpreadsheet)
                     {
-                        usersMissingKoi.discordIdsMissingPattern.push(USER.discordId);
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .spreadsheetNotFound.push(USER.discordId);
                         return;
                     }
 
-                    // Let the user know if their spreadsheet cannot be read from.
-                    // This is most likely due to read permission being revoked.
-                    if(error instanceof InvalidSpreadsheet)
+                    // The user may have forgotten to add this pattern to 
+                    // their spreadsheet, maybe because it's a brand new pattern.
+                    if (error instanceof PatternNotInSpreadsheet)
                     {
-                        usersMissingKoi.discordIdsWithInvalidSpreadsheet
-                            .push(USER.discordId);
+                        console.log(error);
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .patternNotFound.push(USER.discordId);
+                        return;
+                    }
+
+                    // The user may have the pattern in their spreadsheet, 
+                    // but not the koi. If this happens it could be a typo.
+                    if (error instanceof KoiNotInSpreadsheet)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .koiNotFound.push(USER.discordId);
+                        return;
+                    }
+
+                    if (error instanceof KoiSpreadsheetError)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .formatBroken.push(USER.discordId);
                         return;
                     }
 
