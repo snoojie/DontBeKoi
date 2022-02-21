@@ -18,7 +18,7 @@ test("Get value when provided a single cell.", () => {
     expect(VALUE).toBe("cafe");
 });
 
-test("Get value remoevs accents.", () => {
+test("Get value removes accents.", () => {
     const VALUE = KoiSpreadsheet.getValue([ [ "café" ] ], 0, 0);
     expect(VALUE).toBe("cafe");
 });
@@ -57,6 +57,7 @@ test("Get value when table is empty.", () => {
 
 test("Get pattern.", () => {
     const PATTERN = KoiSpreadsheet.getPattern(
+        "somespreadsheetId",
         [ [ "wrong row", "wrong row and column" ], [ "SomePattern", "Wrong column" ] ], 
         1
     );
@@ -64,21 +65,26 @@ test("Get pattern.", () => {
 });
 
 test("Get pattern with accents.", () => {
-    const PATTERN = KoiSpreadsheet.getPattern([ [ "Naïve", "wrong column" ] ], 0);
+    const PATTERN = KoiSpreadsheet.getPattern(
+        "somespreadsheetId", [ [ "Naïve", "wrong column" ] ], 0
+    );
     expect(PATTERN).toBe("Naive");
 });
 
 test("Get pattern when row is empty.", () => {
     expectError(
-        () => KoiSpreadsheet.getPattern([ [ "", "wrong column" ] ], 0), 
+        () => KoiSpreadsheet.getPattern(
+            "somespreadsheetId", [ [ "", "wrong column" ] ], 0
+        ), 
         KoiSpreadsheetError, 
-        "Missing pattern name in row 0, column 0."
+        "Missing pattern name in row 0, column 0 of spreadsheet somespreadsheetId."
     );
 });
 
 test("Get pattern when specifying column.", () => {
-    const PATTERN = 
-        KoiSpreadsheet.getPattern([ [ "wrong column", "somepattern" ] ], 0, 1);
+    const PATTERN = KoiSpreadsheet.getPattern(
+        "somespreadsheetId", [ [ "wrong column", "somepattern" ] ], 0, 1
+    );
     expect(PATTERN).toBe("somepattern");
 });
 
@@ -88,6 +94,7 @@ test("Get pattern when specifying column.", () => {
 
 test("Getting base color strips dash.", () => {
     const COLOR = KoiSpreadsheet.getBaseColor(
+        "somespreadsheetId",
         [ ["wrong row", "wrong row and column" ], [ "Cha-", "wrong column" ] ], 
         1
     );
@@ -95,20 +102,22 @@ test("Getting base color strips dash.", () => {
 });
 
 test("Getting base color removes accents.", () => {
-    const COLOR = KoiSpreadsheet.getBaseColor([ ["Façade" ] ], 0);
+    const COLOR = KoiSpreadsheet.getBaseColor("somespreadsheetId", [ ["Façade" ] ], 0);
     expect(COLOR).toBe("Facade");
 });
 
 test("Getting base color when row is empty.", () => {
     expectError(
-        () => KoiSpreadsheet.getBaseColor([ [] ], 1),
+        () => KoiSpreadsheet.getBaseColor("somespreadsheetId", [ [] ], 1),
         KoiSpreadsheetError,
-        "Missing base color name in row 1, column 0."
+        "Missing base color name in row 1, column 0 of spreadsheet somespreadsheetId."
     );
 });
 
 test("Getting base color when specifying column.", () => {
-    const COLOR = KoiSpreadsheet.getBaseColor([ [ "wrong column", "somecolor" ] ], 0, 1);
+    const COLOR = KoiSpreadsheet.getBaseColor(
+        "somespreadsheetId", [ [ "wrong column", "somecolor" ] ], 0, 1
+    );
     expect(COLOR).toBe("somecolor");
 });
 
@@ -118,6 +127,7 @@ test("Getting base color when specifying column.", () => {
 
 test("Getting highlight color strips dash.", () => {
     const COLOR = KoiSpreadsheet.getHighlightColor(
+        "somespreadsheetId",
         [ ["wrong row", "wrong row and column" ], [ "-kura", "wrong column" ] ], 
         1, 0
     );
@@ -125,14 +135,17 @@ test("Getting highlight color strips dash.", () => {
 });
 
 test("Getting highlight color removes accents.", () => {
-    const COLOR = KoiSpreadsheet.getHighlightColor([ ["Fiancé" ] ], 0, 0);
+    const COLOR = KoiSpreadsheet.getHighlightColor(
+        "somespreadsheetId", [ ["Fiancé" ] ], 0, 0
+    );
     expect(COLOR).toBe("Fiance");
 });
 
 test("Getting highlight color when table is empty.", () => {
     expectError(
-        () => KoiSpreadsheet.getHighlightColor([], 0, 0),
+        () => KoiSpreadsheet.getHighlightColor("somespreadsheetId", [], 0, 0),
         KoiSpreadsheetError,
-        "Missing highlight color name in row 0, column 0."
+        "Missing highlight color name in row 0, " +
+        "column 0 of spreadsheet somespreadsheetId."
     );
 });

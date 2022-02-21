@@ -1,8 +1,5 @@
 import EnhancedError from "../util/enhancedError";
 
-/**
- * Error thrown when a KoiSpreadsheet helper function fails.
- */
 export class KoiSpreadsheetError extends EnhancedError {}
 
 /**
@@ -33,18 +30,25 @@ export const KoiSpreadsheet = {
      * The column assumption can be overwritten though. 
      * This is useful for the Progressives sheet which has 3 patterns per row.
      * This method returns the normalized pattern name, ie, no accented characters.
+     * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the pattern name in.
      * @returns normalized string at (row, 0).
      * @throws KoiSpreadsheetError if there is no pattern name in the row.
      */
-    getPattern(table: string[][], rowIndex: number, columnIndex: number = 0): string
+    getPattern(
+        spreadsheetId: string, 
+        table: string[][], 
+        rowIndex: number, 
+        columnIndex: number = 0
+    ): string
     {
         const PATTERN: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!PATTERN)
         {
             throw new KoiSpreadsheetError(
-                `Missing pattern name in row ${rowIndex}, column ${columnIndex}.`
+                `Missing pattern name in row ${rowIndex}, column ${columnIndex} ` +
+                `of spreadsheet ${spreadsheetId}.`
             );
         }
         return PATTERN;
@@ -56,18 +60,25 @@ export const KoiSpreadsheet = {
      * This is useful for the Progressives sheet which has 3 patterns per row.
      * The base color name will be stripped of dashes and accents then returned.
      * For example, if the text is "Cha-", the return value will be "Cha".
+     * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the base color in.
      * @returns normalized string at (row, 0) without a dash.
      * @throws KoiSpreadsheetError if there is no base color in the row.
      */
-    getBaseColor(table: string[][], rowIndex: number, columnIndex: number = 0): string
+    getBaseColor(
+        spreadsheetId: string, 
+        table: string[][], 
+        rowIndex: number, 
+        columnIndex: number = 0
+    ): string
     {
         let color: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!color)
         {
             throw new KoiSpreadsheetError(
-                `Missing base color name in row ${rowIndex}, column ${columnIndex}.`
+                `Missing base color name in row ${rowIndex}, column ${columnIndex} ` +
+                `of spreadsheet ${spreadsheetId}.`
             );
         }
         
@@ -85,18 +96,25 @@ export const KoiSpreadsheet = {
      * It will be stripped of dashes and accents then returned.
      * For example, if the text is "-kura", the return value will be "kura".
      * If there is no text in (row, column), the empty string is returned.
+     * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the highlight color in.
      * @returns normalized string at (row, column) without a dash.
      * @throws KoiSpreadsheetError if there is no highlight color in that cell.
      */
-    getHighlightColor(table: string[][], rowIndex: number, columnIndex: number): string
+    getHighlightColor(
+        spreadsheetId: string, 
+        table: string[][], 
+        rowIndex: number, 
+        columnIndex: number
+    ): string
     {
         let color: string = KoiSpreadsheet.getValue(table, rowIndex, columnIndex);
         if (!color)
         {
             throw new KoiSpreadsheetError(
-                `Missing highlight color name in row ${rowIndex}, column ${columnIndex}.`
+                `Missing highlight color name in row ${rowIndex}, column ${columnIndex} ` +
+                `of spreadsheet ${spreadsheetId}.`
             );
         }
         

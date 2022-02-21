@@ -1,16 +1,7 @@
-import EnhancedError from "../util/enhancedError";
-import { KoiSpreadsheet } from "./koiSpreadsheet";
+import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
-/**
- * Base error.
- */
-export abstract class UserSpreadsheetError extends EnhancedError {}
-
-/**
- * Error thrown when a pattern could not be found in the user spreadsheet.
- */
-export class PatternNotInSpreadsheet extends UserSpreadsheetError 
+export class PatternNotFound extends KoiSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string)
     {
@@ -18,22 +9,18 @@ export class PatternNotInSpreadsheet extends UserSpreadsheetError
     }
 }
 
-/**
- * Error thrown when a pattern was found in the user spreadsheet, 
- * but not the specific koi.
- */
-export class KoiNotInSpreadsheet extends UserSpreadsheetError 
+export class KoiNotFound extends KoiSpreadsheetError 
 {
-    constructor(spreadsheetId: string, pattern: string, color: string)
+    constructor(spreadsheetId: string, pattern: string, koi: string)
     {
         super(
-            `Spreadsheet '${spreadsheetId}' missing color '${color}' ` +
+            `Spreadsheet '${spreadsheetId}' missing koi '${koi}' ` +
             `for pattern '${pattern}'.`
         );
     }
 }
 
-export class UnexpectedKoiMark extends UserSpreadsheetError
+export class UnknownKoiProgress extends KoiSpreadsheetError
 {
     constructor(spreadsheetId: string, color: string, pattern: string, value: string)
     {
@@ -76,7 +63,8 @@ export const UserSpreadsheet = {
         // note the pattern name appears every 7 rows
         for (let i=0; i<TABLE.length; i+=7)
         {
-            const FOUND_PATTERN: string = KoiSpreadsheet.getPattern(TABLE, i);
+            const FOUND_PATTERN: string = 
+                KoiSpreadsheet.getPattern(spreadsheetId, TABLE, i);
             if (equalsIgnoreCase(FOUND_PATTERN, pattern))
             {
                 // found the pattern!
@@ -86,7 +74,7 @@ export const UserSpreadsheet = {
         }
         if (patternRowIndex < 0)
         {
-            throw new PatternNotInSpreadsheet(spreadsheetId, pattern);
+            throw new PatternNotFound(spreadsheetId, pattern);
         }
 
         // find the base color
@@ -95,7 +83,7 @@ export const UserSpreadsheet = {
         // note the base colors appear 2-4 rows after the pattern name
         for(let i=patternRowIndex+2; i<patternRowIndex+6; i++)
         {
-            baseColor = KoiSpreadsheet.getBaseColor(TABLE, i);
+            baseColor = KoiSpreadsheet.getBaseColor(spreadsheetId, TABLE, i);
             if (startsWithIgnoreCase(color, baseColor))
             {
                 // found the base color!
@@ -105,7 +93,7 @@ export const UserSpreadsheet = {
         }
         if (baseColorRowIndex < 0)
         {
-            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
@@ -123,7 +111,7 @@ export const UserSpreadsheet = {
             }
 
             highlightColor = KoiSpreadsheet.getHighlightColor(
-                TABLE, patternRowIndex + 1, i
+                spreadsheetId, TABLE, patternRowIndex + 1, i
             );
             if (endsWithIgnoreCase(color, highlightColor))
             {
@@ -134,13 +122,13 @@ export const UserSpreadsheet = {
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
         if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotFound(spreadsheetId, pattern, color);
         }
 
         // Finally, we know the row and column of this koi.
@@ -156,7 +144,7 @@ export const UserSpreadsheet = {
         }
         if (VALUE.trim())
         {
-            throw new UnexpectedKoiMark(spreadsheetId, color, pattern, VALUE);
+            throw new UnknownKoiProgress(spreadsheetId, color, pattern, VALUE);
         }
         return false;
     } 

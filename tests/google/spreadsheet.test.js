@@ -11,7 +11,7 @@ const VALID_RANGE = "Progressives!I16";
 // wait a minute before starting the tests
 // this is because google has a read quota
 beforeAll(async() => {
-    //await waitGoogleQuota();
+    await waitGoogleQuota();
 }, googleQuotaTimeout);
 
 // ==================

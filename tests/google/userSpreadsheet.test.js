@@ -1,6 +1,6 @@
 const { SpreadsheetNotFound, PrivateSpreadsheet } = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, 
-        UnexpectedKoiMark
+const { UserSpreadsheet, PatternNotFound, KoiNotFound,
+        UnknownKoiProgress
       } = require("../../src/google/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
@@ -24,7 +24,7 @@ testWithModifiedEnv(
 test("User missing pattern.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "shigin", "invalidpattern"), 
-        PatternNotInSpreadsheet, 
+        PatternNotFound, 
         `Spreadsheet '${spreadsheets.test}' missing pattern 'invalidpattern'.`
     );
 });
@@ -32,8 +32,8 @@ test("User missing pattern.", async() => {
 test("User missing base color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "invalidcolor", "natsu"), 
-        KoiNotInSpreadsheet, 
-        `Spreadsheet '${spreadsheets.test}' missing color 'invalidcolor' ` +
+        KoiNotFound, 
+        `Spreadsheet '${spreadsheets.test}' missing koi 'invalidcolor' ` +
         "for pattern 'natsu'."
     );
 });
@@ -41,8 +41,8 @@ test("User missing base color.", async() => {
 test("User missing highlight color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "neinvalid", "robotto"), 
-        KoiNotInSpreadsheet, 
-        `Spreadsheet '${spreadsheets.test}' missing color 'neinvalid' ` +
+        KoiNotFound, 
+        `Spreadsheet '${spreadsheets.test}' missing koi 'neinvalid' ` +
         "for pattern 'robotto'."
     );
 });
@@ -50,8 +50,8 @@ test("User missing highlight color.", async() => {
 test("User missing color even though base and highlight are correct.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "seiinvalidkoji", "toransu"), 
-        KoiNotInSpreadsheet, 
-        `Spreadsheet '${spreadsheets.test}' missing color 'seiinvalidkoji' ` +
+        KoiNotFound,
+        `Spreadsheet '${spreadsheets.test}' missing koi 'seiinvalidkoji' ` +
         "for pattern 'toransu'."
     );
 });
@@ -77,7 +77,7 @@ test("Private spreadsheet.", async() => {
 test("Koi marked with neither k or d, ignoring casing or whitespaces.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "neburu", "jueru"), 
-        UnexpectedKoiMark, 
+        UnknownKoiProgress, 
         `Spreadsheet '${spreadsheets.test}' has koi 'neburu jueru' marked ` +
         `with 'invalid'. Expected to see 'k', 'd', or no text.`
     );

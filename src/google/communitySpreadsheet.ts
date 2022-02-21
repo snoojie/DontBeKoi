@@ -86,7 +86,9 @@ async function getPatternsFromSheet(
         {
 
             let pattern: Pattern = {
-                name: KoiSpreadsheet.getPattern(TABLE, patternRow, patternColumn),
+                name: KoiSpreadsheet.getPattern(
+                    SPREADSHEET_ID, TABLE, patternRow, patternColumn
+                ),
                 type: TYPE,
                 kois: []
             };
@@ -95,9 +97,9 @@ async function getPatternsFromSheet(
             let baseColors: string[] = [];
             for (let colorRow=patternRow+2; colorRow<patternRow+6; colorRow++)
             {
-                baseColors.push(
-                    KoiSpreadsheet.getBaseColor(TABLE, colorRow, patternColumn)
-                );
+                baseColors.push(KoiSpreadsheet.getBaseColor(
+                    SPREADSHEET_ID, TABLE, colorRow, patternColumn
+                ));
             }
 
             // find all highlight colors
@@ -140,7 +142,7 @@ function getHighlightColors(
     for (let j=startingColumnIndex; j<startingColumnIndex+4; j++)
     {
         highlightColors.push(
-            KoiSpreadsheet.getHighlightColor(table, patternRowIndex+1, j)
+            KoiSpreadsheet.getHighlightColor(SPREADSHEET_ID, table, patternRowIndex+1, j)
         );
     }
     return highlightColors;
