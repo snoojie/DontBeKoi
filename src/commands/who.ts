@@ -1,7 +1,6 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
-import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } 
-    from "../dataAccessLayer";
+import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } from "../dataAccessLayer";
 
 const WhoCommand: Command = {
 
@@ -65,15 +64,35 @@ const WhoCommand: Command = {
         }
 
         // call out anyone who does not have this pattern in their spreadsheet
-        /*reply += callOut(
-            usersMissingKoi.discordIdsMissingPattern, "Could not find pattern"
+        reply += callOut(
+            usersMissingKoi.discordIdsWithSpreadsheetErrors.patternNotFound, 
+            "Could not find pattern"
         );
 
-        // call out anyone who does not have a valid spreadsheet
+        // call out anyone who does not have this koi in their spreadsheet
         reply += callOut(
-            usersMissingKoi.discordIdsWithInvalidSpreadsheet, 
-            "Could not read spreadsheet"
-        );*/
+            usersMissingKoi.discordIdsWithSpreadsheetErrors.koiNotFound, 
+            "Could not find koi, likely due to a typo,"
+        );
+
+        // call out anyone whose spreadsheet does not exist
+        // this shouldn't happen unless it's been deleted
+        reply += callOut(
+            usersMissingKoi.discordIdsWithSpreadsheetErrors.spreadsheetNotFound,
+            "Spreadsheet does not exist"
+        );
+
+        // call out anyone whose spreadsheet is private
+        reply += callOut(
+            usersMissingKoi.discordIdsWithSpreadsheetErrors.privateSpreadsheet,
+            "Spreadsheet is private"
+        );
+
+        // call out anyone whose spreadsheet is private
+        reply += callOut(
+            usersMissingKoi.discordIdsWithSpreadsheetErrors.formatBroken,
+            "Spreadsheet broken"
+        );
 
         return reply;
     }
@@ -92,7 +111,7 @@ function getMentions(discordIds: string[]): string
     return mentionList.join(" ");
 }
 
-/*function callOut(discordIds: string[], reason: string): string
+function callOut(discordIds: string[], reason: string): string
 {
     if (discordIds.length > 0)
     {
@@ -100,4 +119,4 @@ function getMentions(discordIds: string[]): string
         return `\n${reason} for ${MENTIONS}`;
     }
     return "";
-}*/
+}

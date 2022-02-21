@@ -24,7 +24,10 @@ module.exports = {
         // extra empty row in pattern moduro
         formatBroken: "1fMMI5wGrD7d4Z5M9APlwoMzHG6QeZQvXK4qQ91yFDaQ",
 
-        private: "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8"
+        private: "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8",
+
+        // renamed sheet tab for a-m collectors
+        badRange: "1nZFn5D9CxDtdUX4BAsmrosu1yTevllZ_YKKVOpabPCs"
     },
 
     getSpreadsheetErrorMessage: function(spreadsheetId, range)

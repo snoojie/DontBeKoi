@@ -17,7 +17,7 @@ const { PrivateSpreadsheet, SpreadsheetNotFound }
 // wait a minute before starting the tests
 // this is because google has a read quota
 beforeAll(async() => {
-    //await waitGoogleQuota();
+    await waitGoogleQuota();
 }, googleQuotaTimeout);
 
 afterEach(async() => await DataAccessLayer.stop());
@@ -497,6 +497,29 @@ describe("Get users missing koi.", () => {
     describe("Invalid spreadsheet.", () => {
         let user;
         afterEach(async() => await user.destroy());
+
+        test("Spreadsheet has a renamed sheet.", async() => {
+            user = await User.create({
+                discordId: "did3", name: "name3", spreadsheetId: spreadsheets.badRange
+            })
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("shigin", "aishite");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did1", "did2"],
+                    rarity: "Common",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: ["did3"],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
 
         test("Spreadsheet is private.", async() => {
             user = await User.create({

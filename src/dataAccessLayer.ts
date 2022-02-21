@@ -6,10 +6,13 @@ import { User } from "./database/models/user";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "./google/communitySpreadsheet";
 import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
-import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet } from "./google/spreadsheet";
-import { KoiNotFoundInSpreadsheet, PatternNotFoundInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
+import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet, RangeNotFound } 
+    from "./google/spreadsheet";
+import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UserSpreadsheet } 
+    from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
+import Logger from "./util/logger";
 
 export class DataAccessLayerError extends EnhancedError {}
 
@@ -221,6 +224,10 @@ export const DataAccessLayer =
                 })
                 .catch(error => {
 
+                    // log the issue to help the person if they need it
+                    Logger.error(`${USER.name} has an issue their spreadsheet.`);
+                    Logger.error(error);
+
                     // Let the user know if their spreadsheet has been deleted
                     if(error instanceof SpreadsheetNotFound)
                     {
@@ -241,7 +248,7 @@ export const DataAccessLayer =
 
                     // The user may have forgotten to add this pattern to 
                     // their spreadsheet, maybe because it's a brand new pattern.
-                    if (error instanceof PatternNotFoundInSpreadsheet)
+                    if (error instanceof PatternNotInSpreadsheet)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
@@ -251,7 +258,7 @@ export const DataAccessLayer =
 
                     // The user may have the pattern in their spreadsheet, 
                     // but not the koi. If this happens it could be a typo.
-                    if (error instanceof KoiNotFoundInSpreadsheet)
+                    if (error instanceof KoiNotInSpreadsheet)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
@@ -259,7 +266,10 @@ export const DataAccessLayer =
                         return;
                     }
 
-                    if (error instanceof KoiSpreadsheetError)
+                    // let the user know if something is wrong with their spreadsheet,
+                    // such as extra empty rows, or renamed sheets
+                    if (error instanceof KoiSpreadsheetError || 
+                        error instanceof RangeNotFound)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors

@@ -1,7 +1,7 @@
 import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
-export class PatternNotFoundInSpreadsheet extends KoiSpreadsheetError 
+export class PatternNotInSpreadsheet extends KoiSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string)
     {
@@ -9,7 +9,7 @@ export class PatternNotFoundInSpreadsheet extends KoiSpreadsheetError
     }
 }
 
-export class KoiNotFoundInSpreadsheet extends KoiSpreadsheetError 
+export class KoiNotInSpreadsheet extends KoiSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string, koi: string)
     {
@@ -42,10 +42,14 @@ export const UserSpreadsheet = {
      * @param color Koi's color.
      * @param pattern Koi's pattern.
      * @returns true or false.
-     * @throws InvalidGoogleApiKey if Google API key is invalid or missing.
-     * @throws InvalidSpreadsheet if spreadsheet does not exist.
+     * @throws ConfigError if Google Api key is not set in environment variables.
+     * @throws InvalidGoogleApiKey if Google API key is invalid
+     * @throws SpreadsheetNotFound if spreadsheet does not exist.
+     * @throws PrivateSpreadsheet if the spreadsheet is private.
      * @throws PatternNotInSpreadsheet if the spreadsheet does not have the pattern.
      * @throws KoiNotInSpreadsheet if the spreadsheet has the pattern but not color.
+     * @throws UnknownKoiProgress if the koi is not marked with k or d, or left empty.
+     * @throws RangeNotFound if the range does not exist for the spreadsheet.
      */
     hasKoi: async function(
         spreadsheetId: string, color: string, pattern: string): Promise<boolean>
@@ -74,7 +78,7 @@ export const UserSpreadsheet = {
         }
         if (patternRowIndex < 0)
         {
-            throw new PatternNotFoundInSpreadsheet(spreadsheetId, pattern);
+            throw new PatternNotInSpreadsheet(spreadsheetId, pattern);
         }
 
         // find the base color
@@ -93,7 +97,7 @@ export const UserSpreadsheet = {
         }
         if (baseColorRowIndex < 0)
         {
-            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
@@ -122,13 +126,13 @@ export const UserSpreadsheet = {
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
         if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
+            throw new KoiNotInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // Finally, we know the row and column of this koi.
