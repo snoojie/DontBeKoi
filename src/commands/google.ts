@@ -1,7 +1,7 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../command";
 import { DataAccessLayer } from "../dataAccessLayer";
-import { SpreadsheetNotFound } from "../google/spreadsheet";
+import { PrivateSpreadsheet, SpreadsheetNotFound } from "../google/spreadsheet";
 
 const GoogleCommand: Command = {
 
@@ -34,20 +34,21 @@ const GoogleCommand: Command = {
             // let the user know if the spreadsheet does not exist
             if(error instanceof SpreadsheetNotFound)
             {
-                return `Spreadsheet ID ${SPREADSHEET_ID} does not exist. ` +
-                "Consider example sheet with URL " +
-                "<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit#gid=1848229055> " +
-                "which has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
+                return `Spreadsheet ID ${SPREADSHEET_ID} is not valid. ` +
+                "You can find the ID in the URL. For example, spreadsheet " +
+                "<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> " +
+                "has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo"
             }
 
             // let the user know if the spreadsheet is private
-            if(error instanceof SpreadsheetNotFound)
+            if(error instanceof PrivateSpreadsheet)
             {
                 return `Spreadsheet ID ${SPREADSHEET_ID} is private. ` +
                 "Share it so that anyone with the link can view it.";
             }
 
-            // if there is another error, throw it up the chain
+            // if there is another error, throw it up the chain,
+            // as it is not expected
             throw error;
         }
 

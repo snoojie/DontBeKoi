@@ -126,7 +126,10 @@ export const DataAccessLayer =
      * @param discordId User's discord ID
      * @param name User's name on discord
      * @param spreadsheetId Google spreadsheet ID 
-     * @throws DataAccessLayer if the spreadsheet does not exist or is private.
+     * @throws ConfigError if the Google API key is not set in environment variables.
+     * @throws InvalidGoogleApiKey if the Google API key is invalid.
+     * @throws SpreadsheetNotFound if the spreadsheet does not exist.
+     * @throws PrivateSpreadsheet if the spreadsheet is not shared to anyone with link.
      */
     saveUser: async function(
         discordId: string, name: string, spreadsheetId: string
