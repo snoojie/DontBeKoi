@@ -1,5 +1,5 @@
 const { SpreadsheetNotFound, PrivateSpreadsheet } = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotFound, KoiNotFound,
+const { UserSpreadsheet, PatternNotFoundInSpreadsheet, KoiNotFoundInSpreadsheet,
         UnknownKoiProgress
       } = require("../../src/google/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
@@ -24,7 +24,7 @@ testWithModifiedEnv(
 test("User missing pattern.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "shigin", "invalidpattern"), 
-        PatternNotFound, 
+        PatternNotFoundInSpreadsheet, 
         `Spreadsheet '${spreadsheets.test}' missing pattern 'invalidpattern'.`
     );
 });
@@ -32,7 +32,7 @@ test("User missing pattern.", async() => {
 test("User missing base color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "invalidcolor", "natsu"), 
-        KoiNotFound, 
+        KoiNotFoundInSpreadsheet, 
         `Spreadsheet '${spreadsheets.test}' missing koi 'invalidcolor' ` +
         "for pattern 'natsu'."
     );
@@ -41,7 +41,7 @@ test("User missing base color.", async() => {
 test("User missing highlight color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "neinvalid", "robotto"), 
-        KoiNotFound, 
+        KoiNotFoundInSpreadsheet, 
         `Spreadsheet '${spreadsheets.test}' missing koi 'neinvalid' ` +
         "for pattern 'robotto'."
     );
@@ -50,7 +50,7 @@ test("User missing highlight color.", async() => {
 test("User missing color even though base and highlight are correct.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.test, "seiinvalidkoji", "toransu"), 
-        KoiNotFound,
+        KoiNotFoundInSpreadsheet,
         `Spreadsheet '${spreadsheets.test}' missing koi 'seiinvalidkoji' ` +
         "for pattern 'toransu'."
     );

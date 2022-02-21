@@ -1,7 +1,7 @@
 import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
 
-export class PatternNotFound extends KoiSpreadsheetError 
+export class PatternNotFoundInSpreadsheet extends KoiSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string)
     {
@@ -9,7 +9,7 @@ export class PatternNotFound extends KoiSpreadsheetError
     }
 }
 
-export class KoiNotFound extends KoiSpreadsheetError 
+export class KoiNotFoundInSpreadsheet extends KoiSpreadsheetError 
 {
     constructor(spreadsheetId: string, pattern: string, koi: string)
     {
@@ -74,7 +74,7 @@ export const UserSpreadsheet = {
         }
         if (patternRowIndex < 0)
         {
-            throw new PatternNotFound(spreadsheetId, pattern);
+            throw new PatternNotFoundInSpreadsheet(spreadsheetId, pattern);
         }
 
         // find the base color
@@ -93,7 +93,7 @@ export const UserSpreadsheet = {
         }
         if (baseColorRowIndex < 0)
         {
-            throw new KoiNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // find the highlight color
@@ -122,13 +122,13 @@ export const UserSpreadsheet = {
         }
         if (highlightColorColumnIndex < 0)
         {
-            throw new KoiNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // confirm the base and highlight color match the expected color
         if (!equalsIgnoreCase(baseColor+highlightColor, color))
         {
-            throw new KoiNotFound(spreadsheetId, pattern, color);
+            throw new KoiNotFoundInSpreadsheet(spreadsheetId, pattern, color);
         }
 
         // Finally, we know the row and column of this koi.

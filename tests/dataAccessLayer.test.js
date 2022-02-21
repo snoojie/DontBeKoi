@@ -1,4 +1,4 @@
-const { DataAccessLayer, SpreadsheetNotFound, PatternNotFound, KoiNotFound } 
+const { DataAccessLayer, PatternNotFound, KoiNotFound } 
     = require("../src/dataAccessLayer");
 const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } 
     = require("../src/database/database");
@@ -11,6 +11,8 @@ const { Op } = require("sequelize");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("./_setup/spreadsheet");
 const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
+const { PrivateSpreadsheet, SpreadsheetNotFound } 
+    = require("../src/google/userSpreadsheet");
 
 // wait a minute before starting the tests
 // this is because google has a read quota
@@ -199,14 +201,21 @@ describe("Save user.", () => {
     });
     afterAll(async() => await dropAllTables());
 
-    test.only("SpreadsheetNotFound thrown if the spreadsheet ID is invalid.", async() => {
+    test("Spreadsheet ID is invalid.", async() => {
         await expectErrorAsync(
             DataAccessLayer.saveUser("somediscordid", "somename", "invalidspreadsheet"),
             SpreadsheetNotFound,
-            "Spreadsheet ID invalidspreadsheet is not valid. " +
-            "You can find the ID in the URL. For example, spreadsheet " +
-            "<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> " +
-            "has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo"
+            "Spreadsheet ID 'invalidspreadsheet' does not exist."
+        );
+    });
+
+    test("Spreadsheet is private.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.saveUser(
+                "somediscordid", "somename", spreadsheets.private
+            ),
+            PrivateSpreadsheet,
+            `Spreadsheet ID '${spreadsheets.private}' is private.`
         );
     });
 
@@ -297,7 +306,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -316,7 +326,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -336,7 +347,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -355,7 +367,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -374,7 +387,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -393,7 +407,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -412,7 +427,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -431,7 +447,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: ["did1"],
                     koiNotFound: [],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -450,7 +467,8 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: ["did1"],
                     formatBroken: [],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
@@ -469,17 +487,18 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: ["did2"],
-                    spreadsheetNotFound: []
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
                 }
             }
         );
     });
 
-    describe("User has read only spreadsheet.", () => {
+    describe("Invalid spreadsheet.", () => {
         let user;
         afterEach(async() => await user.destroy());
 
-        test("Spreadsheet is set to read only.", async() => {
+        test("Spreadsheet is private.", async() => {
             user = await User.create({
                 discordId: "did3", name: "name3", spreadsheetId: spreadsheets.private
             })
@@ -495,13 +514,12 @@ describe("Get users missing koi.", () => {
                         patternNotFound: [],
                         koiNotFound: [],
                         formatBroken: [],
-                        spreadsheetNotFound: ["did3"]
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: ["did3"]
                     }
                 }
             );
         });
-
-        
 
         test("Spreadsheet does not exist.", async() => {
             user = await User.create({
@@ -519,7 +537,8 @@ describe("Get users missing koi.", () => {
                         patternNotFound: [],
                         koiNotFound: [],
                         formatBroken: [],
-                        spreadsheetNotFound: ["did3"]
+                        spreadsheetNotFound: ["did3"],
+                        privateSpreadshet: []
                     }
                 }
             );
@@ -568,7 +587,8 @@ describe("Get users missing koi.", () => {
                         patternNotFound: [],
                         koiNotFound: [],
                         formatBroken: [],
-                        spreadsheetNotFound: []
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
                     }
                 }
             );

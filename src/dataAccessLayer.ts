@@ -6,27 +6,14 @@ import { User } from "./database/models/user";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "./google/communitySpreadsheet";
 import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
-import { SpreadsheetNotFound as SpreadsheetNotFoundTODO, PrivateSpreadsheet, Spreadsheet } from "./google/spreadsheet";
-import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
+import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet } from "./google/spreadsheet";
+import { KoiNotFoundInSpreadsheet, PatternNotFoundInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
 
 export class DataAccessLayerError extends EnhancedError {}
 
-export class SpreadsheetNotFound extends DataAccessLayerError 
-{
-    constructor(spreadsheetId: string)
-    {
-        super(
-            `Spreadsheet ID ${spreadsheetId} is not valid. ` +
-            "You can find the ID in the URL. For example, spreadsheet " +
-            "<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> " +
-            "has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo"
-        );
-    }
-}
-
-export class PatternNotFound extends DataAccessLayerError 
+export class PatternNotFound extends DataAccessLayerError
 {
     constructor(pattern: string)
     {
@@ -34,9 +21,9 @@ export class PatternNotFound extends DataAccessLayerError
     }
 }
 
-export class KoiNotFound extends DataAccessLayerError 
+export class KoiNotFound extends DataAccessLayerError
 {
-    constructor(koi: string, pattern: string)
+    constructor(pattern: string, koi: string)
     {
         super(`Pattern '${pattern}' does not have koi '${koi}'.`);
     }
@@ -49,7 +36,8 @@ export interface UsersMissingKoiResponse
     hatchTime?: number;
     discordIdsWithSpreadsheetErrors: {
         spreadsheetNotFound: string[],
-        formatBroken: string[]
+        privateSpreadsheet: string[],
+        formatBroken: string[],
         patternNotFound: string[],
         koiNotFound: string[]
     };
@@ -135,7 +123,7 @@ export const DataAccessLayer =
      * @param discordId User's discord ID
      * @param name User's name on discord
      * @param spreadsheetId Google spreadsheet ID 
-     * @throws SpreadsheetNotFound if the spreadsheet does not exist.
+     * @throws DataAccessLayer if the spreadsheet does not exist or is private.
      */
     saveUser: async function(
         discordId: string, name: string, spreadsheetId: string
@@ -199,7 +187,7 @@ export const DataAccessLayer =
         }
         if (!koi)
         {
-            throw new KoiNotFound(koiName, patternName);
+            throw new KoiNotFound(patternName, koiName);
         }
 
         // Start setting up the reply. We have info on rarity and hatch time at least.
@@ -209,6 +197,7 @@ export const DataAccessLayer =
             hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined,
             discordIdsWithSpreadsheetErrors: {
                 spreadsheetNotFound: [],
+                privateSpreadsheet: [],
                 formatBroken: [],
                 patternNotFound: [],
                 koiNotFound: []
@@ -232,11 +221,8 @@ export const DataAccessLayer =
                 })
                 .catch(error => {
 
-                    // Let the user know if their spreadsheet cannot be read from,
-                    // either because read access has been revoked or because the
-                    // spreadsheet has been deleted.
-                    if(error instanceof SpreadsheetNotFoundTODO || 
-                       error instanceof PrivateSpreadsheet)
+                    // Let the user know if their spreadsheet has been deleted
+                    if(error instanceof SpreadsheetNotFound)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
@@ -244,9 +230,18 @@ export const DataAccessLayer =
                         return;
                     }
 
+                    // Let the user know if their spreadsheet is private
+                    if(error instanceof PrivateSpreadsheet)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .privateSpreadsheet.push(USER.discordId);
+                        return;
+                    }
+
                     // The user may have forgotten to add this pattern to 
                     // their spreadsheet, maybe because it's a brand new pattern.
-                    if (error instanceof PatternNotInSpreadsheet)
+                    if (error instanceof PatternNotFoundInSpreadsheet)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
@@ -256,7 +251,7 @@ export const DataAccessLayer =
 
                     // The user may have the pattern in their spreadsheet, 
                     // but not the koi. If this happens it could be a typo.
-                    if (error instanceof KoiNotInSpreadsheet)
+                    if (error instanceof KoiNotFoundInSpreadsheet)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
