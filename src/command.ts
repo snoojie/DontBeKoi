@@ -8,10 +8,15 @@ import { Config } from "./util/config";
 import * as fs from "fs";
 import EnhancedError from "./util/enhancedError";
 
-/**
- * Base error that is thrown.
- */
-export class CommandManagerError extends EnhancedError {}
+export abstract class CommandManagerError extends EnhancedError {}
+
+export class CommandsNotFound extends CommandManagerError 
+{
+    constructor(message: string)
+    {
+        super(message);
+    }
+}
 
 /**
  * Error thrown when a command in the commands/ directory is not programmed correctly.
@@ -242,7 +247,7 @@ export class CommandManager
         const DIRECTORY_FULL_PATH: string = `${__dirname}/${DIRECTORY}`;
         if (!fs.existsSync(DIRECTORY_FULL_PATH))
         {
-            throw new CommandManagerError("The commands directory is missing.");
+            throw new CommandsNotFound("The commands directory is missing.");
         }
 
         const FILES: string[] = fs.readdirSync(DIRECTORY_FULL_PATH);

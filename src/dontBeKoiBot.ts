@@ -25,7 +25,7 @@ function getNewDiscordClient(): Client
 /**
  * Log in to discord.
  * @throws ConfigError if BOT_TOKEN not set in environment variables.
- * @throws BotError if failed to login to discord.
+ * @throws Error [TOKEN_INVALID] if failed to login to discord.
  */
 async function login(): Promise<void>
 {    

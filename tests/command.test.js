@@ -1,4 +1,4 @@
-const { CommandManager, InvalidCommand, CommandManagerError, CommandExecutionError, 
+const { CommandManager, InvalidCommand, CommandsNotFound, CommandExecutionError, 
         DeployCommandsError } = require("../src/command");
 const { ConfigError } = require("../src/util/config");
 const fs = require("fs");
@@ -28,7 +28,7 @@ test("No error deploying commands to discord server.", async () => {
 test("Missing commands/ directory.", async() => {
     fs.existsSync = jest.fn(() => false);
     let run = commandManager.run();
-    await expect(run).rejects.toThrow(CommandManagerError);
+    await expect(run).rejects.toThrow(CommandsNotFound);
     await expect(run).rejects.toThrow("commands directory is missing");
 });
 
@@ -369,7 +369,7 @@ describe("Test parameters to REST call to discord.", () => {
 
     test("stuff", () => expect(3).toBe(3));
 
-    test("CommandManagerError when REST call to deploy to discord fails.", async() => {
+    test("Error when REST call to deploy to discord fails.", async() => {
         REST.prototype.put = jest.fn(async () => 
             { throw new Error("mock rest error"); }
         );
