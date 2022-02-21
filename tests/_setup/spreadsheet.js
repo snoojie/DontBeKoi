@@ -16,6 +16,16 @@ module.exports = {
 
     googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT+20000,
 
+    spreadsheets: {
+        community: "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo",
+        test: "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU",
+
+        // extra empty row in pattern moduro
+        formatBroken: "1fMMI5wGrD7d4Z5M9APlwoMzHG6QeZQvXK4qQ91yFDaQ",
+
+        private: "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8"
+    },
+
     getSpreadsheetErrorMessage: function(spreadsheetId, range)
     {
         return `Could not get range '${range}' at spreadsheet '${spreadsheetId}'. ` +

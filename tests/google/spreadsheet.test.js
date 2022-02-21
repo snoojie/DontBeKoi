@@ -1,11 +1,10 @@
 const { Spreadsheet, InvalidSpreadsheet, RangeNotFound } 
     = require("../../src/google/spreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
 
 // this is the community spreadsheet
-const VALID_SPREADSHEET_ID = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 const VALID_RANGE = "Progressives!I16";
 
 // wait a minute before starting the tests
@@ -19,11 +18,11 @@ beforeAll(async() => {
 // ================
 
 testWithModifiedEnv(
-    "Check if spreadsheet exists", async () => Spreadsheet.exists(VALID_SPREADSHEET_ID)
+    "Check if spreadsheet exists", async () => Spreadsheet.exists(spreadsheets.community)
 )
 
 test("Valid spreadsheet exists.", async() => {
-    const EXISTS = await Spreadsheet.exists(VALID_SPREADSHEET_ID);
+    const EXISTS = await Spreadsheet.exists(spreadsheets.community);
     expect(EXISTS).toBeTruthy();
 });
 
@@ -37,7 +36,7 @@ test("Invalid spreadsheet does not exist.", async() => {
 // ====================
 
 testWithModifiedEnv(
-    "Get values", async () => Spreadsheet.getValues(VALID_SPREADSHEET_ID, VALID_RANGE)
+    "Get values", async () => Spreadsheet.getValues(spreadsheets.community, VALID_RANGE)
 )
 
 test("Get values of invalid spreadsheet.", async() => {
@@ -50,63 +49,64 @@ test("Get values of invalid spreadsheet.", async() => {
 });
 
 test("Get values of invalid range.", async() => {
-    let promise = Spreadsheet.getValues(VALID_SPREADSHEET_ID, "invalidrange");
+    let promise = Spreadsheet.getValues(spreadsheets.community, "invalidrange");
     await expectErrorAsync(
         promise, 
         RangeNotFound,
-        `Spreadsheet ID '${VALID_SPREADSHEET_ID}' does not have range 'invalidrange'.`
+        `Spreadsheet ID '${spreadsheets.community}' does not have range 'invalidrange'.`
     );
 });
 
 test("Get value of single string cell.", async() => {
-    const VALUES = await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I16");
+    const VALUES = 
+        await Spreadsheet.getValues(spreadsheets.community, "Progressives!I16");
     expect(VALUES).toEqual([ [ "Goten" ] ]);
 });
 
 test("Get value of single number cell.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "A-M: Collectors!D2");
+        await Spreadsheet.getValues(spreadsheets.community, "A-M: Collectors!D2");
     expect(VALUES).toEqual([ [ "0" ] ]);
 });
 
 test("Get value of single empty cell.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "N-Z: Collectors!A1");
+        await Spreadsheet.getValues(spreadsheets.community, "N-Z: Collectors!A1");
     expect(VALUES).toEqual([]);
 });
 
 test("Get values of row with strings.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Overview!B3:D3");
+        await Spreadsheet.getValues(spreadsheets.community, "Overview!B3:D3");
     expect(VALUES).toEqual([ [ "Type", "Collection started", "Common Koi" ] ]);
 });
 
 test("Get values of row with mixed types.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!A9:I9");
+        await Spreadsheet.getValues(spreadsheets.community, "Progressives!A9:I9");
     expect(VALUES).toEqual([ [ "Meisai", "n", "0", "0", "0", "0", "21", "", "Nidan" ] ]);
 });
 
 test("Get values of empty row.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "A-M: Collectors!A8:C8");
+        await Spreadsheet.getValues(spreadsheets.community, "A-M: Collectors!A8:C8");
     expect(VALUES).toEqual([]);
 });
 
 test("Get values of several rows.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I2:K4");
+        await Spreadsheet.getValues(spreadsheets.community, "Progressives!I2:K4");
     expect(VALUES).toEqual([ [ "Inazuma" ], [ "", "-shiro", "-ukon" ], [ "Shi-" ] ]);
 });
 
 test("Get values of several rows with middle empty.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I7:I9");
+        await Spreadsheet.getValues(spreadsheets.community, "Progressives!I7:I9");
     expect(VALUES).toEqual([ [ "Ku-" ], [], [ "Nidan" ] ]);
 });
 
 test("Get values of several rows with last row empty.", async() => {
     const VALUES = 
-        await Spreadsheet.getValues(VALID_SPREADSHEET_ID, "Progressives!I7:I8");
+        await Spreadsheet.getValues(spreadsheets.community, "Progressives!I7:I8");
     expect(VALUES).toEqual([ [ "Ku-" ] ]);
 });

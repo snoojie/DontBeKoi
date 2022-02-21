@@ -1,5 +1,5 @@
-const { DataAccessLayer, DataAccessLayerError, SpreadsheetNotFound, PatternNotFound, 
-        KoiNotFound } = require("../src/dataAccessLayer");
+const { DataAccessLayer, SpreadsheetNotFound, PatternNotFound, KoiNotFound } 
+    = require("../src/dataAccessLayer");
 const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } 
     = require("../src/database/database");
 const { dropAllTables } = require("./_setup/database");
@@ -8,18 +8,15 @@ const { Pattern } = require("../src/database/models/pattern");
 const { Koi } = require("../src/database/models/koi");
 const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
-const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("./_setup/spreadsheet");
 const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
 
-const VALID_SPREADSHEET = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
-const READONLY_SPREADSHEET = "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8";
-
 // wait a minute before starting the tests
 // this is because google has a read quota
-/*beforeAll(async() => {
+beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);*/
+}, googleQuotaTimeout);
 
 afterEach(async() => await DataAccessLayer.stop());
 
@@ -214,36 +211,37 @@ describe("Save user.", () => {
     });
 
     test("Saving user adds that user.", async() => {
-        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
+        await DataAccessLayer
+            .saveUser("somediscord", "somename", spreadsheets.community);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("somename");
-        expect(USER.spreadsheetId).toBe(VALID_SPREADSHEET);
+        expect(USER.spreadsheetId).toBe(spreadsheets.community);
     });
 
     test("Saving user updates that user's name.", async() => {
-        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
-        await DataAccessLayer.saveUser("somediscord", "newname", VALID_SPREADSHEET);
+        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.community);
+        await DataAccessLayer.saveUser("somediscord", "newname", spreadsheets.community);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("newname");
-        expect(USER.spreadsheetId).toBe(VALID_SPREADSHEET);
+        expect(USER.spreadsheetId).toBe(spreadsheets.community);
     });
 
     test("Saving user updates that user's spreadsheet ID.", async() => {
-        const TEST_SPREADSHEET = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
-        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
-        await DataAccessLayer.saveUser("somediscord", "somename", TEST_SPREADSHEET);
+        await DataAccessLayer
+            .saveUser("somediscord", "somename", spreadsheets.community);
+        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.test);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("somename");
-        expect(USER.spreadsheetId).toBe(TEST_SPREADSHEET);
+        expect(USER.spreadsheetId).toBe(spreadsheets.test);
     });
 });
 
@@ -258,10 +256,10 @@ describe("Get users missing koi.", () => {
         await DataAccessLayer.start();
         await DataAccessLayer.updatePatterns();
         await DataAccessLayer.saveUser(
-            "did1", "name1", "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU"
+            "did1", "name1", spreadsheets.test
         );
         await DataAccessLayer.saveUser(
-            "did2", "name2", "1fMMI5wGrD7d4Z5M9APlwoMzHG6QeZQvXK4qQ91yFDaQ"
+            "did2", "name2", spreadsheets.formatBroken
         );
         await DataAccessLayer.stop();
     })
@@ -483,7 +481,7 @@ describe("Get users missing koi.", () => {
 
         test("Spreadsheet is set to read only.", async() => {
             user = await User.create({
-                discordId: "did3", name: "name3", spreadsheetId: READONLY_SPREADSHEET
+                discordId: "did3", name: "name3", spreadsheetId: spreadsheets.private
             })
             const USERS_MISSING_KOI = 
                 await DataAccessLayer.getUsersMissingKoi("mamido", "habu");
@@ -557,7 +555,7 @@ describe("Get users missing koi.", () => {
             await pattern.save();
         });
 
-        test("Undefined hatch time.", async() => {            
+        test("No hatch time.", async() => {            
             const USERS_MISSING_KOI = 
                 await DataAccessLayer.getUsersMissingKoi("negin", "yanone");
             expectUsersMissingKoi(

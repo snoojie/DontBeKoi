@@ -1,12 +1,10 @@
 const { InvalidSpreadsheet } = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, UnexpectedKoiMark, PrivateSpreadsheet } 
-    = require("../../src/google/userSpreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, 
+        UnexpectedKoiMark, PrivateSpreadsheet
+      } = require("../../src/google/userSpreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
-
-// ID of test user sheet
-const SPREADSHEET_ID = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
 
 // wait a minute before starting the tests
 // this is because google has a read quota
@@ -20,40 +18,40 @@ beforeAll(async() => {
 
 testWithModifiedEnv(
     "Has koi", 
-    async () => UserSpreadsheet.hasKoi(SPREADSHEET_ID, "shigin", "aishite")
+    async () => UserSpreadsheet.hasKoi(spreadsheets.test, "shigin", "aishite")
 )
 
 test("User missing pattern.", async() => {
     await expectErrorAsync(
-        UserSpreadsheet.hasKoi(SPREADSHEET_ID, "shigin", "invalidpattern"), 
+        UserSpreadsheet.hasKoi(spreadsheets.test, "shigin", "invalidpattern"), 
         PatternNotInSpreadsheet, 
-        `Spreadsheet '${SPREADSHEET_ID}' missing pattern 'invalidpattern'.`
+        `Spreadsheet '${spreadsheets.test}' missing pattern 'invalidpattern'.`
     );
 });
 
 test("User missing base color.", async() => {
     await expectErrorAsync(
-        UserSpreadsheet.hasKoi(SPREADSHEET_ID, "invalidcolor", "natsu"), 
+        UserSpreadsheet.hasKoi(spreadsheets.test, "invalidcolor", "natsu"), 
         KoiNotInSpreadsheet, 
-        `Spreadsheet '${SPREADSHEET_ID}' missing color 'invalidcolor' ` +
+        `Spreadsheet '${spreadsheets.test}' missing color 'invalidcolor' ` +
         "for pattern 'natsu'."
     );
 });
 
 test("User missing highlight color.", async() => {
     await expectErrorAsync(
-        UserSpreadsheet.hasKoi(SPREADSHEET_ID, "neinvalid", "robotto"), 
+        UserSpreadsheet.hasKoi(spreadsheets.test, "neinvalid", "robotto"), 
         KoiNotInSpreadsheet, 
-        `Spreadsheet '${SPREADSHEET_ID}' missing color 'neinvalid' ` +
+        `Spreadsheet '${spreadsheets.test}' missing color 'neinvalid' ` +
         "for pattern 'robotto'."
     );
 });
 
 test("User missing color even though base and highlight are correct.", async() => {
     await expectErrorAsync(
-        UserSpreadsheet.hasKoi(SPREADSHEET_ID, "seiinvalidkoji", "toransu"), 
+        UserSpreadsheet.hasKoi(spreadsheets.test, "seiinvalidkoji", "toransu"), 
         KoiNotInSpreadsheet, 
-        `Spreadsheet '${SPREADSHEET_ID}' missing color 'seiinvalidkoji' ` +
+        `Spreadsheet '${spreadsheets.test}' missing color 'seiinvalidkoji' ` +
         "for pattern 'toransu'."
     );
 });
@@ -69,19 +67,19 @@ test("Invalid spreadsheet.", async() => {
 test("Private spreadsheet.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(
-            "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8", "shigin", "natsu"
+            spreadsheets.private, "shigin", "natsu"
         ), 
         PrivateSpreadsheet, 
-        "Could not read from spreadsheet " +
-        "'1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8'. Can anyone with a link read it?"
+        `Could not read from spreadsheet '${spreadsheets.private}'. ` +
+        "Can anyone with a link read it?"
     );
 });
 
 test("Koi marked with neither k or d, ignoring casing or whitespaces.", async() => {
     await expectErrorAsync(
-        UserSpreadsheet.hasKoi(SPREADSHEET_ID, "neburu", "jueru"), 
+        UserSpreadsheet.hasKoi(spreadsheets.test, "neburu", "jueru"), 
         UnexpectedKoiMark, 
-        `Spreadsheet '${SPREADSHEET_ID}' has koi 'neburu jueru' marked ` +
+        `Spreadsheet '${spreadsheets.test}' has koi 'neburu jueru' marked ` +
         `with 'invalid'. Expected to see 'k', 'd', or no text.`
     );
 });
@@ -91,62 +89,66 @@ test("Koi marked with neither k or d, ignoring casing or whitespaces.", async() 
 // =======================
 
 test("Has common koi.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "seidai", "aishite");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "seidai", "aishite");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Does not have common koi.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "nekoji", "botan");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "nekoji", "botan");
     expect(HAS_KOI).toBeFalsy();
 });
 
 test("Has rare koi.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mausu", "mukei");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "mausu", "mukei");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Does not have rare koi.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mapinku", "naisu");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "mapinku", "naisu");
     expect(HAS_KOI).toBeFalsy();
 });
 
 test("Has dragonned koi.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "buusu", "seiza");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "buusu", "seiza");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when it marked with capital K.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "chomura", "yumi");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "chomura", "yumi");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when it marked with capital D.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "gumido", "yumi");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "gumido", "yumi");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when there are spaces around k.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "mugure", "suneku");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "mugure", "suneku");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when there are spaces around d.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "negure", "suneku");
+    const HAS_KOI = await UserSpreadsheet.hasKoi(spreadsheets.test, "negure", "suneku");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Color is case insenstive.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "AkabUru", "hitsuji");
+    const HAS_KOI = 
+        await UserSpreadsheet.hasKoi(spreadsheets.test, "AkabUru", "hitsuji");  
     expect(HAS_KOI).toBeTruthy();
 
-    const HAS_KOI2 = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "OreburU", "hitsuji");
+    const HAS_KOI2 = 
+        await UserSpreadsheet.hasKoi(spreadsheets.test, "OreburU", "hitsuji");
     expect(HAS_KOI2).toBeFalsy();
 });
 
 test("Pattern is case insenstive.", async() => {
-    const HAS_KOI = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "akaburu", "HItsuji");
+    const HAS_KOI = 
+        await UserSpreadsheet.hasKoi(spreadsheets.test, "akaburu", "HItsuji");
     expect(HAS_KOI).toBeTruthy();
 
-    const HAS_KOI2 = await UserSpreadsheet.hasKoi(SPREADSHEET_ID, "oreburu", "hitsuJi");
+    const HAS_KOI2 = 
+        await UserSpreadsheet.hasKoi(spreadsheets.test, "oreburu", "hitsuJi");
     expect(HAS_KOI2).toBeFalsy();
 });
