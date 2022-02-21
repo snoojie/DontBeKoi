@@ -65,7 +65,7 @@ const WhoCommand: Command = {
         }
 
         // call out anyone who does not have this pattern in their spreadsheet
-        reply += callOut(
+        /*reply += callOut(
             usersMissingKoi.discordIdsMissingPattern, "Could not find pattern"
         );
 
@@ -73,7 +73,7 @@ const WhoCommand: Command = {
         reply += callOut(
             usersMissingKoi.discordIdsWithInvalidSpreadsheet, 
             "Could not read spreadsheet"
-        );
+        );*/
 
         return reply;
     }
@@ -92,7 +92,7 @@ function getMentions(discordIds: string[]): string
     return mentionList.join(" ");
 }
 
-function callOut(discordIds: string[], reason: string): string
+/*function callOut(discordIds: string[], reason: string): string
 {
     if (discordIds.length > 0)
     {
@@ -100,4 +100,4 @@ function callOut(discordIds: string[], reason: string): string
         return `\n${reason} for ${MENTIONS}`;
     }
     return "";
-}
+}*/

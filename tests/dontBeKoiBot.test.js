@@ -74,7 +74,8 @@ describe("Modified BOT_TOKEN.", () => {
         process.env.BOT_TOKEN = "invalidtoken";
         await Bot.start();
         expectFailedStartDuringDiscordLoginLogs(
-            "BotError", "Failed to login to discord. Could the token be invalid?"
+            "Error [TOKEN_INVALID]", 
+            "An invalid token was provided."
         );
     }, TIMEOUT);
 

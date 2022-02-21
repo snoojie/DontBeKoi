@@ -2,10 +2,8 @@ import { Client, Interaction } from "discord.js";
 import { Config } from "./util/config";
 import Logger from "./util/logger";
 import { CommandManager } from "./command";
-import EnhancedError from "./util/enhancedError";
-import { DataAccessLayer } from "./dataAccessLayer";
 
-class BotError extends EnhancedError {}
+import { DataAccessLayer } from "./dataAccessLayer";
 
 let discord: Client = getNewDiscordClient();
 
@@ -36,11 +34,6 @@ async function login(): Promise<void>
 
     // login to discord
     await discord.login(TOKEN)
-        .catch(error => {
-            throw new BotError(
-                "Failed to login to discord. Could the token be invalid?", error
-            );
-        })
 }
 
 /**
