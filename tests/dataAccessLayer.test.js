@@ -1,9 +1,15 @@
-const { DataAccessLayer, DataAccessLayerError } = require("../src/dataAccessLayer");
-const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } = require("../src/database/database");
+const { DataAccessLayer, DataAccessLayerError, SpreadsheetNotFound, PatternNotFound, 
+        KoiNotFound } = require("../src/dataAccessLayer");
+const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } 
+    = require("../src/database/database");
 const { dropAllTables } = require("./_setup/database");
+const { expectErrorAsync } = require("./_setup/testUtil");
 const { Pattern } = require("../src/database/models/pattern");
 const { Koi } = require("../src/database/models/koi");
+const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
+
+const VALID_SPREADSHEET = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 
 afterEach(async() => await DataAccessLayer.stop());
 
@@ -156,7 +162,7 @@ describe("Update patterns with a prepopulated database.", () => {
         expect(PATTERN.hatchTime).toBe(10);
     });
 
-    test("Can update patterns several times.", async() => {
+    test("Does not add duplicates.", async() => {
         await DataAccessLayer.start();
         await DataAccessLayer.updatePatterns();
 
@@ -172,4 +178,61 @@ describe("Update patterns with a prepopulated database.", () => {
         expect(KOI_COUNT2).toBe(KOI_COUNT);
     });
 
+});
+
+// ===================
+// =====SAVE USER=====
+// ===================
+
+describe("Save user.", () => {
+
+    beforeEach(async() => {
+        await dropAllTables()
+        await DataAccessLayer.start();
+    });
+    afterAll(async() => await dropAllTables());
+
+    test("SpreadsheetNotFound thrown if the spreadsheet ID is invalid.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.saveUser("somediscordid", "somename", "invalidspreadsheet"),
+            SpreadsheetNotFound,
+            "Spreadsheet ID invalidspreadsheet is not valid. " +
+            "You can find the ID in the URL. For example, spreadsheet " +
+            "<https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit?usp=sharing> " +
+            "has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo"
+        );
+    });
+
+    test("Saving user adds that user.", async() => {
+        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
+        const COUNT = await User.count();
+        expect(COUNT).toBe(1);
+        const USER = await User.findOne();
+        expect(USER.discordId).toBe("somediscord");
+        expect(USER.name).toBe("somename");
+        expect(USER.spreadsheetId).toBe(VALID_SPREADSHEET);
+    });
+
+    test("Saving user updates that user's name.", async() => {
+        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
+        await DataAccessLayer.saveUser("somediscord", "newname", VALID_SPREADSHEET);
+        const COUNT = await User.count();
+        expect(COUNT).toBe(1);
+        const USER = await User.findOne();
+        expect(USER.discordId).toBe("somediscord");
+        expect(USER.name).toBe("newname");
+        expect(USER.spreadsheetId).toBe(VALID_SPREADSHEET);
+    });
+
+    test("Saving user updates that user's spreadsheet ID.", async() => {
+        const TEST_SPREADSHEET = "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU";
+        await DataAccessLayer.saveUser("somediscord", "somename", VALID_SPREADSHEET);
+        await DataAccessLayer.saveUser("somediscord", "somename", TEST_SPREADSHEET);
+        const COUNT = await User.count();
+        expect(COUNT).toBe(1);
+        const USER = await User.findOne();
+        expect(USER.discordId).toBe("somediscord");
+        expect(USER.name).toBe("somename");
+        expect(USER.spreadsheetId).toBe(TEST_SPREADSHEET);
+    });
 });
