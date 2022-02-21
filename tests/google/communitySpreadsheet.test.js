@@ -4,9 +4,9 @@ const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv }
 
 // wait a minute before starting the tests
 // this is because google has a read quota
-/*beforeAll(async() => {
+beforeAll(async() => {
     await waitGoogleQuota();
-}, googleQuotaTimeout);*/
+}, googleQuotaTimeout);
 
 testWithModifiedEnv("Get all patterns", CommunitySpreadsheet.getAllPatterns);
 
