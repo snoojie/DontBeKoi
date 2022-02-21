@@ -3,9 +3,6 @@ import { google, sheets_v4 } from "googleapis";
 import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
 
-/**
- * Base error that should never be directly thrown.
- */
 export abstract class SpreadsheetError extends EnhancedError {}
 
 /**
@@ -20,14 +17,19 @@ export class InvalidGoogleApiKey extends SpreadsheetError
     }
 }
 
-/**
- * Error thrown when the spreadsheet could not be found due to an invalid ID.
- */
-export class InvalidSpreadsheet extends SpreadsheetError 
+export class SpreadsheetNotFound extends SpreadsheetError 
 {
     constructor(spreadsheetId: string, error: any)
     {
         super(`Spreadsheet ID '${spreadsheetId}' does not exist.`, error);
+    }
+}
+
+export class PrivateSpreadsheet extends SpreadsheetError
+{
+    constructor(spreadsheetId: string, error: any)
+    {
+        super(`Spreadsheet ID '${spreadsheetId}' is private.`, error);
     }
 }
 
@@ -44,67 +46,38 @@ export class RangeNotFound extends SpreadsheetError
     }
 }
 
-const SPREADSHEETS_API: sheets_v4.Resource$Spreadsheets = 
-    google.sheets({version: "v4"}).spreadsheets;
-
-/**
- * @returns Google API key
- * @throws InvalidGoogleApiKey if the Google API key cannot be obtained.
- */
-function getApiKey(): string
-{
-    try
-    {
-        return Config.getGoogleApiKey();
-    }
-    catch(error)
-    {
-        throw new InvalidGoogleApiKey(error);
-    }
-}
-
 /**
  * Wrapper for reading from Google spreadsheets.
  */
 export const Spreadsheet = {
 
     /**
-     * @param spreadsheetId - ID of the spreadsheet. Consider example sheet with URL
+     * Throws an error if the spreadsheet is not valid. Otherwise, returns true.
+     * @param spreadsheetId ID of the spreadsheet. Consider example sheet with URL
      * https://docs.google.com/spreadsheets/d/1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo/edit#gid=1848229055
      * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
-     * @returns whether this spreadsheet exists or not 
-     * @throws InvalidGoogleApiKey if the Google API key is not set in
-     *         environment variable or is invalid.
+     * @returns true if the spreadsheet is valid
+     * @throws ConfigError if the Google API key is not set in environment variables.
+     * @throws InvalidGoogleApiKey if the Google API key is invalid.
+     * @throws SpreadsheetNotFound if the spreadsheet does not exist.
+     * @throws PrivateSpreadsheet if the spreadsheet is not shared to anyone with link.
      */
-    exists: async function(spreadsheetId: string): Promise<boolean>
+    validate: async function(spreadsheetId: string): Promise<boolean>
     {
-        // throws ConfigError if api key not set as environment variable
-        const API_KEY: string = getApiKey();
-        
-        // try to get the spreadsheet
-        // if this throws an error, then either 
-        // the spreadsheet ID is invalid
-        // or the google api key is invalid
+        const API_KEY: string = Config.getGoogleApiKey();
+
         try
         {
-            await SPREADSHEETS_API.get({
+            await google.sheets({version: "v4"}).spreadsheets.get({
                 spreadsheetId,
                 auth: API_KEY
             });
         }
         catch(error)
         {
-            if (isGoogleErrorOfInvalidGoogleApiKey(error))
-            {
-                throw new InvalidGoogleApiKey(error);
-            }
-            if (isGoogleErrorOfInvalidSpreadsheet(error))
-            {
-                return false;
-            }
+            throwGoogleApiError(error, spreadsheetId);
         }
 
-        // since there was no error, the spreadsheet is valid
         return true;
     },
 
@@ -115,13 +88,15 @@ export const Spreadsheet = {
      * This has ID 1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo
      * @param range Range in the spreadsheet, for example, Progressives!A2:G
      * @returns List of rows from the specified range and spreadsheet
+     * @throws ConfigError if the Google API key is not set in environment variables.
      * @throws InvalidGoogleApiKey if the Google API key is invalid.
-     * @throws InivalidSpreadsheet if the spreadsheet ID is invalid.
-     * @throws RangeNotFound if the spreadsheet exists but the range is invalid.
+     * @throws SpreadsheetNotFound if the spreadsheet does not exist.
+     * @throws PrivateSpreadsheet if the spreadsheet is not shared to anyone with link.
+     * @throws RangeNotFound if the range is invalid.
      */
     getValues: async function(spreadsheetId: string, range: string): Promise<string[][]>
     {
-        const API_KEY: string = getApiKey();
+        const API_KEY: string = Config.getGoogleApiKey();
         
         // get spreadsheet
         
@@ -129,7 +104,7 @@ export const Spreadsheet = {
         try
         {
             const RESPONSE: GaxiosResponse<sheets_v4.Schema$ValueRange> 
-                = await SPREADSHEETS_API.values.get({
+                = await google.sheets({version: "v4"}).spreadsheets.values.get({
                     spreadsheetId,
                     range,
                     auth: API_KEY
@@ -138,18 +113,7 @@ export const Spreadsheet = {
         }
         catch(error)
         {
-            if(isGoogleErrorOfInvalidGoogleApiKey(error))
-            {
-                throw new InvalidGoogleApiKey(error);
-            }
-            if(isGoogleErrorOfInvalidSpreadsheet(error))
-            {
-                throw new InvalidSpreadsheet(spreadsheetId, error);
-            }
-            if(isGoogleErrorOfRangeNotFound(error))
-            {
-                throw new RangeNotFound(spreadsheetId, range, error);
-            }
+            throwGoogleApiError(error, spreadsheetId, range);
         }
         
         // when all the values are empty text,
@@ -171,23 +135,34 @@ export const Spreadsheet = {
 
 };
 
-function isGoogleErrorOfInvalidGoogleApiKey(error: any): boolean
+function throwGoogleApiError(error: any, spreadsheetId: string, range?: string): void
 {
-    return error instanceof GaxiosError && 
-           error.code == "400" && 
-           error.message == "API key not valid. Please pass a valid API key.";
-}
+    if (error instanceof GaxiosError)
+    {
+        if (error.code == "400")
+        {
+            if (error.message == 
+                "API key not valid. Please pass a valid API key.")
+            {
+                throw new InvalidGoogleApiKey(error);
+            }
+            if (range && error.message.startsWith("Unable to parse range: "))
+            {
+                throw new RangeNotFound(spreadsheetId, range, error);
+            }
+        }
+        if (error.code == "404" && 
+            error.message == "Requested entity was not found.")
+        {
+            throw new SpreadsheetNotFound(spreadsheetId, error);
+        }
+        if (error.code == "403" && 
+            error.message == "The caller does not have permission")
+        {
+            throw new PrivateSpreadsheet(spreadsheetId, error);
+        }
+    }
 
-function isGoogleErrorOfInvalidSpreadsheet(error: any): boolean
-{
-    return error instanceof GaxiosError && 
-           error.code == "404" && 
-           error.message == "Requested entity was not found.";
-}
-
-function isGoogleErrorOfRangeNotFound(error: any): boolean
-{
-    return error instanceof GaxiosError && 
-           error.code == "400" && 
-           error.message.startsWith("Unable to parse range: ");
+    // unknown error, so pass it on
+    throw error;
 }

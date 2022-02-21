@@ -6,8 +6,8 @@ import { User } from "./database/models/user";
 import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
     from "./google/communitySpreadsheet";
 import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
-import { InvalidSpreadsheet, Spreadsheet } from "./google/spreadsheet";
-import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, PrivateSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
+import { SpreadsheetNotFound as SpreadsheetNotFoundTODO, PrivateSpreadsheet, Spreadsheet } from "./google/spreadsheet";
+import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UserSpreadsheet } from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
 
@@ -141,11 +141,8 @@ export const DataAccessLayer =
         discordId: string, name: string, spreadsheetId: string
     ): Promise<void>
     {   
-        // confirm the spreadsheet is valid
-        if (!(await Spreadsheet.exists(spreadsheetId)))
-        {
-            throw new SpreadsheetNotFound(spreadsheetId);
-        }
+        // validate spreadsheet
+        await Spreadsheet.validate(spreadsheetId);
 
         // if the user already exists in the database, 
         // update their name and spreadsheet ID
@@ -238,7 +235,7 @@ export const DataAccessLayer =
                     // Let the user know if their spreadsheet cannot be read from,
                     // either because read access has been revoked or because the
                     // spreadsheet has been deleted.
-                    if(error instanceof InvalidSpreadsheet || 
+                    if(error instanceof SpreadsheetNotFoundTODO || 
                        error instanceof PrivateSpreadsheet)
                     {
                         usersMissingKoi

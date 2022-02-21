@@ -1,4 +1,5 @@
 const { InvalidGoogleApiKey } = require("../../src/google/spreadsheet");
+const { ConfigError } = require("../../src/util/config");
 const { expectErrorAsync } = require("./testUtil");
 
 const GOOGLE_QUOTA_TIMEOUT = 70000;
@@ -40,14 +41,22 @@ module.exports = {
             beforeEach(() => process.env = { ...ORIGINAL_ENV });
             afterAll(() => process.env = { ...ORIGINAL_ENV });
 
-            test("InvalidGoogleApiKey without GOOGLE_API_KEY.", async() => {
+            test("ConfigError without GOOGLE_API_KEY.", async() => {
                 delete process.env.GOOGLE_API_KEY;
-                await expectInvalidGoogleApiKey(methodToTest);
+                await expectErrorAsync(
+                    methodToTest(), 
+                    ConfigError, 
+                    "Did you forget to set GOOGLE_API_KEY as an environment variable?"
+                );
             });
 
             test("InvalidGoogleApiKey with invalid GOOGLE_API_KEY.", async() => {
                 process.env.GOOGLE_API_KEY = "invalidkey";
-                await expectInvalidGoogleApiKey(methodToTest);
+                await expectErrorAsync(
+                    methodToTest(), 
+                    InvalidGoogleApiKey, 
+                    "The Google API key is invalid or missing."
+                );
             });
 
             async function expectInvalidGoogleApiKey(methodToTest)

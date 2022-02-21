@@ -1,8 +1,9 @@
-const { Spreadsheet, InvalidSpreadsheet, RangeNotFound } 
+const { Spreadsheet, SpreadsheetNotFound, PrivateSpreadsheet, RangeNotFound } 
     = require("../../src/google/spreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
+const { google } = require("googleapis");
 
 // this is the community spreadsheet
 const VALID_RANGE = "Progressives!I16";
@@ -10,25 +11,56 @@ const VALID_RANGE = "Progressives!I16";
 // wait a minute before starting the tests
 // this is because google has a read quota
 beforeAll(async() => {
-    await waitGoogleQuota();
+    //await waitGoogleQuota();
 }, googleQuotaTimeout);
 
-// ================
-// =====EXISTS=====
-// ================
+// ==================
+// =====VALIDATE=====
+// ==================
 
 testWithModifiedEnv(
-    "Check if spreadsheet exists", async () => Spreadsheet.exists(spreadsheets.community)
-)
+    "Validate", async () => Spreadsheet.validate(spreadsheets.community)
+);
 
-test("Valid spreadsheet exists.", async() => {
-    const EXISTS = await Spreadsheet.exists(spreadsheets.community);
-    expect(EXISTS).toBeTruthy();
+test("Validate non existant spreadsheet.", async() => {
+    let promise = Spreadsheet.validate("invalidid");
+    await expectErrorAsync(
+        promise, 
+        SpreadsheetNotFound,
+        "Spreadsheet ID 'invalidid' does not exist."
+    );
 });
 
-test("Invalid spreadsheet does not exist.", async() => {
-    const EXISTS = await Spreadsheet.exists("invalidspreadsheet");
-    expect(EXISTS).toBeFalsy();
+test("Validate private spreadsheet.", async() => {
+    let promise = Spreadsheet.validate(spreadsheets.private);
+    await expectErrorAsync(
+        promise, 
+        PrivateSpreadsheet,
+        `Spreadsheet ID '${spreadsheets.private}' is private.`
+    );
+});
+
+describe("Modify Google API for validate tests.", () => {
+
+    const ORIGINAL_GOOGLE_API = google.sheets;
+    afterAll(() => google.sheets = ORIGINAL_GOOGLE_API);
+    
+    test("Error calling Google API.", async() => {
+        google.sheets = jest.fn(() => { 
+            return {
+                spreadsheets: {
+                    get: async() => { throw new Error("some error"); }
+                }
+            };
+        });
+        let promise = Spreadsheet.validate(spreadsheets.test);
+        await expectErrorAsync(promise, Error, "some error");
+    });
+});
+
+test("Validate valid spreadsheet.", async() => {
+    const IS_VALID = await Spreadsheet.validate(spreadsheets.community);
+    expect(IS_VALID).toBeTruthy();
 });
 
 // ====================
@@ -37,15 +69,44 @@ test("Invalid spreadsheet does not exist.", async() => {
 
 testWithModifiedEnv(
     "Get values", async () => Spreadsheet.getValues(spreadsheets.community, VALID_RANGE)
-)
+);
 
-test("Get values of invalid spreadsheet.", async() => {
+test("Get values of non existant spreadsheet.", async() => {
     let promise = Spreadsheet.getValues("invalidid", VALID_RANGE);
     await expectErrorAsync(
         promise, 
-        InvalidSpreadsheet,
+        SpreadsheetNotFound,
         "Spreadsheet ID 'invalidid' does not exist."
     );
+});
+
+test("Get values of private spreadsheet.", async() => {
+    let promise = Spreadsheet.getValues(spreadsheets.private, VALID_RANGE);
+    await expectErrorAsync(
+        promise, 
+        PrivateSpreadsheet,
+        `Spreadsheet ID '${spreadsheets.private}' is private.`
+    );
+});
+
+describe("Modify Google API for get values tests.", () => {
+
+    const ORIGINAL_GOOGLE_API = google.sheets;
+    afterAll(() => google.sheets = ORIGINAL_GOOGLE_API);
+    
+    test("Error calling Google API.", async() => {
+        google.sheets = jest.fn(() => { 
+            return {
+                spreadsheets: {
+                    values: {
+                        get: async() => { throw new Error("some error"); }
+                    }
+                }
+            };
+        });
+        let promise = Spreadsheet.getValues(spreadsheets.test, VALID_RANGE);
+        await expectErrorAsync(promise, Error, "some error");
+    });
 });
 
 test("Get values of invalid range.", async() => {

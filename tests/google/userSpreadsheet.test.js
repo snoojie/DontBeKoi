@@ -1,6 +1,6 @@
-const { InvalidSpreadsheet } = require("../../src/google/spreadsheet");
+const { SpreadsheetNotFound, PrivateSpreadsheet } = require("../../src/google/spreadsheet");
 const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet, 
-        UnexpectedKoiMark, PrivateSpreadsheet
+        UnexpectedKoiMark
       } = require("../../src/google/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
@@ -56,10 +56,10 @@ test("User missing color even though base and highlight are correct.", async() =
     );
 });
 
-test("Invalid spreadsheet.", async() => {
+test("Spreadsheet does not exist.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi("invalidspreadsheet", "shigin", "natsu"), 
-        InvalidSpreadsheet, 
+        SpreadsheetNotFound, 
         "Spreadsheet ID 'invalidspreadsheet' does not exist."
     );
 });
@@ -70,8 +70,7 @@ test("Private spreadsheet.", async() => {
             spreadsheets.private, "shigin", "natsu"
         ), 
         PrivateSpreadsheet, 
-        `Could not read from spreadsheet '${spreadsheets.private}'. ` +
-        "Can anyone with a link read it?"
+        `Spreadsheet ID '${spreadsheets.private}' is private.`
     );
 });
 

@@ -15,7 +15,7 @@ const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
 // wait a minute before starting the tests
 // this is because google has a read quota
 beforeAll(async() => {
-    await waitGoogleQuota();
+    //await waitGoogleQuota();
 }, googleQuotaTimeout);
 
 afterEach(async() => await DataAccessLayer.stop());
@@ -199,7 +199,7 @@ describe("Save user.", () => {
     });
     afterAll(async() => await dropAllTables());
 
-    test("SpreadsheetNotFound thrown if the spreadsheet ID is invalid.", async() => {
+    test.only("SpreadsheetNotFound thrown if the spreadsheet ID is invalid.", async() => {
         await expectErrorAsync(
             DataAccessLayer.saveUser("somediscordid", "somename", "invalidspreadsheet"),
             SpreadsheetNotFound,
