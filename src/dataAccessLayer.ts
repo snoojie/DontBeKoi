@@ -173,8 +173,6 @@ export const DataAccessLayer =
      * @returns list of discord IDs and the rarity of the koi.
      * @throws PatternNotFound if the pattern does not exist.
      * @throws KoiNotFound if the pattern does not have the specified koi.
-     * @throws DataAccessLayerError if the pattern has no known kois 
-     *         which should never happen.
      */
     getUsersMissingKoi: async function(
         koiName: string, patternName: string): Promise<UsersMissingKoiResponse>
@@ -182,23 +180,18 @@ export const DataAccessLayer =
 
         // find the pattern and confirm it's valid
         const PATTERN: Pattern | null = await Pattern.findOne({
-             where: { name: { [Op.iLike]: patternName } },
-             include: [ Pattern.associations.kois ]
+            where: { name: { [Op.iLike]: patternName } },
+            include: [ Pattern.associations.kois ],
+            
         });
         if (!PATTERN)
         {
             throw new PatternNotFound(patternName);
         }
-        if (!PATTERN.kois)
-        {
-            throw new DataAccessLayerError(
-                `Pattern '${patternName}' has no colors. How did this happen?`
-            );
-        }
 
         // find the koi and confirm it's valid
         let koi: Koi | undefined;
-        for (const KOI of PATTERN.kois)
+        for (const KOI of PATTERN.kois!)
         {
             if (KOI.name.toLowerCase() == koiName.toLowerCase())
             {
@@ -258,7 +251,6 @@ export const DataAccessLayer =
                     // their spreadsheet, maybe because it's a brand new pattern.
                     if (error instanceof PatternNotInSpreadsheet)
                     {
-                        console.log(error);
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors
                             .patternNotFound.push(USER.discordId);

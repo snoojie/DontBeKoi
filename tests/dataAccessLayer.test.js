@@ -8,9 +8,18 @@ const { Pattern } = require("../src/database/models/pattern");
 const { Koi } = require("../src/database/models/koi");
 const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
+    = require("./_setup/spreadsheet");
+const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
 
 const VALID_SPREADSHEET = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 const READONLY_SPREADSHEET = "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8";
+
+// wait a minute before starting the tests
+// this is because google has a read quota
+/*beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout);*/
 
 afterEach(async() => await DataAccessLayer.stop());
 
@@ -513,6 +522,55 @@ describe("Get users missing koi.", () => {
                         koiNotFound: [],
                         formatBroken: [],
                         spreadsheetNotFound: ["did3"]
+                    }
+                }
+            );
+        });
+    });
+
+    describe("Invalid Google API key.", () => {
+        const ORIGINAL_ENV = process.env;
+        beforeAll(() => process.env = { ...ORIGINAL_ENV });
+        afterAll(() => process.env = { ...ORIGINAL_ENV });
+
+        test("Error with invalid Google Api key.", async() => {
+            process.env.GOOGLE_API_KEY = "invalid";
+            await expect(DataAccessLayer.getUsersMissingKoi("ryoshiro", "uoza"))
+                .rejects.toThrow(InvalidGoogleApiKey);
+        })
+    });
+
+    describe("Modify pattern.", () => {
+
+        let pattern;
+        let originalHatchTime;
+        beforeEach(async() => {
+            pattern = await Pattern.findOne({
+                where: { name: { [Op.iLike]: "yanone" } }
+            });
+            originalHatchTime = pattern.hatchTime;
+            pattern.hatchTime = null;
+            await pattern.save();
+        });
+        afterEach(async() => {
+            pattern.hatchTime = originalHatchTime;
+            await pattern.save();
+        });
+
+        test("Undefined hatch time.", async() => {            
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("negin", "yanone");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did1"],
+                    rarity: "Common",
+                    hatchTime: undefined,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: []
                     }
                 }
             );
