@@ -259,8 +259,8 @@ describe("Save user.", () => {
 // ===========================
 
 describe("Get users missing koi.", () => {
-
     beforeAll(async() => {
+        await waitGoogleQuota();
         await dropAllTables();
         await DataAccessLayer.start();
         await DataAccessLayer.updatePatterns();
@@ -271,11 +271,14 @@ describe("Get users missing koi.", () => {
             "did2", "name2", spreadsheets.formatBroken
         );
         await DataAccessLayer.stop();
-    })
+    }, googleQuotaTimeout);
     beforeEach(async() => {
         await DataAccessLayer.start();
     });
-    afterAll(async() => await dropAllTables());
+    afterAll(async() => {
+        await dropAllTables();
+        await waitGoogleQuota();
+    }, googleQuotaTimeout);
 
     test("Pattern not found.", async() => {
         await expectErrorAsync(
@@ -476,7 +479,7 @@ describe("Get users missing koi.", () => {
 
     test("Missing valid pattern in spreadsheet.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("kucheri", "rozu");
+            await DataAccessLayer.getUsersMissingKoi("macheri", "rozu");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
