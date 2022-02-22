@@ -434,6 +434,46 @@ describe("Get users missing koi.", () => {
         );
     });
 
+    test("Marking a koi with capital K is the same as lowercase.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("chomura", "yumi");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Common",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
+    test("Marking a koi with capital D is the same as lowercase.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("gumido", "yumi");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Rare",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
     test("Missing valid pattern in spreadsheet.", async() => {
         const USERS_MISSING_KOI = 
             await DataAccessLayer.getUsersMissingKoi("kucheri", "rozu");
@@ -487,6 +527,26 @@ describe("Get users missing koi.", () => {
                     patternNotFound: [],
                     koiNotFound: [],
                     formatBroken: ["did2"],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
+    test("Spreadsheet has koi marked with something unexpected.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("neburu", "jueru");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did2"],
+                rarity: "Rare",
+                hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: ["did1"],
                     spreadsheetNotFound: [],
                     privateSpreadshet: []
                 }

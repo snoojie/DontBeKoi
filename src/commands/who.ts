@@ -16,8 +16,8 @@ const WhoCommand: Command = {
     execute: async function (interaction: CommandInteraction): Promise<string> {
 
         // get values of the options
-        const COLOR: string = interaction.options.getString("color") || "";
-        const PATTERN: string = interaction.options.getString("pattern") || "";
+        const COLOR: string = interaction.options.getString("color")!;
+        const PATTERN: string = interaction.options.getString("pattern")!;
         
         // get everyone who does not have this koi
         let usersMissingKoi: UsersMissingKoiResponse;
@@ -72,7 +72,7 @@ const WhoCommand: Command = {
         // call out anyone who does not have this koi in their spreadsheet
         reply += callOut(
             usersMissingKoi.discordIdsWithSpreadsheetErrors.koiNotFound, 
-            "Could not find koi, likely due to a typo,"
+            "Could not find koi"
         );
 
         // call out anyone whose spreadsheet does not exist
@@ -88,10 +88,11 @@ const WhoCommand: Command = {
             "Spreadsheet is private"
         );
 
-        // call out anyone whose spreadsheet is private
+        // call out anyone whose spreadsheet is broken
+        // for example, there could be an extra row, or sheets are renamed
         reply += callOut(
             usersMissingKoi.discordIdsWithSpreadsheetErrors.formatBroken,
-            "Spreadsheet broken"
+            "Spreadsheet formatting broken"
         );
 
         return reply;

@@ -1,7 +1,14 @@
 const GoogleCommand = require("../../src/commands/google").default;
 const { DataAccessLayer } = require("../../src/dataAccessLayer");
 const { User } = require("../../src/database/models/user");
-const { spreadsheets } = require("../_setup/spreadsheet");
+const { testName, testDescription, testResponseIsPrivate, testOptionsCount, 
+        testStringOption } = require("../_setup/command");
+const { waitGoogleQuota, googleQuotaTimeout, spreadsheets } 
+    = require("../_setup/spreadsheet");
+
+beforeAll(async() => {
+    await waitGoogleQuota();
+}, googleQuotaTimeout);
 
 // empty User table before each test
 beforeEach(async() => {
@@ -11,29 +18,23 @@ beforeEach(async() => {
 
 afterEach(async() => await DataAccessLayer.stop());
 
+afterAll(async() => {
+    await DataAccessLayer.start();
+    await User.sync({force:true});
+    await DataAccessLayer.stop();
+});
+
 // ====================
 // =====PROPERTIES=====
 // ====================
 
-test("Name is google.", () => {
-    expect(GoogleCommand.name).toBe("google");
-});
-
-test("Has a description.", () => {
-    expect(GoogleCommand.description).toBe("Register your google spreadsheet.");
-});
-
-test("Response is private.", () => {
-    expect(GoogleCommand.isPrivate);
-});
-
-test("Has spreadsheet option.", () => {
-    expect(GoogleCommand.options.length).toBe(1);
-    const OPTION = GoogleCommand.options[0];
-    expect(OPTION.name).toBe("spreadsheet");
-    expect(OPTION.description).toBe("ID of your google spreadsheet.");
-    expect(!OPTION.type || OPTION.type == "string").toBeTruthy();
-});
+testName(GoogleCommand, "google");
+testDescription(GoogleCommand, "Register your google spreadsheet.");
+testResponseIsPrivate(GoogleCommand);
+testOptionsCount(1);
+testStringOption(
+    GoogleCommand.options[0], "spreadsheet", "ID of your google spreadsheet."
+);
 
 // ========================
 // =====ERROR CHECKING=====

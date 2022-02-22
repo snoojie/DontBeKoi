@@ -8,7 +8,7 @@ import { CommunitySpreadsheet, Pattern as SpreadsheetPattern }
 import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
 import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet, RangeNotFound } 
     from "./google/spreadsheet";
-import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UserSpreadsheet } 
+import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UnknownKoiProgress, UserSpreadsheet } 
     from "./google/userSpreadsheet";
 import { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
@@ -226,7 +226,7 @@ export const DataAccessLayer =
                     }
                 })
                 .catch(error => {
-
+                    
                     // log the issue to help the person if they need it
                     Logger.error(`${USER.name} has an issue their spreadsheet.`);
                     Logger.error(error);
@@ -272,7 +272,8 @@ export const DataAccessLayer =
                     // let the user know if something is wrong with their spreadsheet,
                     // such as extra empty rows, or renamed sheets
                     if (error instanceof KoiSpreadsheetError || 
-                        error instanceof RangeNotFound)
+                        error instanceof RangeNotFound ||
+                        error instanceof UnknownKoiProgress)
                     {
                         usersMissingKoi
                             .discordIdsWithSpreadsheetErrors

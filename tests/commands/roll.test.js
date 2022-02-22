@@ -1,28 +1,17 @@
+const { testName, testDescription, testResponseIsPublic, testOptionsCount, 
+        testNumberOption } = require("../_setup/command");
+
 const RollCommand = require("../../src/commands/roll").default;
 
 // ====================
 // =====PROPERTIES=====
 // ====================
 
-test("Name is roll.", () => {
-    expect(RollCommand.name).toBe("roll");
-});
-
-test("Has a description.", () => {
-    expect(RollCommand.description).toBe("Roll a dice.");
-});
-
-test("Response is public.", () => {
-    expect(!RollCommand.isPrivate);
-});
-
-test("Has sides option.", () => {
-    expect(RollCommand.options.length).toBe(1);
-    const OPTION = RollCommand.options[0];
-    expect(OPTION.name).toBe("sides");
-    expect(OPTION.description).toBe("Number of sides this dice has.");
-    expect(OPTION.type == "number").toBeTruthy();
-});
+testName(RollCommand, "roll");
+testDescription(RollCommand, "Roll a dice.");
+testResponseIsPublic(RollCommand);
+testOptionsCount(RollCommand, 1);
+testNumberOption(RollCommand.options[0], "sides", "Number of sides this dice has.");
 
 // ========================
 // =====ERROR CHECKING=====
