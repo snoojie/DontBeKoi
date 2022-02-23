@@ -97,6 +97,10 @@ const Logger = {
             if (error instanceof DatabaseError)
             {
                 console.log(THEME.ERROR, "SQL: " + error.sql);
+                console.log(
+                    THEME.ERROR, 
+                    "SQL parameters: " + JSON.stringify(error.parameters, null, 2)
+                );
             }
 
             if (error.stack)
