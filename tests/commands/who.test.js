@@ -10,7 +10,7 @@ const { waitGoogleQuota, googleQuotaTimeout, spreadsheets }
 // before any test, 
 // clear the database, add all patterns and kois to it, and add some users
 beforeAll(async() => {
-    //await waitGoogleQuota();
+    await waitGoogleQuota();
     await dropAllTables();
     await DataAccessLayer.start();
     await DataAccessLayer.updatePatterns();
