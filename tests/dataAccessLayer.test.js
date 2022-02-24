@@ -221,36 +221,36 @@ describe("Save user.", () => {
 
     test("Saving user adds that user.", async() => {
         await DataAccessLayer
-            .saveUser("somediscord", "somename", spreadsheets.community);
+            .saveUser("somediscord", "somename", spreadsheets.valid);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("somename");
-        expect(USER.spreadsheetId).toBe(spreadsheets.community);
+        expect(USER.spreadsheetId).toBe(spreadsheets.valid);
     });
 
     test("Saving user updates that user's name.", async() => {
-        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.community);
-        await DataAccessLayer.saveUser("somediscord", "newname", spreadsheets.community);
+        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.valid);
+        await DataAccessLayer.saveUser("somediscord", "newname", spreadsheets.valid);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("newname");
-        expect(USER.spreadsheetId).toBe(spreadsheets.community);
+        expect(USER.spreadsheetId).toBe(spreadsheets.valid);
     });
 
     test("Saving user updates that user's spreadsheet ID.", async() => {
         await DataAccessLayer
-            .saveUser("somediscord", "somename", spreadsheets.community);
-        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.test);
+            .saveUser("somediscord", "somename", spreadsheets.valid);
+        await DataAccessLayer.saveUser("somediscord", "somename", spreadsheets.valid2);
         const COUNT = await User.count();
         expect(COUNT).toBe(1);
         const USER = await User.findOne();
         expect(USER.discordId).toBe("somediscord");
         expect(USER.name).toBe("somename");
-        expect(USER.spreadsheetId).toBe(spreadsheets.test);
+        expect(USER.spreadsheetId).toBe(spreadsheets.valid2);
     });
 });
 
@@ -265,10 +265,10 @@ describe("Get users missing koi.", () => {
         await DataAccessLayer.start();
         await DataAccessLayer.updatePatterns();
         await DataAccessLayer.saveUser(
-            "did1", "name1", spreadsheets.test
+            "did1", "name1", spreadsheets.valid
         );
         await DataAccessLayer.saveUser(
-            "did2", "name2", spreadsheets.formatBroken
+            "did2", "name2", spreadsheets.valid2
         );
         await DataAccessLayer.stop();
     }, googleQuotaTimeout);
@@ -298,7 +298,7 @@ describe("Get users missing koi.", () => {
 
     test("Get users missing common collector a-m.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("aidai", "kiruto");
+            await DataAccessLayer.getUsersMissingKoi("mukuro", "kinko");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
@@ -318,7 +318,7 @@ describe("Get users missing koi.", () => {
 
     test("Get users missing rare collector a-m.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("shimosu", "kirinu");
+            await DataAccessLayer.getUsersMissingKoi("ryomacha", "kinko");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
@@ -335,7 +335,6 @@ describe("Get users missing koi.", () => {
             }
         );
     });
-
 
     test("Get users missing common collector n-z.", async() => {
         const USERS_MISSING_KOI = 
@@ -359,13 +358,13 @@ describe("Get users missing koi.", () => {
 
     test("Get users missing rare collector a-m.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("mapapu", "naisu");
+            await DataAccessLayer.getUsersMissingKoi("chamido", "sutaggu");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
                 discordIds: ["did2"],
                 rarity: "Rare",
-                hatchTime: 11,
+                hatchTime: 5,
                 discordIdsWithSpreadsheetErrors: {
                     patternNotFound: [],
                     koiNotFound: [],
@@ -379,13 +378,13 @@ describe("Get users missing koi.", () => {
 
     test("No one missing koi.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("nedai", "kajitsu");
+            await DataAccessLayer.getUsersMissingKoi("chashiro", "sutaggu");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
                 discordIds: [],
                 rarity: "Common",
-                hatchTime: 10,
+                hatchTime: 5,
                 discordIdsWithSpreadsheetErrors: {
                     patternNotFound: [],
                     koiNotFound: [],
@@ -399,12 +398,12 @@ describe("Get users missing koi.", () => {
 
     test("Pattern casing is ignored.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("gumura", "oriito");
+            await DataAccessLayer.getUsersMissingKoi("chakuro", "Mukei");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
                 discordIds: ["did1", "did2"],
-                rarity: "Rare",
+                rarity: "Common",
                 hatchTime: 10,
                 discordIdsWithSpreadsheetErrors: {
                     patternNotFound: [],
@@ -419,107 +418,7 @@ describe("Get users missing koi.", () => {
 
     test("Koi casing is ignored.", async() => {
         const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("MAYUKI", "rabu");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Common",
-                hatchTime: 5,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
-
-    test("Marking a koi with capital K is the same as lowercase.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("chomura", "yumi");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Common",
-                hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
-
-    test("Marking a koi with capital D is the same as lowercase.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("gumido", "yumi");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Rare",
-                hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
-
-    test("Missing valid pattern in spreadsheet.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("macheri", "rozu");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Rare",
-                hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: ["did1"],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
-
-    test("Koi typo in spreadsheet.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("aoshiro", "hoseki");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Common",
-                hatchTime: 9,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: ["did1"],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
-
-    test("Spreadsheet has an extra empty row.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("mashiro", "mukei");
+            await DataAccessLayer.getUsersMissingKoi("Mushiro", "mukei");
         expectUsersMissingKoi(
             USERS_MISSING_KOI,
             {
@@ -529,7 +428,7 @@ describe("Get users missing koi.", () => {
                 discordIdsWithSpreadsheetErrors: {
                     patternNotFound: [],
                     koiNotFound: [],
-                    formatBroken: ["did2"],
+                    formatBroken: [],
                     spreadsheetNotFound: [],
                     privateSpreadshet: []
                 }
@@ -537,46 +436,180 @@ describe("Get users missing koi.", () => {
         );
     });
 
-    test("Spreadsheet has koi marked with something unexpected.", async() => {
-        const USERS_MISSING_KOI = 
-            await DataAccessLayer.getUsersMissingKoi("neburu", "jueru");
-        expectUsersMissingKoi(
-            USERS_MISSING_KOI,
-            {
-                discordIds: ["did2"],
-                rarity: "Rare",
-                hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: ["did1"],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
-            }
-        );
-    });
+    describe("Swapping user's valid spreadsheet.", () => {
 
-    describe("Invalid spreadsheet.", () => {
-        let user;
-        afterEach(async() => await user.destroy());
+        afterEach(async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.valid },
+                { where: { discordId: "did1" } }
+            );
+            await User.update(
+                { spreadsheetId: spreadsheets.valid2 },
+                { where: { discordId: "did2" } }
+            );
+        });
 
-        test("Spreadsheet has a renamed sheet.", async() => {
-            user = await User.create({
-                discordId: "did3", name: "name3", spreadsheetId: spreadsheets.badRange
-            })
+        test("Marking a koi with capital K is the same as lowercase.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.badKoiProgressMarks },
+                { where: { discordId: "did1" } }
+            );
             const USERS_MISSING_KOI = 
-                await DataAccessLayer.getUsersMissingKoi("shigin", "aishite");
+                await DataAccessLayer.getUsersMissingKoi("ryopinku", "akachan");
             expectUsersMissingKoi(
                 USERS_MISSING_KOI,
                 {
-                    discordIds: ["did1", "did2"],
+                    discordIds: ["did2"],
+                    rarity: "Rare",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Marking a koi with capital D is the same as lowercase.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.badKoiProgressMarks },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("ryosumi", "akachan");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: [],
+                    rarity: "Rare",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Missing valid pattern in spreadsheet.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.missingPatterns },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("mamaze", "rozu");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did2"],
+                    rarity: "Rare",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: ["did1"],
+                        koiNotFound: [],
+                        formatBroken: [],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Koi typo in spreadsheet.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.koiTypo },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("makatsu", "hoseki");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did2"],
+                    rarity: "Common",
+                    hatchTime: 9,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: ["did1"],
+                        formatBroken: [],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Spreadsheet has an extra empty row.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.extraRow },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("mashiro", "mukei");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: [],
                     rarity: "Common",
                     hatchTime: 10,
                     discordIdsWithSpreadsheetErrors: {
                         patternNotFound: [],
                         koiNotFound: [],
-                        formatBroken: ["did3"],
+                        formatBroken: ["did1"],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Spreadsheet has koi marked with something unexpected.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.badKoiProgressMarks },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("ryodai", "akachan");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: [],
+                    rarity: "Common",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: ["did1"],
+                        spreadsheetNotFound: [],
+                        privateSpreadshet: []
+                    }
+                }
+            );
+        });
+
+        test("Spreadsheet has a renamed sheet.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.renamedSheets },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("shigin", "aishite");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did2"],
+                    rarity: "Common",
+                    hatchTime: 10,
+                    discordIdsWithSpreadsheetErrors: {
+                        patternNotFound: [],
+                        koiNotFound: [],
+                        formatBroken: ["did1"],
                         spreadsheetNotFound: [],
                         privateSpreadshet: []
                     }
@@ -585,15 +618,16 @@ describe("Get users missing koi.", () => {
         });
 
         test("Spreadsheet is private.", async() => {
-            user = await User.create({
-                discordId: "did3", name: "name3", spreadsheetId: spreadsheets.private
-            })
+            await User.update(
+                { spreadsheetId: spreadsheets.private },
+                { where: { discordId: "did2" } }
+            );
             const USERS_MISSING_KOI = 
                 await DataAccessLayer.getUsersMissingKoi("mamido", "habu");
             expectUsersMissingKoi(
                 USERS_MISSING_KOI,
                 {
-                    discordIds: ["did1", "did2"],
+                    discordIds: ["did1"],
                     rarity: "Rare",
                     hatchTime: 5,
                     discordIdsWithSpreadsheetErrors: {
@@ -601,35 +635,36 @@ describe("Get users missing koi.", () => {
                         koiNotFound: [],
                         formatBroken: [],
                         spreadsheetNotFound: [],
-                        privateSpreadshet: ["did3"]
+                        privateSpreadshet: ["did2"]
                     }
                 }
             );
         });
 
         test("Spreadsheet does not exist.", async() => {
-            user = await User.create({
-                discordId: "did3", name: "name3", spreadsheetId: "invalid"
-            })
+            await User.update(
+                { spreadsheetId: "invalid" },
+                { where: { discordId: "did2" } }
+            );
             const USERS_MISSING_KOI = 
                 await DataAccessLayer.getUsersMissingKoi("mamido", "habu");
             expectUsersMissingKoi(
                 USERS_MISSING_KOI,
                 {
-                    discordIds: ["did1", "did2"],
+                    discordIds: ["did1"],
                     rarity: "Rare",
                     hatchTime: 5,
                     discordIdsWithSpreadsheetErrors: {
                         patternNotFound: [],
                         koiNotFound: [],
                         formatBroken: [],
-                        spreadsheetNotFound: ["did3"],
+                        spreadsheetNotFound: ["did2"],
                         privateSpreadshet: []
                     }
                 }
             );
         });
-    });
+    }); 
 
     describe("Invalid Google API key.", () => {
         const ORIGINAL_ENV = process.env;
@@ -661,8 +696,11 @@ describe("Get users missing koi.", () => {
         });
 
         test("No hatch time.", async() => {            
+            let u = await User.findAll();
+            console.info(JSON.stringify(u, null, 2));
             const USERS_MISSING_KOI = 
-                await DataAccessLayer.getUsersMissingKoi("negin", "yanone");
+                await DataAccessLayer.getUsersMissingKoi("seikuro", "yanone");
+            
             expectUsersMissingKoi(
                 USERS_MISSING_KOI,
                 {

@@ -66,7 +66,7 @@ describe("Modifying environment variables.", () => {
 
     test("Google API key is invalid.", async() => {
         process.env.GOOGLE_API_KEY = "invalid";
-        await expect(GoogleCommand.execute(mockInteraction(spreadsheets.test)))
+        await expect(GoogleCommand.execute(mockInteraction(spreadsheets.valid)))
             .rejects.toThrow();
     });
 });
@@ -76,16 +76,16 @@ describe("Modifying environment variables.", () => {
 // ====================
 
 test("Response of valid spreadsheet.", async() => {
-    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.test));
+    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.valid));
     expectSuccessResponse(RESPONSE);
 });
 
 test("User record created in database.", async() => {
-    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.test));
+    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.valid));
     expectSuccessResponse(RESPONSE);
     const USER_RECORDS = await User.findAll();
     expect(USER_RECORDS.length).toBe(1);
-    expect(USER_RECORDS[0].spreadsheetId).toBe(spreadsheets.test);
+    expect(USER_RECORDS[0].spreadsheetId).toBe(spreadsheets.valid);
     expect(USER_RECORDS[0].discordId).toBe("someid");
     expect(USER_RECORDS[0].name).toBe("somename");
 });
@@ -94,18 +94,18 @@ test("Preexisting user record updated in database.", async() => {
     await User.create(
         { discordId: "someid", name: "somename", spreadsheetId: "somespreadsheet" }
     );
-    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.test));
+    const RESPONSE = await GoogleCommand.execute(mockInteraction(spreadsheets.valid));
     expectSuccessResponse(RESPONSE);
     const USER_RECORDS = await User.findAll();
     expect(USER_RECORDS.length).toBe(1);
-    expect(USER_RECORDS[0].spreadsheetId).toBe(spreadsheets.test);
+    expect(USER_RECORDS[0].spreadsheetId).toBe(spreadsheets.valid);
     expect(USER_RECORDS[0].discordId).toBe("someid");
     expect(USER_RECORDS[0].name).toBe("somename");
 });
 
 function expectSuccessResponse(response)
 {
-    expect(response).toBe(`Updated your spreadsheet to ${spreadsheets.test}`);
+    expect(response).toBe(`Updated your spreadsheet to ${spreadsheets.valid}`);
 }
 
 function mockInteraction(text)

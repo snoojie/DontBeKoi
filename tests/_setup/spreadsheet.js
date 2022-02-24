@@ -18,16 +18,40 @@ module.exports = {
     googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT+20000,
 
     spreadsheets: {
+
+        // copy of snooj's
+        valid: "1Sed1Z5n8mcfyDj-v4fv5CxiVyg1N0B2qLYpMW6qIhSQ",
+
+        // copy of lucy's
+        valid2: "1_V4OmDhHzNDVJ3cbO_XSfYJ54zkjcFab1AT4hOzxvMM",
+
+        // coris's spreadsheet
         community: "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo",
-        test: "1yt01AXsDvBrGpKyVETKlsgJhetUJq5eOMLx5Sf60TAU",
 
-        // extra empty row in pattern moduro
-        formatBroken: "1fMMI5wGrD7d4Z5M9APlwoMzHG6QeZQvXK4qQ91yFDaQ",
+        // private spreadsheet
+        private: "1YzaW_f2ID5qDSAYn4inf_4clb8WpfnletqyYhI6HA7E",
 
-        private: "1bh3vHHqypdig1C1JAM95LYwvw0onkZ0k12jq0y4YYN8",
+        // both collectors sheets are renamed
+        renamedSheets: "1RFiWTw8PGDsXFYaLbZ0ia6RL45WxmcBXOKTjOqfO784",
 
-        // renamed sheet tab for a-m collectors
-        badRange: "1nZFn5D9CxDtdUX4BAsmrosu1yTevllZ_YKKVOpabPCs"
+        // ryoukon akachan marked with '   '
+        // ryodai akachan marked with 'invalid'
+        // ryopinku akachan marked with capital 'K'
+        // ryosumi akachan marked with capital 'D'
+        // kudai akachan marked with '  k  '
+        // kupinku akachan marked with '  d  '
+        badKoiProgressMarks: "12czz7UDLzlX6qzraUQak-CN2M_wc6EexLzog56XJ32k",
+
+        // missing pattern rozu
+        missingPatterns: "1flz3aTbLTElXd4lp9D41aNjWkwb8Oo2ZXTJqejyqFPE",
+
+        // for the hoseki pattern, the '-katsu' highlight color is '-invalid'
+        // for the rozu pattern, the 'ma-' base color is 'invalid-'
+        koiTypo: "1gJW64Rb4dGf_FNO6rs9aqpkRRkQZt66e_RY8m7spps8",
+
+        // extra empty row in pattern akachan
+        extraRow: "1uEcwgMuqXvg-xWKghocLW4c85NE367aNDBDt0S6oGqE"
+
     },
 
     getSpreadsheetErrorMessage: function(spreadsheetId, range)
