@@ -7,6 +7,8 @@ const { dropAllTables } = require("../_setup/database");
 const { waitGoogleQuota, googleQuotaTimeout, spreadsheets } 
     = require("../_setup/spreadsheet");
 
+const TIMEOUT = googleQuotaTimeout + 30000;
+
 // before any test, 
 // clear the database, add all patterns and kois to it, and add some users
 beforeAll(async() => {
@@ -15,7 +17,7 @@ beforeAll(async() => {
     await DataAccessLayer.start();
     await DataAccessLayer.updatePatterns();
     await DataAccessLayer.stop();
-}, googleQuotaTimeout);
+}, TIMEOUT);
 
 // ====================
 // =====PROPERTIES=====
@@ -48,11 +50,11 @@ describe("There are two users.", () => {
                 spreadsheetId: spreadsheets.valid2
             }
         ]);
-    }, googleQuotaTimeout);
+    }, TIMEOUT);
     afterAll(async() => {
         await resetUsers()
         await waitGoogleQuota();
-    }, googleQuotaTimeout);   
+    }, TIMEOUT);
 
     beforeEach(async() => await DataAccessLayer.start());
     afterEach(async() => await DataAccessLayer.stop());

@@ -697,7 +697,6 @@ describe("Get users missing koi.", () => {
 
         test("No hatch time.", async() => {            
             let u = await User.findAll();
-            console.info(JSON.stringify(u, null, 2));
             const USERS_MISSING_KOI = 
                 await DataAccessLayer.getUsersMissingKoi("seikuro", "yanone");
             
