@@ -1,4 +1,4 @@
-import { Options, Sequelize } from "sequelize";
+import { type Options, Sequelize } from "sequelize";
 import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
 import { initUser } from "./models/user";

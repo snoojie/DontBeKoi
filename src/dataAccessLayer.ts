@@ -1,18 +1,18 @@
 import { Op } from "sequelize";
-import { Database } from "./database/database";
-import { Koi, KoiAttributes } from "./database/models/koi";
-import { Pattern, PatternAttributes } from "./database/models/pattern";
-import { User } from "./database/models/user";
-import { CommunitySpreadsheet, Pattern as SpreadsheetPattern } 
-    from "./google/communitySpreadsheet";
-import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
-import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet, RangeNotFound } 
-    from "./google/spreadsheet";
-import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UnknownKoiProgress, UserSpreadsheet } 
-    from "./google/userSpreadsheet";
-import { Rarity } from "./types";
+import type { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
 import Logger from "./util/logger";
+import { Database } from "./database/database";
+import { Koi, type KoiAttributes } from "./database/models/koi";
+import { Pattern, type PatternAttributes } from "./database/models/pattern";
+import { User } from "./database/models/user";
+import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet, RangeNotFound } 
+    from "./google/spreadsheet";
+import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
+import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UnknownKoiProgress, 
+         UserSpreadsheet } from "./google/userSpreadsheet";
+import { CommunitySpreadsheet, type Pattern as SpreadsheetPattern } 
+    from "./google/communitySpreadsheet";
 
 export class DataAccessLayerError extends EnhancedError {}
 

@@ -1,8 +1,7 @@
-import { Client, Interaction } from "discord.js";
+import { Client, type Interaction } from "discord.js";
 import { Config } from "./util/config";
 import Logger from "./util/logger";
 import { CommandManager } from "./command";
-
 import { DataAccessLayer } from "./dataAccessLayer";
 
 let discord: Client = getNewDiscordClient();

@@ -1,6 +1,7 @@
-import { CommandInteraction } from "discord.js";
-import { Command } from "../command";
-import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } from "../dataAccessLayer";
+import type { CommandInteraction } from "discord.js";
+import type { Command } from "../command";
+import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } 
+    from "../dataAccessLayer";
 
 const WhoCommand: Command = {
 

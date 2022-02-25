@@ -1,5 +1,5 @@
-import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet";
+import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
 
 export class PatternNotInSpreadsheet extends KoiSpreadsheetError 
 {

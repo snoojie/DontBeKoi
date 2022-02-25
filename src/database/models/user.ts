@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize } from "sequelize";
+import { DataTypes, Model, type Sequelize } from "sequelize";
 
 /**
  * Columns of the User table in the database.

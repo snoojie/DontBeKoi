@@ -1,5 +1,5 @@
-import { CommandInteraction } from "discord.js";
-import { Command } from "../command";
+import type { CommandInteraction } from "discord.js";
+import type { Command } from "../command";
 import { DataAccessLayer } from "../dataAccessLayer";
 import { PrivateSpreadsheet, SpreadsheetNotFound } from "../google/spreadsheet";
 

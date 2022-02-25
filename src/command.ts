@@ -1,11 +1,11 @@
-import { CommandInteraction, Interaction } from "discord.js";
-import { SlashCommandBuilder, SlashCommandStringOption, SlashCommandNumberOption } 
-    from "@discordjs/builders";
+import type { CommandInteraction, Interaction } from "discord.js";
+import { SlashCommandBuilder, type SlashCommandStringOption, 
+         type SlashCommandNumberOption } from "@discordjs/builders";
 import { REST } from "@discordjs/rest"
 import { Routes } from "discord-api-types/v9";
+import * as fs from "fs";
 import Logger from "./util/logger";
 import { Config } from "./util/config";
-import * as fs from "fs";
 import EnhancedError from "./util/enhancedError";
 
 export abstract class CommandManagerError extends EnhancedError {}

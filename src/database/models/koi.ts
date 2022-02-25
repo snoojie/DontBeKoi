@@ -1,5 +1,5 @@
-import { Association, DataTypes, Model, Sequelize } from "sequelize";
-import { Rarity } from "../../types";
+import { DataTypes, Model, type Association, type Sequelize } from "sequelize";
+import type { Rarity } from "../../types";
 import EnhancedError from "../../util/enhancedError";
 import { Pattern } from "./pattern";
 

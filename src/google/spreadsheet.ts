@@ -1,5 +1,5 @@
-import { GaxiosError, GaxiosResponse } from "gaxios";
 import { google, sheets_v4 } from "googleapis";
+import { GaxiosError, type GaxiosResponse } from "gaxios";
 import { Config } from "../util/config";
 import EnhancedError from "../util/enhancedError";
 

@@ -1,5 +1,5 @@
-import { CommandInteraction } from "discord.js";
-import { Command } from "../command";
+import type { CommandInteraction } from "discord.js";
+import type { Command } from "../command";
 
 const RollCommand: Command = {
 

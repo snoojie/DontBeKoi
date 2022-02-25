@@ -1,6 +1,6 @@
-import { Association, DataTypes, Model, Sequelize } from "sequelize";
-import { PatternType } from "../../types";
-import { Koi } from "./koi";
+import { DataTypes, Model, type Association, type Sequelize } from "sequelize";
+import type { PatternType } from "../../types";
+import type { Koi } from "./koi";
 
 /**
  * Columns of the Pattern table in the database.

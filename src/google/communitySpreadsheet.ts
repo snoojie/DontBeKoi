@@ -1,6 +1,6 @@
 import { PatternType, Rarity } from "../types";
-import { KoiSpreadsheet } from "./koiSpreadsheet";
 import { Spreadsheet } from "./spreadsheet"
+import { KoiSpreadsheet } from "./koiSpreadsheet";
 
 const SPREADSHEET_ID: string = "1Y717KMb15npzEv3ed2Ln2Ua0ZXejBHyfbk5XL_aZ4Qo";
 

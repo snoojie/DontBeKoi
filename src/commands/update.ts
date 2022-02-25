@@ -1,4 +1,4 @@
-import { Command } from "../command";
+import type { Command } from "../command";
 import { DataAccessLayer } from "../dataAccessLayer";
 
 const UpdateCommand: Command = {
