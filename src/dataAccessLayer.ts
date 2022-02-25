@@ -80,9 +80,10 @@ export const DataAccessLayer =
      * and adds them to our internal database. 
      * This includes the patterns' names, the type of pattern (progressive vs collector),
      * hatch times for collectors, 
-     * and all patterns' koi names and their rarity (common or rare),
+     * and all patterns' koi names and their rarity (common or rare).
+     * @returns List of new patterns that were added.
      */
-    updatePatterns: async function(): Promise<void>
+    updatePatterns: async function(): Promise<string[]>
     {
         // get all patterns and kois to populate the database with
         const SPREADSHEET_PATTERNS: SpreadsheetPattern[] = 
@@ -115,7 +116,27 @@ export const DataAccessLayer =
                 patternName: SPREADSHEET_PATTERN.name
             });
         }
-        await Koi.bulkCreate(kois, { ignoreDuplicates: true });
+        const BULK_CREATED_KOIS: Koi[] = await Koi.bulkCreate(kois, { ignoreDuplicates: true });
+        
+        // Get list of new patterns.
+        // Note that sequelize does not provide a convenient way of 
+        // getting the new or updated records.
+        // Instead, we can cheat by looking at the list of records bulkCreate returns.
+        // If the id property of a record is not null, then it's a new record. 
+        // Since our patterns table doesn't have an id property, but koi table does, 
+        // we will look at kois.
+        let newPatterns: string[] = []
+        for (const KOI of BULK_CREATED_KOIS)
+        {
+            if (KOI.get("id") != null && newPatterns.indexOf(KOI.get("patternName")) < 0)
+            {
+                // this is a new koi, and we have not yet marked this as a new pattern
+                newPatterns.push(KOI.get("patternName"));
+            }
+        }
+        console.log(newPatterns);
+
+        return newPatterns;
     },
 
     /**
