@@ -1,6 +1,6 @@
 import type { CommandInteraction } from "discord.js";
 import type { Command } from "../command";
-import { DataAccessLayer, KoiNotFound, PatternNotFound, UsersMissingKoiResponse } 
+import { DataAccessLayer, KoiNotFound, NeitherPatternFound, UsersMissingKoiResponse } 
     from "../dataAccessLayer";
 
 const WhoCommand: Command = {
@@ -9,32 +9,35 @@ const WhoCommand: Command = {
 
     description: "List everyone who needs a specific koi.",
 
-    options: [
-        { name: "color",   description: "Koi's color."   },
-        { name: "pattern", description: "Koi's pattern." }
-    ],
+    options: [ { name: "koi", description: "Koi's name and pattern." } ],
     
     execute: async function (interaction: CommandInteraction): Promise<string> {
 
-        // get values of the options
-        const COLOR: string = interaction.options.getString("color")!;
-        const PATTERN: string = interaction.options.getString("pattern")!;
-        
-        // get everyone who does not have this koi
-        let usersMissingKoi: UsersMissingKoiResponse;
+        // get the koi info the user entered, such as
+        // shishiro inazuma
+        const KOI_INFO: string = interaction.options.getString("koi")!;
+
+        // confirm that two names were provided
+        const NAMES: string[] = KOI_INFO.split(" ");
+        if (NAMES.length != 2)
+        {
+            return "Provide both the koi name and pattern, " + 
+                "for example: shishiro inazuma";
+        }
+
+        let usersMissingKoi: UsersMissingKoiResponse | undefined;
         try
         {
-            usersMissingKoi = await DataAccessLayer.getUsersMissingKoi(COLOR, PATTERN);
+            usersMissingKoi = 
+                await DataAccessLayer.getUsersMissingKoi(NAMES[0]!, NAMES[1]!);
         }
         catch(error)
         {
-            // if the pattern or color are invalid, return that
-            if(error instanceof PatternNotFound || error instanceof KoiNotFound)
+            if (error instanceof NeitherPatternFound || error instanceof KoiNotFound)
             {
                 return error.message;
             }
 
-            // otherwise, throw the error up the chain
             throw error;
         }
 
@@ -47,7 +50,7 @@ const WhoCommand: Command = {
         {
             koiDescription += `${usersMissingKoi.hatchTime}h `;
         }
-        koiDescription += `${COLOR} ${PATTERN}`;
+        koiDescription += KOI_INFO;
 
         // if no one needs the koi, state that
         let reply: string;

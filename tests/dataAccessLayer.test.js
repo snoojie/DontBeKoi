@@ -1,4 +1,4 @@
-const { DataAccessLayer, PatternNotFound, KoiNotFound } 
+const { DataAccessLayer, NeitherPatternFound, KoiNotFound } 
     = require("../src/dataAccessLayer");
 const { Database, DatabaseAlreadyRunning, InvalidDatabaseUrl } 
     = require("../src/database/database");
@@ -280,17 +280,33 @@ describe("Get users missing koi.", () => {
         await waitGoogleQuota();
     }, googleQuotaTimeout);
 
-    test("Pattern not found.", async() => {
+    test("Neither parameter is a pattern.", async() => {
         await expectErrorAsync(
             DataAccessLayer.getUsersMissingKoi("makuro", "invalidpattern"),
-            PatternNotFound,
-            "Pattern 'invalidpattern' does not exist."
+            NeitherPatternFound,
+            "Neither 'makuro' nor 'invalidpattern' are valid patterns."
+        );
+    });
+
+    test("Both parameters are patterns.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.getUsersMissingKoi("makuro", "naisu"),
+            KoiNotFound,
+            "Pattern 'naisu' does not have koi 'makuro'."
         );
     });
     
-    test("Koi not found.", async() => {
+    test("Second parameter is a pattern but first parameter is not a koi.", async() => {
         await expectErrorAsync(
             DataAccessLayer.getUsersMissingKoi("invalidkoi", "botan"),
+            KoiNotFound,
+            "Pattern 'botan' does not have koi 'invalidkoi'."
+        );
+    });
+    
+    test("First parameter is a pattern but second parameter is not a koi.", async() => {
+        await expectErrorAsync(
+            DataAccessLayer.getUsersMissingKoi("botan", "invalidkoi"),
             KoiNotFound,
             "Pattern 'botan' does not have koi 'invalidkoi'."
         );
@@ -465,6 +481,26 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1"],
                 rarity: "Common",
                 hatchTime: 10,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
+    test("Can use pattern name as first parameter.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("naisu", "mausu");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1"],
+                rarity: "Rare",
+                hatchTime: 11,
                 discordIdsWithSpreadsheetErrors: {
                     patternNotFound: [],
                     koiNotFound: [],

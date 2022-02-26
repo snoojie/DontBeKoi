@@ -16,17 +16,17 @@ import { CommunitySpreadsheet, type Pattern as SpreadsheetPattern }
 
 export class DataAccessLayerError extends EnhancedError {}
 
-export class PatternNotFound extends DataAccessLayerError
+export class NeitherPatternFound extends DataAccessLayerError
 {
-    constructor(pattern: string)
+    constructor(pattern1: string, pattern2: string)
     {
-        super(`Pattern '${pattern}' does not exist.`);
+        super(`Neither '${pattern1}' nor '${pattern2}' are valid patterns.`);
     }
 }
 
 export class KoiNotFound extends DataAccessLayerError
 {
-    constructor(pattern: string, koi: string)
+    constructor(koi: string, pattern: string)
     {
         super(`Pattern '${pattern}' does not have koi '${koi}'.`);
     }
@@ -179,30 +179,48 @@ export const DataAccessLayer =
 
     /**
      * Get everyone who does not have this specific koi.
-     * @param koiName Name of the koi, ie, its color.
-     * @param patternName Name of the koi's pattern.
+     * The two parameters, name1 and name2, accept the koi name and pattern name.
+     * This allows the caller to be unaware of which name is which.
+     * @param name1 Name of the koi or name of the pattern.
+     * @param name2 Name of the koi or name of the pattern.
      * @returns list of discord IDs and the rarity of the koi.
-     * @throws PatternNotFound if the pattern does not exist.
+     * @throws NeitherPatternFound if neither name1 nor name2 are patterns.
      * @throws KoiNotFound if the pattern does not have the specified koi.
      */
     getUsersMissingKoi: async function(
-        koiName: string, patternName: string): Promise<UsersMissingKoiResponse>
-    {        
+        name1: string, name2: string): Promise<UsersMissingKoiResponse>
+    {
+        // note we can assume that no koi name can be a pattern name
+        // at least that was true at one point...
 
-        // find the pattern and confirm it's valid
-        const PATTERN: Pattern | null = await Pattern.findOne({
-            where: { name: { [Op.iLike]: patternName } },
-            include: [ Pattern.associations.kois ],
-            
+        // first we assume name1 is the koi name, and name2 is the pattern name
+        // confirm that
+        let koiName = name1;
+        let patternName = name2;
+        let pattern: Pattern | null = await Pattern.findOne({
+            where: { name: { [ Op.iLike]: patternName }},
+            include: [ Pattern.associations.kois ]
         });
-        if (!PATTERN)
+        if (!pattern)
         {
-            throw new PatternNotFound(patternName);
+            // nope, name2 is not a pattern. try name1
+            koiName = name2;
+            patternName = name1;
+            pattern = await Pattern.findOne({
+                where: { name: { [ Op.iLike]: patternName }},
+                include: [ Pattern.associations.kois ]
+            });
+        }
+        if (!pattern)
+        {
+            // neither was a pattern
+            throw new NeitherPatternFound(name1, name2);
         }
 
-        // find the koi and confirm it's valid
+        // yay we found the pattern!
+        // check the koi name is valid
         let koi: Koi | undefined;
-        for (const KOI of PATTERN.kois!)
+        for (const KOI of pattern.kois!)
         {
             if (KOI.name.toLowerCase() == koiName.toLowerCase())
             {
@@ -213,14 +231,15 @@ export const DataAccessLayer =
         }
         if (!koi)
         {
-            throw new KoiNotFound(patternName, koiName);
+            // pattern was valid, but koi was not
+            throw new KoiNotFound(koiName, patternName);
         }
 
         // Start setting up the reply. We have info on rarity and hatch time at least.
         let usersMissingKoi: UsersMissingKoiResponse = {
             discordIds: [],
             rarity: koi.rarity,
-            hatchTime: PATTERN.hatchTime ? PATTERN.hatchTime : undefined,
+            hatchTime: pattern.hatchTime ? pattern.hatchTime : undefined,
             discordIdsWithSpreadsheetErrors: {
                 spreadsheetNotFound: [],
                 privateSpreadsheet: [],
@@ -237,73 +256,74 @@ export const DataAccessLayer =
         const USERS: User[] = await User.findAll();
         for (const USER of USERS)
         {
-            hasKoiPromises.push(
-                UserSpreadsheet.hasKoi(USER.spreadsheetId, koiName, patternName, PATTERN.type)
-                    .then(hasKoi => {
-                        if (!hasKoi)
-                        {
-                            usersMissingKoi.discordIds.push(USER.discordId)
-                        }
-                    })
-                    .catch(error => {
-                        
-                        // log the issue to help the person if they need it
-                        Logger.error(`${USER.name} has an issue their spreadsheet.`);
-                        Logger.error(error);
+            hasKoiPromises.push(UserSpreadsheet.hasKoi(
+                USER.spreadsheetId, koiName, patternName, pattern.type
+            )
+                .then(hasKoi => {
+                    if (!hasKoi)
+                    {
+                        usersMissingKoi.discordIds.push(USER.discordId)
+                    }
+                })
+                .catch(error => {
+                    
+                    // log the issue to help the person if they need it
+                    Logger.error(`${USER.name} has an issue their spreadsheet.`);
+                    Logger.error(error);
 
-                        // Let the user know if their spreadsheet has been deleted
-                        if(error instanceof SpreadsheetNotFound)
-                        {
-                            usersMissingKoi
-                                .discordIdsWithSpreadsheetErrors
-                                .spreadsheetNotFound.push(USER.discordId);
-                            return;
-                        }
+                    // Let the user know if their spreadsheet has been deleted
+                    if(error instanceof SpreadsheetNotFound)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .spreadsheetNotFound.push(USER.discordId);
+                        return;
+                    }
 
-                        // Let the user know if their spreadsheet is private
-                        if(error instanceof PrivateSpreadsheet)
-                        {
-                            usersMissingKoi
-                                .discordIdsWithSpreadsheetErrors
-                                .privateSpreadsheet.push(USER.discordId);
-                            return;
-                        }
+                    // Let the user know if their spreadsheet is private
+                    if(error instanceof PrivateSpreadsheet)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .privateSpreadsheet.push(USER.discordId);
+                        return;
+                    }
 
-                        // The user may have forgotten to add this pattern to 
-                        // their spreadsheet, maybe because it's a brand new pattern.
-                        if (error instanceof PatternNotInSpreadsheet)
-                        {
-                            usersMissingKoi
-                                .discordIdsWithSpreadsheetErrors
-                                .patternNotFound.push(USER.discordId);
-                            return;
-                        }
+                    // The user may have forgotten to add this pattern to 
+                    // their spreadsheet, maybe because it's a brand new pattern.
+                    if (error instanceof PatternNotInSpreadsheet)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .patternNotFound.push(USER.discordId);
+                        return;
+                    }
 
-                        // The user may have the pattern in their spreadsheet, 
-                        // but not the koi. If this happens it could be a typo.
-                        if (error instanceof KoiNotInSpreadsheet)
-                        {
-                            usersMissingKoi
-                                .discordIdsWithSpreadsheetErrors
-                                .koiNotFound.push(USER.discordId);
-                            return;
-                        }
+                    // The user may have the pattern in their spreadsheet, 
+                    // but not the koi. If this happens it could be a typo.
+                    if (error instanceof KoiNotInSpreadsheet)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .koiNotFound.push(USER.discordId);
+                        return;
+                    }
 
-                        // let the user know if something is wrong with their spreadsheet,
-                        // such as extra empty rows, or renamed sheets
-                        if (error instanceof KoiSpreadsheetError || 
-                            error instanceof RangeNotFound ||
-                            error instanceof UnknownKoiProgress)
-                        {
-                            usersMissingKoi
-                                .discordIdsWithSpreadsheetErrors
-                                .formatBroken.push(USER.discordId);
-                            return;
-                        }
+                    // let the user know if something is wrong with their spreadsheet,
+                    // such as extra empty rows, or renamed sheets
+                    if (error instanceof KoiSpreadsheetError || 
+                        error instanceof RangeNotFound ||
+                        error instanceof UnknownKoiProgress)
+                    {
+                        usersMissingKoi
+                            .discordIdsWithSpreadsheetErrors
+                            .formatBroken.push(USER.discordId);
+                        return;
+                    }
 
-                        // this error was caused for another reason so pass it on
-                        throw error;
-                    })
+                    // this error was caused for another reason so pass it on
+                    throw error;
+                })
             );
         }
 
@@ -311,4 +331,5 @@ export const DataAccessLayer =
         
         return usersMissingKoi;
     }
+
 }

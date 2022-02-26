@@ -26,9 +26,8 @@ beforeAll(async() => {
 testName(WhoCommand, "who");
 testDescription(WhoCommand, "List everyone who needs a specific koi.");
 testResponseIsPublic(WhoCommand);
-testOptionsCount(WhoCommand, 2);
-testStringOption(WhoCommand.options[0], "color",   "Koi's color.");
-testStringOption(WhoCommand.options[1], "pattern", "Koi's pattern.");
+testOptionsCount(WhoCommand, 1);
+testStringOption(WhoCommand.options[0], "koi",   "Koi's name and pattern.");
 
 // ========================
 // =====ERROR CHECKING=====
@@ -60,13 +59,41 @@ describe("There are two users.", () => {
     afterEach(async() => await DataAccessLayer.stop());
 
     test("Pattern does not exist.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("chashiro", "invalid"));
-        expect(RESPONSE).toBe("Pattern 'invalid' does not exist.");
+        const RESPONSE = await WhoCommand.execute(mockInteraction("chashiro invalid"));
+        expect(RESPONSE).toBe("Neither 'chashiro' nor 'invalid' are valid patterns.");
     });
 
     test("Koi does not exist.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("invalid", "sutaggu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("invalid sutaggu"));
         expect(RESPONSE).toBe("Pattern 'sutaggu' does not have koi 'invalid'.");
+    });
+
+    test("Both provided names are patterns.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("beta sutaggu"));
+        expect(RESPONSE).toBe("Pattern 'sutaggu' does not have koi 'beta'.");
+    });
+
+    test("Provided only koi name.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("shishiro"));
+        expect(RESPONSE).toBe(
+            "Provide both the koi name and pattern, for example: shishiro inazuma"
+        );
+    });
+
+    test("Provided only pattern name.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("inazuma"));
+        expect(RESPONSE).toBe(
+            "Provide both the koi name and pattern, for example: shishiro inazuma"
+        );
+    });
+
+    test("Provided two kois.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction(
+            "shishiro inazuma kugin miraju"
+        ));
+        expect(RESPONSE).toBe(
+            "Provide both the koi name and pattern, for example: shishiro inazuma"
+        );
     });
 
     describe("Modify environment variables.", () => {
@@ -77,7 +104,7 @@ describe("There are two users.", () => {
 
         test("Google API key is invalid.", async() => {
             process.env.GOOGLE_API_KEY = "invalid";
-            await expect(WhoCommand.execute(mockInteraction("chashiro", "sutaggu")))
+            await expect(WhoCommand.execute(mockInteraction("chashiro sutaggu")))
                 .rejects.toThrow();
         });
     });
@@ -87,7 +114,7 @@ describe("There are two users.", () => {
     // ========================
 
     test("Everyone needs common collector a-m.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mudai", "beta"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mudai beta"));
         expect(
             RESPONSE == "Needing common 11h mudai beta:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing common 11h mudai beta:\n<@discord2> <@discord1>"
@@ -95,7 +122,7 @@ describe("There are two users.", () => {
     });
 
     test("Everyone needs rare collector a-m.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kousu", "kurinpu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kousu kurinpu"));
         expect(
             RESPONSE == "Needing rare 11h kousu kurinpu:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing rare 11h kousu kurinpu:\n<@discord2> <@discord1>"
@@ -103,7 +130,7 @@ describe("There are two users.", () => {
     });
 
     test("Everyone needs common collector n-z.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mukatsu", "yumi"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mukatsu yumi"));
         expect(
             RESPONSE == "Needing common 10h mukatsu yumi:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing common 10h mukatsu yumi:\n<@discord2> <@discord1>"
@@ -111,7 +138,7 @@ describe("There are two users.", () => {
     });
 
     test("Everyone needs rare collector n-z.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("orimosu", "sutaggu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("orimosu sutaggu"));
         expect(
             RESPONSE == "Needing rare 5h orimosu sutaggu:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing rare 5h orimosu sutaggu:\n<@discord2> <@discord1>"
@@ -119,7 +146,7 @@ describe("There are two users.", () => {
     });
 
     test("Everyone needs common progressive.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kishiro", "shapu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kishiro shapu"));
         expect(
             RESPONSE == "Needing common kishiro shapu:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing common kishiro shapu:\n<@discord2> <@discord1>"
@@ -127,10 +154,18 @@ describe("There are two users.", () => {
     });
 
     test("Everyone needs rare progressive.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kupinku", "ogon"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kupinku ogon"));
         expect(
             RESPONSE == "Needing rare kupinku ogon:\n<@discord1> <@discord2>" ||
             RESPONSE == "Needing rare kupinku ogon:\n<@discord2> <@discord1>"
+        ).toBeTruthy();
+    });
+
+    test("Everyone needs koi whose name and pattern name are swapped.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mame shipinku"));
+        expect(
+            RESPONSE == "Needing rare mame shipinku:\n<@discord1> <@discord2>" ||
+            RESPONSE == "Needing rare mame shipinku:\n<@discord2> <@discord1>"
         ).toBeTruthy();
     });
 
@@ -139,23 +174,28 @@ describe("There are two users.", () => {
     // =============================
 
     test("Some need common collector and some don't.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("ryokoji", "happa"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("ryokoji happa"));
         expect("Needing common 10h ryokoji happa:\n<@discord1>");
     });
 
     test("Some need rare collector and some don't.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("orimosu", "sutaggu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("orimosu sutaggu"));
         expect("Needing common 5h orimosu sutaggu:\n<@discord2>");
     });
 
     test("Some need common progressive and some don't.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kuukon", "kanoko"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kuukon kanoko"));
         expect("Needing common kuukon kanoko:\n<@discord1>");
     });
 
     test("Some need rare progressive and some don't.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("akamido", "utsuri"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("akamido utsuri"));
         expect("Needing common akamido utsuri:\n<@discord2>");
+    });
+
+    test("Some need koi whose name and pattern name are swapped.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("bureku seishiro"));
+        expect("Needing 10h common bureku seishiro:\n<@discord2>");
     });
 
     // ======================
@@ -163,13 +203,18 @@ describe("There are two users.", () => {
     // ======================
 
     test("No none needs collector.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kuusu", "usagi"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kuusu usagi"));
         expect(RESPONSE).toBe("Nobody needs rare 5h kuusu usagi.");
     });
 
     test("No none needs progressive.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("shishiro", "inazuma"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("shishiro inazuma"));
         expect(RESPONSE).toBe("Nobody needs common shishiro inazuma.");
+    });
+
+    test("No none needs koi whose name and pattern name are swapped.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("naisu mashiro"));
+        expect(RESPONSE).toBe("Nobody needs common 11h naisu mashiro.");
     });
 
 });
@@ -192,7 +237,7 @@ describe("Test with users with missing pattern.", () => {
     afterEach(async() => await DataAccessLayer.stop());
     
     test("Some need koi and one user missing pattern in spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("akaumi", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("akaumi rozu"));
         expect(RESPONSE).toBe(
             "Needing rare 10h akaumi rozu:\n<@discord2>\n" +
             "Could not find pattern for <@discord1>"
@@ -200,7 +245,7 @@ describe("Test with users with missing pattern.", () => {
     });
 
     test("No one needs koi and one user missing pattern in spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("nedai", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("nedai rozu"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h nedai rozu.\n" +
             "Could not find pattern for <@discord1>"
@@ -211,7 +256,7 @@ describe("Test with users with missing pattern.", () => {
         await User.create({
             discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingPatterns
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("neumi", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("neumi rozu"));
         expect(
             RESPONSE ==
                 "Nobody needs rare 10h neumi rozu.\n" +
@@ -240,7 +285,7 @@ describe("Test with users with missing koi.", () => {
     afterEach(async() => await DataAccessLayer.stop());
     
     test("One user missing koi in spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu", "hoseki"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
         expect(RESPONSE).toBe(
             "Nobody needs common 9h kukatsu hoseki.\n" +
             "Could not find koi for <@discord1>"
@@ -251,7 +296,7 @@ describe("Test with users with missing koi.", () => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.koiTypo
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu", "hoseki"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
         expect(
             RESPONSE ==
                 "Nobody needs common 9h kukatsu hoseki.\n" +
@@ -266,7 +311,7 @@ describe("Test with users with missing koi.", () => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro rozu"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h mashiro rozu.\n" +
             "Could not find pattern for <@discord2>\n" +
@@ -295,7 +340,7 @@ describe("Test with users with deleted spreadsheet.", () => {
         await User.create(
             {discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.valid}
         );
-        const RESPONSE = await WhoCommand.execute(mockInteraction("buusu", "suno"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("buusu suno"));
         expect(RESPONSE).toBe(
             "Needing common 6h buusu suno:\n<@discord2>\n" +
             "Spreadsheet does not exist for <@discord1>"
@@ -306,7 +351,7 @@ describe("Test with users with deleted spreadsheet.", () => {
         await User.create(
             {discordId: "discord2", name: "name2", spreadsheetId: "invalid"}
         );
-        const RESPONSE = await WhoCommand.execute(mockInteraction("ryoumi", "suno"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("ryoumi suno"));
         expect(
             RESPONSE ==
                 "Nobody needs common 6h ryoumi suno.\n" +
@@ -322,7 +367,7 @@ describe("Test with users with deleted spreadsheet.", () => {
             {discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns},
             {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.koiTypo}
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("madai", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("madai rozu"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h madai rozu.\n" +
             "Could not find pattern for <@discord2>\n" +
@@ -349,7 +394,7 @@ describe("Test with users with private spreadsheet.", () => {
     afterEach(async() => await DataAccessLayer.stop());
 
     test("User has private spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon", "modoru"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon modoru"));
         expect(RESPONSE).toBe(
             "Nobody needs common 5h aoukon modoru.\n" +
             "Spreadsheet is private for <@discord1>"
@@ -360,7 +405,7 @@ describe("Test with users with private spreadsheet.", () => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.private
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon", "modoru"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon modoru"));
         expect(
             RESPONSE == 
                 "Nobody needs common 5h aoukon modoru.\n" +
@@ -377,7 +422,7 @@ describe("Test with users with private spreadsheet.", () => {
             {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.koiTypo},
             {discordId: "discord4", name: "name4", spreadsheetId: "invalid"}
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro rozu"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h mashiro rozu.\n" +
             "Could not find pattern for <@discord2>\n" + 
@@ -405,7 +450,7 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
     afterEach(async() => await DataAccessLayer.stop());
 
     test("User has extra rows in their spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("bushiro", "mukei"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("bushiro mukei"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h bushiro mukei.\n" +
             "Spreadsheet formatting broken for <@discord1>"
@@ -416,7 +461,7 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.renamedSheets
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("ryoburu", "uoza"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("ryoburu uoza"));
         expect(RESPONSE).toBe(
             "Needing rare 10h ryoburu uoza:\n" +
             "<@discord1>\n" +
@@ -428,7 +473,7 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.renamedSheets
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mupinku", "mukei"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mupinku mukei"));
         expect(
             RESPONSE ==
                 "Nobody needs rare 10h mupinku mukei.\n" +
@@ -449,7 +494,7 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
             {discordId: "discord5", name: "name5", spreadsheetId: spreadsheets.renamedSheets},
             {discordId: "discord6", name: "name6", spreadsheetId: spreadsheets.koiTypo}
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("madai", "rozu"));
+        const RESPONSE = await WhoCommand.execute(mockInteraction("madai rozu"));
         expect(RESPONSE).toBe(
             "Needing common 10h madai rozu:\n" +
             "<@discord1>\n" +
@@ -462,13 +507,11 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
     });
 });
 
-function mockInteraction(koi, pattern)
+function mockInteraction(param)
 {
     return { 
         options: { 
-            getString: (param) => {
-                return param == "pattern" ? pattern : koi
-            }
+            getString: () => param
         },
         user: {
             id: "someid",
