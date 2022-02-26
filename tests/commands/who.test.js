@@ -118,6 +118,22 @@ describe("There are two users.", () => {
         ).toBeTruthy();
     });
 
+    test("Everyone needs common progressive.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kishiro", "shapu"));
+        expect(
+            RESPONSE == "Needing common kishiro shapu:\n<@discord1> <@discord2>" ||
+            RESPONSE == "Needing common kishiro shapu:\n<@discord2> <@discord1>"
+        ).toBeTruthy();
+    });
+
+    test("Everyone needs rare progressive.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kupinku", "ogon"));
+        expect(
+            RESPONSE == "Needing rare kupinku ogon:\n<@discord1> <@discord2>" ||
+            RESPONSE == "Needing rare kupinku ogon:\n<@discord2> <@discord1>"
+        ).toBeTruthy();
+    });
+
     // =============================
     // =====SOME NEED SOME DONT=====
     // =============================
@@ -132,13 +148,28 @@ describe("There are two users.", () => {
         expect("Needing common 5h orimosu sutaggu:\n<@discord2>");
     });
 
+    test("Some need common progressive and some don't.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kuukon", "kanoko"));
+        expect("Needing common kuukon kanoko:\n<@discord1>");
+    });
+
+    test("Some need rare progressive and some don't.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("akamido", "utsuri"));
+        expect("Needing common akamido utsuri:\n<@discord2>");
+    });
+
     // ======================
     // =====NO ONE NEEDS=====
     // ======================
 
-    test("No none needs koi.", async() => {
+    test("No none needs collector.", async() => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("kuusu", "usagi"));
         expect(RESPONSE).toBe("Nobody needs rare 5h kuusu usagi.");
+    });
+
+    test("No none needs progressive.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("shishiro", "inazuma"));
+        expect(RESPONSE).toBe("Nobody needs common shishiro inazuma.");
     });
 
 });

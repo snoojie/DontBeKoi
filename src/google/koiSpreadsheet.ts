@@ -33,6 +33,8 @@ export const KoiSpreadsheet = {
      * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the pattern name in.
+     * @param columnIndex index of the column to find the pattern name in.
+     *                    If not provided, assumes column 0.
      * @returns normalized string at (row, 0).
      * @throws KoiSpreadsheetError if there is no pattern name in the row.
      */
@@ -63,6 +65,8 @@ export const KoiSpreadsheet = {
      * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the base color in.
+     * @param columnIndex index of the column to find the base color in.
+     *                    If not provided, assumes column 0.
      * @returns normalized string at (row, 0) without a dash.
      * @throws KoiSpreadsheetError if there is no base color in the row.
      */
@@ -99,6 +103,7 @@ export const KoiSpreadsheet = {
      * @param spreadsheetId ID of the spreadsheet. Used only for error messaging.
      * @param table array of arrays representing the google spreadsheet values.
      * @param rowIndex index of the row to find the highlight color in.
+     * @param columnIndex index of the column to find the highlight color in.
      * @returns normalized string at (row, column) without a dash.
      * @throws KoiSpreadsheetError if there is no highlight color in that cell.
      */

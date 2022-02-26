@@ -376,6 +376,46 @@ describe("Get users missing koi.", () => {
         );
     });
 
+    test("Get users missing common progressive.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("kushiro", "bekko");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1"],
+                rarity: "Common",
+                hatchTime: undefined,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
+    test("Get users missing rare progressive.", async() => {
+        const USERS_MISSING_KOI = 
+            await DataAccessLayer.getUsersMissingKoi("shipinku", "mame");
+        expectUsersMissingKoi(
+            USERS_MISSING_KOI,
+            {
+                discordIds: ["did1", "did2"],
+                rarity: "Rare",
+                hatchTime: undefined,
+                discordIdsWithSpreadsheetErrors: {
+                    patternNotFound: [],
+                    koiNotFound: [],
+                    formatBroken: [],
+                    spreadsheetNotFound: [],
+                    privateSpreadshet: []
+                }
+            }
+        );
+    });
+
     test("No one missing koi.", async() => {
         const USERS_MISSING_KOI = 
             await DataAccessLayer.getUsersMissingKoi("chashiro", "sutaggu");

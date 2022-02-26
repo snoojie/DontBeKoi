@@ -81,7 +81,7 @@ async function getPatternsFromSheet(
 
         // note that on the progressives sheet, 
         // there are three sets of patterns per row, every 11 columns
-        const PATTERNS_PER_ROW = TYPE==PatternType.Progressive ? 3 : 1;
+        const PATTERNS_PER_ROW: number = TYPE==PatternType.Progressive ? 3 : 1;
         for (let patternColumn=0; patternColumn<PATTERNS_PER_ROW*11; patternColumn+=11)
         {
 

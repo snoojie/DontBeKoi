@@ -52,7 +52,6 @@ test("One new pattern.", async() => {
 test("Two new patterns.", async() => {
     await Pattern.destroy({ where: { [Op.or]: [ {name: "Hanrin"}, {name: "Naisu"} ] } });
     const RESPONSE = await Command.execute();
-    console.info(RESPONSE);
     expect(RESPONSE == "Added new patterns Hanrin and Naisu." || 
            RESPONSE == "Added new patterns Naisu and Hanrin.").toBeTruthy();
 });

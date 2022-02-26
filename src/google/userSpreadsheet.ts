@@ -1,5 +1,6 @@
 import { Spreadsheet } from "./spreadsheet";
 import { KoiSpreadsheet, KoiSpreadsheetError } from "./koiSpreadsheet";
+import { PatternType } from "../types";
 
 export class PatternNotInSpreadsheet extends KoiSpreadsheetError 
 {
@@ -52,28 +53,39 @@ export const UserSpreadsheet = {
      * @throws RangeNotFound if the range does not exist for the spreadsheet.
      */
     hasKoi: async function(
-        spreadsheetId: string, color: string, pattern: string): Promise<boolean>
+        spreadsheetId: string, color: string, pattern: string, type: PatternType
+    ): Promise<boolean>
     {
         // todo, check progressive
 
         // get the spreadsheet
-        const RANGE: string = pattern.slice(0,1) < "n" 
-            ? "A-M: Collectors!B2:K" 
-            : "N-Z: Collectors!B2:K";
+        const RANGE: string = type == PatternType.Collector
+            ? pattern.slice(0,1) < "n" 
+                ? "A-M: Collectors!B2:K" 
+                : "N-Z: Collectors!B2:K"
+            : "Progressives!I2:AN70";
         const TABLE: string[][] = await Spreadsheet.getValues(spreadsheetId, RANGE);
 
         // find the pattern
         let patternRowIndex: number = -1;
+        let patternColumnIndex: number = -1;
         // note the pattern name appears every 7 rows
         for (let i=0; i<TABLE.length; i+=7)
         {
-            const FOUND_PATTERN: string = 
-                KoiSpreadsheet.getPattern(spreadsheetId, TABLE, i);
-            if (equalsIgnoreCase(FOUND_PATTERN, pattern))
+
+            // note that progressives have a pattern name every 11 columns
+            const PATTERNS_PER_ROW: number = type==PatternType.Progressive ? 3 : 1;
+            for (let j=0; j<PATTERNS_PER_ROW*11; j+=11)
             {
-                // found the pattern!
-                patternRowIndex = i;
-                break;
+                const FOUND_PATTERN: string = 
+                    KoiSpreadsheet.getPattern(spreadsheetId, TABLE, i, j);
+                if (equalsIgnoreCase(FOUND_PATTERN, pattern))
+                {
+                    // found the pattern!
+                    patternRowIndex = i;
+                    patternColumnIndex = j;
+                    break;
+                }
             }
         }
         if (patternRowIndex < 0)
@@ -87,7 +99,8 @@ export const UserSpreadsheet = {
         // note the base colors appear 2-4 rows after the pattern name
         for(let i=patternRowIndex+2; i<patternRowIndex+6; i++)
         {
-            baseColor = KoiSpreadsheet.getBaseColor(spreadsheetId, TABLE, i);
+            baseColor = 
+                KoiSpreadsheet.getBaseColor(spreadsheetId, TABLE, i, patternColumnIndex);
             if (startsWithIgnoreCase(color, baseColor))
             {
                 // found the base color!
@@ -103,13 +116,13 @@ export const UserSpreadsheet = {
         // find the highlight color
         let highlightColorColumnIndex: number = -1;
         let highlightColor: string = "";
-        for (let i=1; i<10; i++)
+        for (let i=patternColumnIndex+1; i<patternColumnIndex+10; i++)
         {
 
             // common highlight columns are in columns 1-4
             // rare highlight columns are in columns 6-9
             // column 5 is empty, so ignore it
-            if (i==5)
+            if (i==patternColumnIndex+5)
             {
                 continue;
             }

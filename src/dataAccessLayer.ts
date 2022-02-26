@@ -134,7 +134,6 @@ export const DataAccessLayer =
                 newPatterns.push(KOI.get("patternName"));
             }
         }
-        console.log(newPatterns);
 
         return newPatterns;
     },
@@ -239,72 +238,72 @@ export const DataAccessLayer =
         for (const USER of USERS)
         {
             hasKoiPromises.push(
-                UserSpreadsheet.hasKoi(USER.spreadsheetId, koiName, patternName)
-                .then(hasKoi => {
-                    if (!hasKoi)
-                    {
-                        usersMissingKoi.discordIds.push(USER.discordId)
-                    }
-                })
-                .catch(error => {
-                    
-                    // log the issue to help the person if they need it
-                    Logger.error(`${USER.name} has an issue their spreadsheet.`);
-                    Logger.error(error);
+                UserSpreadsheet.hasKoi(USER.spreadsheetId, koiName, patternName, PATTERN.type)
+                    .then(hasKoi => {
+                        if (!hasKoi)
+                        {
+                            usersMissingKoi.discordIds.push(USER.discordId)
+                        }
+                    })
+                    .catch(error => {
+                        
+                        // log the issue to help the person if they need it
+                        Logger.error(`${USER.name} has an issue their spreadsheet.`);
+                        Logger.error(error);
 
-                    // Let the user know if their spreadsheet has been deleted
-                    if(error instanceof SpreadsheetNotFound)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .spreadsheetNotFound.push(USER.discordId);
-                        return;
-                    }
+                        // Let the user know if their spreadsheet has been deleted
+                        if(error instanceof SpreadsheetNotFound)
+                        {
+                            usersMissingKoi
+                                .discordIdsWithSpreadsheetErrors
+                                .spreadsheetNotFound.push(USER.discordId);
+                            return;
+                        }
 
-                    // Let the user know if their spreadsheet is private
-                    if(error instanceof PrivateSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .privateSpreadsheet.push(USER.discordId);
-                        return;
-                    }
+                        // Let the user know if their spreadsheet is private
+                        if(error instanceof PrivateSpreadsheet)
+                        {
+                            usersMissingKoi
+                                .discordIdsWithSpreadsheetErrors
+                                .privateSpreadsheet.push(USER.discordId);
+                            return;
+                        }
 
-                    // The user may have forgotten to add this pattern to 
-                    // their spreadsheet, maybe because it's a brand new pattern.
-                    if (error instanceof PatternNotInSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .patternNotFound.push(USER.discordId);
-                        return;
-                    }
+                        // The user may have forgotten to add this pattern to 
+                        // their spreadsheet, maybe because it's a brand new pattern.
+                        if (error instanceof PatternNotInSpreadsheet)
+                        {
+                            usersMissingKoi
+                                .discordIdsWithSpreadsheetErrors
+                                .patternNotFound.push(USER.discordId);
+                            return;
+                        }
 
-                    // The user may have the pattern in their spreadsheet, 
-                    // but not the koi. If this happens it could be a typo.
-                    if (error instanceof KoiNotInSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .koiNotFound.push(USER.discordId);
-                        return;
-                    }
+                        // The user may have the pattern in their spreadsheet, 
+                        // but not the koi. If this happens it could be a typo.
+                        if (error instanceof KoiNotInSpreadsheet)
+                        {
+                            usersMissingKoi
+                                .discordIdsWithSpreadsheetErrors
+                                .koiNotFound.push(USER.discordId);
+                            return;
+                        }
 
-                    // let the user know if something is wrong with their spreadsheet,
-                    // such as extra empty rows, or renamed sheets
-                    if (error instanceof KoiSpreadsheetError || 
-                        error instanceof RangeNotFound ||
-                        error instanceof UnknownKoiProgress)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .formatBroken.push(USER.discordId);
-                        return;
-                    }
+                        // let the user know if something is wrong with their spreadsheet,
+                        // such as extra empty rows, or renamed sheets
+                        if (error instanceof KoiSpreadsheetError || 
+                            error instanceof RangeNotFound ||
+                            error instanceof UnknownKoiProgress)
+                        {
+                            usersMissingKoi
+                                .discordIdsWithSpreadsheetErrors
+                                .formatBroken.push(USER.discordId);
+                            return;
+                        }
 
-                    // this error was caused for another reason so pass it on
-                    throw error;
-                })
+                        // this error was caused for another reason so pass it on
+                        throw error;
+                    })
             );
         }
 
