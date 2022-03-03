@@ -8,7 +8,7 @@ const { Pattern } = require("../src/database/models/pattern");
 const { Koi } = require("../src/database/models/koi");
 const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
-const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
+const { waitGoogleQuota, googleQuotaTimeout, spreadsheets } 
     = require("./_setup/spreadsheet");
 const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
 const { PrivateSpreadsheet, SpreadsheetNotFound } 
@@ -205,7 +205,7 @@ describe("Save user.", () => {
         await expectErrorAsync(
             DataAccessLayer.saveUser("somediscordid", "somename", "invalidspreadsheet"),
             SpreadsheetNotFound,
-            "Spreadsheet ID 'invalidspreadsheet' does not exist."
+            "Spreadsheet 'invalidspreadsheet' does not exist."
         );
     });
 
@@ -215,7 +215,7 @@ describe("Save user.", () => {
                 "somediscordid", "somename", spreadsheets.private
             ),
             PrivateSpreadsheet,
-            `Spreadsheet ID '${spreadsheets.private}' is private.`
+            `Spreadsheet '${spreadsheets.private}' is private.`
         );
     });
 
@@ -260,7 +260,6 @@ describe("Save user.", () => {
 
 describe("Get users missing koi.", () => {
     beforeAll(async() => {
-        await waitGoogleQuota();
         await dropAllTables();
         await DataAccessLayer.start();
         await DataAccessLayer.updatePatterns();
@@ -271,14 +270,11 @@ describe("Get users missing koi.", () => {
             "did2", "name2", spreadsheets.valid2
         );
         await DataAccessLayer.stop();
-    }, googleQuotaTimeout);
+    });
     beforeEach(async() => {
         await DataAccessLayer.start();
     });
-    afterAll(async() => {
-        await dropAllTables();
-        await waitGoogleQuota();
-    }, googleQuotaTimeout);
+    afterAll(async() => await dropAllTables());
 
     test("Neither parameter is a pattern.", async() => {
         await expectErrorAsync(
@@ -321,13 +317,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1", "did2"],
                 rarity: "Common",
                 hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -341,13 +331,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1", "did2"],
                 rarity: "Rare",
                 hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -361,13 +345,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1", "did2"],
                 rarity: "Common",
                 hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -381,13 +359,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did2"],
                 rarity: "Rare",
                 hatchTime: 5,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -401,13 +373,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1"],
                 rarity: "Common",
                 hatchTime: undefined,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -421,13 +387,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1", "did2"],
                 rarity: "Rare",
                 hatchTime: undefined,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -441,13 +401,7 @@ describe("Get users missing koi.", () => {
                 discordIds: [],
                 rarity: "Common",
                 hatchTime: 5,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -461,13 +415,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1", "did2"],
                 rarity: "Common",
                 hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -481,13 +429,7 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1"],
                 rarity: "Common",
                 hatchTime: 10,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
@@ -501,19 +443,14 @@ describe("Get users missing koi.", () => {
                 discordIds: ["did1"],
                 rarity: "Rare",
                 hatchTime: 11,
-                discordIdsWithSpreadsheetErrors: {
-                    patternNotFound: [],
-                    koiNotFound: [],
-                    formatBroken: [],
-                    spreadsheetNotFound: [],
-                    privateSpreadshet: []
-                }
+                errors: {}
             }
         );
     });
 
     describe("Swapping user's valid spreadsheet.", () => {
 
+        beforeAll(async() => await waitGoogleQuota(), googleQuotaTimeout);
         afterEach(async() => {
             await User.update(
                 { spreadsheetId: spreadsheets.valid },
@@ -527,31 +464,7 @@ describe("Get users missing koi.", () => {
 
         test("Marking a koi with capital K is the same as lowercase.", async() => {
             await User.update(
-                { spreadsheetId: spreadsheets.badKoiProgressMarks },
-                { where: { discordId: "did1" } }
-            );
-            const USERS_MISSING_KOI = 
-                await DataAccessLayer.getUsersMissingKoi("ryopinku", "akachan");
-            expectUsersMissingKoi(
-                USERS_MISSING_KOI,
-                {
-                    discordIds: ["did2"],
-                    rarity: "Rare",
-                    hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
-                    }
-                }
-            );
-        });
-
-        test("Marking a koi with capital D is the same as lowercase.", async() => {
-            await User.update(
-                { spreadsheetId: spreadsheets.badKoiProgressMarks },
+                { spreadsheetId: spreadsheets.badButValidKoiProgress },
                 { where: { discordId: "did1" } }
             );
             const USERS_MISSING_KOI = 
@@ -562,13 +475,25 @@ describe("Get users missing koi.", () => {
                     discordIds: [],
                     rarity: "Rare",
                     hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
-                    }
+                    errors: {}
+                }
+            );
+        });
+
+        test("Marking a koi with capital D is the same as lowercase.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.badButValidKoiProgress },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("chakuro", "okan");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did2"],
+                    rarity: "Common",
+                    hatchTime: 11,
+                    errors: {}
                 }
             );
         });
@@ -586,12 +511,9 @@ describe("Get users missing koi.", () => {
                     discordIds: ["did2"],
                     rarity: "Rare",
                     hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: ["did1"],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
+                    errors: { 
+                        "did1" : `Spreadsheet '${spreadsheets.missingPatterns}' ` +
+                                  "missing pattern 'rozu'."
                     }
                 }
             );
@@ -610,20 +532,17 @@ describe("Get users missing koi.", () => {
                     discordIds: ["did2"],
                     rarity: "Common",
                     hatchTime: 9,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: ["did1"],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
+                    errors: { 
+                        "did1" : `Spreadsheet '${spreadsheets.koiTypo}' ` +
+                                  "missing koi 'makatsu' for pattern 'hoseki'."
                     }
                 }
             );
         });
 
-        test("Spreadsheet has an extra empty row.", async() => {
+        test("Spreadsheet has an extra empty row between patterns.", async() => {
             await User.update(
-                { spreadsheetId: spreadsheets.extraRow },
+                { spreadsheetId: spreadsheets.missingPatternNames },
                 { where: { discordId: "did1" } }
             );
             const USERS_MISSING_KOI = 
@@ -634,12 +553,59 @@ describe("Get users missing koi.", () => {
                     discordIds: [],
                     rarity: "Common",
                     hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: ["did1"],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
+                    errors: {
+                        "did1": `Error with spreadsheet ` +
+                                `'${spreadsheets.missingPatternNames}', sheet ` +
+                                `'A-M: Collectors'. Expected to find a pattern name ` +
+                                `at row 198, column B, but that cell is empty.`
+                    }
+                }
+            );
+        });
+
+        test("Spreadsheet has an extra empty row in a pattern table.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.missingBaseColors },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("mukatsu", "yumi");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: ["did2"],
+                    rarity: "Common",
+                    hatchTime: 10,
+                    errors: {
+                        "did1": `Error with spreadsheet ` +
+                                `'${spreadsheets.missingBaseColors}', sheet ` +
+                                `'N-Z: Collectors'. Expected to find a color name ` +
+                                `for pattern 'Onmyo' at row 83, column B, ` +
+                                `but that cell is empty.`
+                    }
+                }
+            );
+        });
+
+        test("Spreadsheet has an extra empty column between commons and rares.", async() => {
+            await User.update(
+                { spreadsheetId: spreadsheets.missingHighlightColors },
+                { where: { discordId: "did1" } }
+            );
+            const USERS_MISSING_KOI = 
+                await DataAccessLayer.getUsersMissingKoi("shimacha", "dienue");
+            expectUsersMissingKoi(
+                USERS_MISSING_KOI,
+                {
+                    discordIds: [],
+                    rarity: "Rare",
+                    hatchTime: 6,
+                    errors: {
+                        "did1": `Error with spreadsheet ` +
+                                `'${spreadsheets.missingHighlightColors}', sheet ` +
+                                `'A-M: Collectors'. Expected to find a color name ` +
+                                `for pattern 'Aishite' at row 3, column H, ` +
+                                `but that cell is empty.`
                     }
                 }
             );
@@ -647,23 +613,21 @@ describe("Get users missing koi.", () => {
 
         test("Spreadsheet has koi marked with something unexpected.", async() => {
             await User.update(
-                { spreadsheetId: spreadsheets.badKoiProgressMarks },
+                { spreadsheetId: spreadsheets.invalidKoiProgress },
                 { where: { discordId: "did1" } }
             );
             const USERS_MISSING_KOI = 
-                await DataAccessLayer.getUsersMissingKoi("ryodai", "akachan");
+                await DataAccessLayer.getUsersMissingKoi("kudai", "toraiu");
             expectUsersMissingKoi(
                 USERS_MISSING_KOI,
                 {
                     discordIds: [],
                     rarity: "Common",
-                    hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: ["did1"],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
+                    hatchTime: undefined,
+                    errors: {
+                        "did1": `Spreadsheet '${spreadsheets.invalidKoiProgress}' ` +
+                                `has koi 'Kudai Toraiu' marked with 'invalid'. ` +
+                                `Expected 'k', 'd', or no text.`
                     }
                 }
             );
@@ -682,12 +646,9 @@ describe("Get users missing koi.", () => {
                     discordIds: ["did2"],
                     rarity: "Common",
                     hatchTime: 10,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: ["did1"],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
+                    errors: {
+                        "did1": `Spreadsheet '${spreadsheets.renamedSheets}' does ` +
+                                `not have range 'A-M: Collectors!B2:K'.`
                     }
                 }
             );
@@ -706,12 +667,8 @@ describe("Get users missing koi.", () => {
                     discordIds: ["did1"],
                     rarity: "Rare",
                     hatchTime: 5,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: ["did2"]
+                    errors: {
+                        "did2": `Spreadsheet '${spreadsheets.private}' is private.`
                     }
                 }
             );
@@ -730,12 +687,8 @@ describe("Get users missing koi.", () => {
                     discordIds: ["did1"],
                     rarity: "Rare",
                     hatchTime: 5,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: ["did2"],
-                        privateSpreadshet: []
+                    errors: {
+                        "did2": "Spreadsheet 'invalid' does not exist."
                     }
                 }
             );
@@ -754,76 +707,15 @@ describe("Get users missing koi.", () => {
         })
     });
 
-    describe("Modify pattern.", () => {
-
-        let pattern;
-        let originalHatchTime;
-        beforeEach(async() => {
-            pattern = await Pattern.findOne({
-                where: { name: { [Op.iLike]: "yanone" } }
-            });
-            originalHatchTime = pattern.hatchTime;
-            pattern.hatchTime = null;
-            await pattern.save();
-        });
-        afterEach(async() => {
-            pattern.hatchTime = originalHatchTime;
-            await pattern.save();
-        });
-
-        test("No hatch time.", async() => {            
-            let u = await User.findAll();
-            const USERS_MISSING_KOI = 
-                await DataAccessLayer.getUsersMissingKoi("seikuro", "yanone");
-            
-            expectUsersMissingKoi(
-                USERS_MISSING_KOI,
-                {
-                    discordIds: ["did1"],
-                    rarity: "Common",
-                    hatchTime: undefined,
-                    discordIdsWithSpreadsheetErrors: {
-                        patternNotFound: [],
-                        koiNotFound: [],
-                        formatBroken: [],
-                        spreadsheetNotFound: [],
-                        privateSpreadshet: []
-                    }
-                }
-            );
-        });
-    });
-
     function expectUsersMissingKoi(received, expected)
     {
-        expectList(received.discordIds, expected.discordIds)
+        expect(received.discordIds.sort()).toEqual(expected.discordIds.sort());
         expect(received.rarity).toBe(expected.rarity);
         expect(received.hatchTime).toBe(expected.hatchTime);
-        expectList(
-            received.discordIdsWithSpreadsheetErrors.patternNotFound, 
-            expected.discordIdsWithSpreadsheetErrors.patternNotFound
-        );
-        expectList(
-            received.discordIdsWithSpreadsheetErrors.koiNotFound, 
-            expected.discordIdsWithSpreadsheetErrors.koiNotFound
-        );
-        expectList(
-            received.discordIdsWithSpreadsheetErrors.formatBroken, 
-            expected.discordIdsWithSpreadsheetErrors.formatBroken
-        );
-        expectList(
-            received.discordIdsWithSpreadsheetErrors.spreadsheetNotFound, 
-            expected.discordIdsWithSpreadsheetErrors.spreadsheetNotFound
-        );
-    }
-
-    function expectList(receivedList, expectedList)
-    {
-        expect(receivedList.length).toBe(expectedList.length);
-        for (const EXPECTED_ITEM of expectedList)
+        expect(received.errors.size).toBe(expected.errors.size);
+        for (const [EXPECTED_DISCORD_ID, EXPECTED_ERROR_MESSAGE] of Object.entries(expected.errors))
         {
-            expect(receivedList).toContain(EXPECTED_ITEM);
+            expect(received.errors[EXPECTED_DISCORD_ID]).toBe(EXPECTED_ERROR_MESSAGE);
         }
     }
-
 });

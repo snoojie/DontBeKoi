@@ -1,8 +1,9 @@
 const { SpreadsheetNotFound, PrivateSpreadsheet, RangeNotFound } 
     = require("../../src/google/spreadsheet");
-const { UserSpreadsheet, PatternNotInSpreadsheet, KoiNotInSpreadsheet,
-        UnknownKoiProgress
-      } = require("../../src/google/userSpreadsheet");
+const { UserSpreadsheet, UserSpreadsheetMissingKoi, UserSpreadsheetMissingPattern }
+    = require("../../src/google/userSpreadsheet");
+const { KoiSpreadsheetMissingPattern, KoiSpreadsheetMissingColor, UnknownKoiProgress }
+    = require("../../src/google/koiSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync } = require("../_setup/testUtil");
@@ -27,7 +28,7 @@ test("User missing pattern.", async() => {
     await expectErrorAsync(
         UserSpreadsheet
             .hasKoi(spreadsheets.valid, "shigin", "invalidpattern", "Collector"), 
-        PatternNotInSpreadsheet, 
+        UserSpreadsheetMissingPattern, 
         `Spreadsheet '${spreadsheets.valid}' missing pattern 'invalidpattern'.`
     );
 });
@@ -35,7 +36,7 @@ test("User missing pattern.", async() => {
 test("User missing base color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.valid, "invalidcolor", "natsu", "Collector"), 
-        KoiNotInSpreadsheet, 
+        UserSpreadsheetMissingKoi, 
         `Spreadsheet '${spreadsheets.valid}' missing koi 'invalidcolor' ` +
         "for pattern 'natsu'."
     );
@@ -44,7 +45,7 @@ test("User missing base color.", async() => {
 test("User missing highlight color.", async() => {
     await expectErrorAsync(
         UserSpreadsheet.hasKoi(spreadsheets.valid, "neinvalid", "robotto", "Collector"), 
-        KoiNotInSpreadsheet, 
+        UserSpreadsheetMissingKoi, 
         `Spreadsheet '${spreadsheets.valid}' missing koi 'neinvalid' ` +
         "for pattern 'robotto'."
     );
@@ -54,7 +55,7 @@ test("User missing color even though base and highlight are correct.", async() =
     await expectErrorAsync(
         UserSpreadsheet
             .hasKoi(spreadsheets.valid, "seiinvalidkoji", "toransu", "Collector"), 
-        KoiNotInSpreadsheet,
+            UserSpreadsheetMissingKoi,
         `Spreadsheet '${spreadsheets.valid}' missing koi 'seiinvalidkoji' ` +
         "for pattern 'toransu'."
     );
@@ -92,10 +93,54 @@ test("Spreadsheet with renamed sheets.", async() => {
 test("Koi marked with neither k or d.", async() => {
     await expectErrorAsync(
         UserSpreadsheet
-            .hasKoi(spreadsheets.badKoiProgressMarks, "ryodai", "akachan", "Collector"), 
+            .hasKoi(spreadsheets.invalidKoiProgress, "maburu", "dorama", "Collector"), 
         UnknownKoiProgress, 
-        `Spreadsheet '${spreadsheets.badKoiProgressMarks}' has koi ` +
-        "'ryodai akachan' marked with 'invalid'. Expected to see 'k', 'd', or no text."
+        `Spreadsheet '${spreadsheets.invalidKoiProgress}' has koi ` +
+        "'Maburu Dorama' marked with 'kk'. Expected 'k', 'd', or no text."
+    );
+});
+
+test("Missing pattern name.", async() => {
+    await expectErrorAsync(
+        UserSpreadsheet
+            .hasKoi(spreadsheets.missingPatternNames, "shishiro", "kirin", "Progressive"), 
+        KoiSpreadsheetMissingPattern,
+        `Error with spreadsheet '${spreadsheets.missingPatternNames}', ` +
+        `sheet 'Progressives'. Expected to find a pattern name at row 23, ` +
+        `column AE, but that cell is empty.`
+    );
+});
+
+test("Extra empty row above a pattern.", async() => {
+    await expectErrorAsync(
+        UserSpreadsheet
+            .hasKoi(spreadsheets.missingPatternNames, "mumura", "bukimi", "Collector"), 
+        KoiSpreadsheetMissingPattern,
+        `Error with spreadsheet '${spreadsheets.missingPatternNames}', ` +
+        `sheet 'A-M: Collectors'. Expected to find a pattern name at row 198, ` +
+        `column B, but that cell is empty.`
+    );
+});
+
+test("Extra empty row in a pattern's table.", async() => {
+    await expectErrorAsync(
+        UserSpreadsheet
+            .hasKoi(spreadsheets.missingBaseColors, "neshiro", "nezumi", "Collector"), 
+        KoiSpreadsheetMissingColor,
+        `Error with spreadsheet '${spreadsheets.missingBaseColors}', ` +
+        `sheet 'N-Z: Collectors'. Expected to find a color name for ` +
+        `pattern 'Onmyo' at row 83, column B, but that cell is empty.`
+    );
+});
+
+test("Pattern missing highlight color.", async() => {
+    await expectErrorAsync(
+        UserSpreadsheet
+            .hasKoi(spreadsheets.missingHighlightColors, "neshiro", "nezumi", "Collector"), 
+        KoiSpreadsheetMissingColor,
+        `Error with spreadsheet '${spreadsheets.missingHighlightColors}', ` +
+        `sheet 'N-Z: Collectors'. Expected to find a color name for ` +
+        `pattern 'Roru' at row 178, column D, but that cell is empty.`
     );
 });
 
@@ -135,31 +180,31 @@ test("Has dragonned koi.", async() => {
 
 test("Has koi even when it marked with capital K.", async() => {
     const HAS_KOI = await UserSpreadsheet
-        .hasKoi(spreadsheets.badKoiProgressMarks, "ryopinku", "akachan", "Collector");
+        .hasKoi(spreadsheets.badButValidKoiProgress, "shishiro", "inazuma", "Progressive");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when it marked with capital D.", async() => {
     const HAS_KOI = await UserSpreadsheet
-        .hasKoi(spreadsheets.badKoiProgressMarks, "ryosumi", "akachan", "Collector");
+        .hasKoi(spreadsheets.badButValidKoiProgress, "chakuro", "okan", "Collector");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when there are spaces around k.", async() => {
     const HAS_KOI = await UserSpreadsheet
-        .hasKoi(spreadsheets.badKoiProgressMarks, "kudai", "akachan", "Collector");
+        .hasKoi(spreadsheets.badButValidKoiProgress, "kudai", "akachan", "Collector");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Has koi even when there are spaces around d.", async() => {
     const HAS_KOI = await UserSpreadsheet
-        .hasKoi(spreadsheets.badKoiProgressMarks, "kupinku", "akachan", "Collector");
+        .hasKoi(spreadsheets.badButValidKoiProgress, "gudai", "oushi", "Collector");
     expect(HAS_KOI).toBeTruthy();
 });
 
 test("Does not have koi when text is just spaces.", async() => {
     const HAS_KOI = await UserSpreadsheet
-        .hasKoi(spreadsheets.badKoiProgressMarks, "ryoukon", "akachan", "Collector");
+        .hasKoi(spreadsheets.badButValidKoiProgress, "kipinku", "shizuku", "Progressive");
     expect(HAS_KOI).toBeFalsy();
 })
 

@@ -63,41 +63,19 @@ const WhoCommand: Command = {
         // so mention all discord users who need this koi
         else
         {
-            const MENTIONS: string = getMentions(usersMissingKoi.discordIds);
-            reply = `Needing ${koiDescription}:\n${MENTIONS}`;
+            let userMentions: string[] = [];
+            for (const DISCORD_ID of usersMissingKoi.discordIds)
+            {
+                userMentions.push(`<@${DISCORD_ID}>`);
+            }
+            reply = `Needing ${koiDescription}:\n${userMentions.join(" ")}`;
         }
 
-        // call out anyone who does not have this pattern in their spreadsheet
-        reply += callOut(
-            usersMissingKoi.discordIdsWithSpreadsheetErrors.patternNotFound, 
-            "Could not find pattern"
-        );
-
-        // call out anyone who does not have this koi in their spreadsheet
-        reply += callOut(
-            usersMissingKoi.discordIdsWithSpreadsheetErrors.koiNotFound, 
-            "Could not find koi"
-        );
-
-        // call out anyone whose spreadsheet does not exist
-        // this shouldn't happen unless it's been deleted
-        reply += callOut(
-            usersMissingKoi.discordIdsWithSpreadsheetErrors.spreadsheetNotFound,
-            "Spreadsheet does not exist"
-        );
-
-        // call out anyone whose spreadsheet is private
-        reply += callOut(
-            usersMissingKoi.discordIdsWithSpreadsheetErrors.privateSpreadsheet,
-            "Spreadsheet is private"
-        );
-
-        // call out anyone whose spreadsheet is broken
-        // for example, there could be an extra row, or sheets are renamed
-        reply += callOut(
-            usersMissingKoi.discordIdsWithSpreadsheetErrors.formatBroken,
-            "Spreadsheet formatting broken"
-        );
+        // call out anyone who has errors in their spreadsheet
+        for (const [DISCORD_ID, ERROR_MESSAGE] of Object.entries(usersMissingKoi.errors))
+        {
+            reply += `\n<@${DISCORD_ID}>: ${ERROR_MESSAGE}`;
+        }
 
         return reply;
     }
@@ -105,23 +83,3 @@ const WhoCommand: Command = {
 };
 
 export default WhoCommand;
-
-function getMentions(discordIds: string[]): string
-{
-    let mentionList: string[] = [];
-    for (const DISCORD_ID of discordIds)
-    {
-        mentionList.push(`<@${DISCORD_ID}>`);
-    }
-    return mentionList.join(" ");
-}
-
-function callOut(discordIds: string[], reason: string): string
-{
-    if (discordIds.length > 0)
-    {
-        const MENTIONS: string = getMentions(discordIds);
-        return `\n${reason} for ${MENTIONS}`;
-    }
-    return "";
-}

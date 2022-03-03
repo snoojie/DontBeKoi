@@ -31,16 +31,49 @@ module.exports = {
         // private spreadsheet
         private: "1YzaW_f2ID5qDSAYn4inf_4clb8WpfnletqyYhI6HA7E",
 
-        // both collectors sheets are renamed
+        // both collectors sheets and progressive sheets are renamed
         renamedSheets: "1RFiWTw8PGDsXFYaLbZ0ia6RL45WxmcBXOKTjOqfO784",
 
-        // ryoukon akachan marked with '   '
-        // ryodai akachan marked with 'invalid'
-        // ryopinku akachan marked with capital 'K'
-        // ryosumi akachan marked with capital 'D'
-        // kudai akachan marked with '  k  '
-        // kupinku akachan marked with '  d  '
-        badKoiProgressMarks: "12czz7UDLzlX6qzraUQak-CN2M_wc6EexLzog56XJ32k",
+        // marked with 'K': progressive shishiro inazuma, 
+        //                  collector ryosumi akachan and chashiro okan
+        // marked with 'D': progressive kiburu goromo, 
+        //                  collector aisumi akachan and chakuro okan
+        // marked with '  k  ': progressive kiukon katame, collector gudai oushi
+        // marked with '  K  ': collector kuukon akachan
+        // marked with '  d  ': collector kudai akachan, collector madai oushi
+        // marked with '  D  ': progressive akaukon katame
+        // marked with '  ': progressive kipinku shizuku, 
+        //                   collector shigin aishite and kodai oushi
+        badButValidKoiProgress: "1CtREH8Avhbe9VICV8Gxtz_RQDKX2xN1vq6WvAFnB50w",
+
+        // progressive kudai toraiu marked with 'invalid'
+        // collector maburu dorama marked with 'kk'
+        // collector mausu natsu marked with 'dk'
+        invalidKoiProgress: "17SdMbBrTIrq52VttiP2ZuqY5g-mbf7QpCOoffOsvqU4",
+
+        // progressive goromo missing base color Shi
+        // collector bunki missing base color Ki
+        // collector onmyo has an extra row in its colors
+        missingBaseColors: "13FoV6IN4xnyO-7uLMd4OaI8XIhzVcrbJwULtsoK_0W0",
+
+        // progressive meisai missing highlight color buru
+        // all collectors a-m have an extra column between common and rares
+        // collector roru missing highlight color gure
+        missingHighlightColors: "1-vNoPw2GSx1BOJ6Mbb5dWHn2S7B7b-lKPQaGSNS2Qz0",
+
+        // progressive inazuma's base color Aka
+        // progressive goromo's common color kuro
+        // progressive kujaku's rare color mura
+        // collector buta's base ku, common dai, and rare mura
+        // collector natsu's base ma
+        // collector nezumi common shiro
+        // collector nitto rare mosu
+        colorsMissingDashes: "1vpyhDXYg6kobqtcmjNLAxdWCxgumc0a5iRXg9UkkrIw",
+
+        // progressive doitsu missing its name
+        // collector dokuro has an empty row above its pattern name
+        // collector yumi missing its name
+        missingPatternNames: "1g-Ihn-7586pz53UqLIbtw7vlmJdu0aux6wnJ9f2Fi4I",
 
         // missing pattern rozu
         missingPatterns: "1flz3aTbLTElXd4lp9D41aNjWkwb8Oo2ZXTJqejyqFPE",

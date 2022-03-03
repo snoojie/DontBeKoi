@@ -1,8 +1,8 @@
-const { Spreadsheet, SpreadsheetNotFound, PrivateSpreadsheet, RangeNotFound } 
+const { Spreadsheet, SpreadsheetNotFound, PrivateSpreadsheet, RangeNotFound, InvalidSpreadsheetColumn } 
     = require("../../src/google/spreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
     = require("../_setup/spreadsheet");
-const { expectErrorAsync } = require("../_setup/testUtil");
+const { expectErrorAsync, expectError } = require("../_setup/testUtil");
 const { google } = require("googleapis");
 
 // this is the community spreadsheet
@@ -27,7 +27,7 @@ test("Validate non existant spreadsheet.", async() => {
     await expectErrorAsync(
         promise, 
         SpreadsheetNotFound,
-        "Spreadsheet ID 'invalidid' does not exist."
+        "Spreadsheet 'invalidid' does not exist."
     );
 });
 
@@ -36,7 +36,7 @@ test("Validate private spreadsheet.", async() => {
     await expectErrorAsync(
         promise, 
         PrivateSpreadsheet,
-        `Spreadsheet ID '${spreadsheets.private}' is private.`
+        `Spreadsheet '${spreadsheets.private}' is private.`
     );
 });
 
@@ -76,7 +76,7 @@ test("Get values of non existant spreadsheet.", async() => {
     await expectErrorAsync(
         promise, 
         SpreadsheetNotFound,
-        "Spreadsheet ID 'invalidid' does not exist."
+        "Spreadsheet 'invalidid' does not exist."
     );
 });
 
@@ -85,7 +85,7 @@ test("Get values of private spreadsheet.", async() => {
     await expectErrorAsync(
         promise, 
         PrivateSpreadsheet,
-        `Spreadsheet ID '${spreadsheets.private}' is private.`
+        `Spreadsheet '${spreadsheets.private}' is private.`
     );
 });
 
@@ -114,7 +114,7 @@ test("Get values of invalid range.", async() => {
     await expectErrorAsync(
         promise, 
         RangeNotFound,
-        `Spreadsheet ID '${spreadsheets.valid}' does not have range 'invalidrange'.`
+        `Spreadsheet '${spreadsheets.valid}' does not have range 'invalidrange'.`
     );
 });
 
@@ -170,4 +170,37 @@ test("Get values of several rows with last row empty.", async() => {
     const VALUES = 
         await Spreadsheet.getValues(spreadsheets.valid, "Progressives!I7:I8");
     expect(VALUES).toEqual([ [ "Ku-" ] ]);
+});
+
+// ========================================
+// =====CONVERT COLUMN INDEX TO LETTER=====
+// ========================================
+
+test("Column A.", () => {
+    const COLUMN = Spreadsheet.convertColumnIndexToLetter(0);
+    expect(COLUMN).toBe("A");
+});
+
+
+test("Column I.", () => {
+    const COLUMN = Spreadsheet.convertColumnIndexToLetter(8);
+    expect(COLUMN).toBe("I");
+});
+
+test("Column AA.", () => {
+    const COLUMN = Spreadsheet.convertColumnIndexToLetter(26);
+    expect(COLUMN).toBe("AA");
+});
+
+test("Column BI.", () => {
+    const COLUMN = Spreadsheet.convertColumnIndexToLetter(60);
+    expect(COLUMN).toBe("BI");
+});
+
+test("Invalid column.", () => {
+    expectError(
+        () => Spreadsheet.convertColumnIndexToLetter(-1),
+        InvalidSpreadsheetColumn,
+        "Invalid column index: -1. It must be at least 0."
+    );
 });

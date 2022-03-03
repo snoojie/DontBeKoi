@@ -222,8 +222,8 @@ describe("There are two users.", () => {
 // =============================================
 // =====USER MISSING PATTERN IN SPREADSHEET=====
 // =============================================
-
-describe("Test with users with missing pattern.", () => {
+/*
+describe("Test with users who are missing pattern.", () => {
 
     afterAll(async() => await resetUsers());   
 
@@ -506,7 +506,7 @@ describe("Test with users with broken formatting in their spreadsheet.", () => {
         );
     });
 });
-
+*/
 function mockInteraction(param)
 {
     return { 

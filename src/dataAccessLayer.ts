@@ -1,18 +1,14 @@
 import { Op } from "sequelize";
 import type { Rarity } from "./types";
 import EnhancedError from "./util/enhancedError";
-import Logger from "./util/logger";
 import { Database } from "./database/database";
 import { Koi, type KoiAttributes } from "./database/models/koi";
 import { Pattern, type PatternAttributes } from "./database/models/pattern";
 import { User } from "./database/models/user";
-import { SpreadsheetNotFound, PrivateSpreadsheet, Spreadsheet, RangeNotFound } 
-    from "./google/spreadsheet";
-import { KoiSpreadsheetError } from "./google/koiSpreadsheet";
-import { KoiNotInSpreadsheet, PatternNotInSpreadsheet, UnknownKoiProgress, 
-         UserSpreadsheet } from "./google/userSpreadsheet";
-import { CommunitySpreadsheet, type Pattern as SpreadsheetPattern } 
-    from "./google/communitySpreadsheet";
+import { InvalidSpreadsheet, Spreadsheet } from "./google/spreadsheet";
+import { Patterns } from "./google/koiSpreadsheet";
+import { UserSpreadsheet } from "./google/userSpreadsheet";
+import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
 
 export class DataAccessLayerError extends EnhancedError {}
 
@@ -37,13 +33,7 @@ export interface UsersMissingKoiResponse
     discordIds: string[];
     rarity: Rarity;
     hatchTime?: number;
-    discordIdsWithSpreadsheetErrors: {
-        spreadsheetNotFound: string[],
-        privateSpreadsheet: string[],
-        formatBroken: string[],
-        patternNotFound: string[],
-        koiNotFound: string[]
-    };
+    errors: { [key: string]: string; }; // map discordId to error message
 }
 
 /**
@@ -86,15 +76,15 @@ export const DataAccessLayer =
     updatePatterns: async function(): Promise<string[]>
     {
         // get all patterns and kois to populate the database with
-        const SPREADSHEET_PATTERNS: SpreadsheetPattern[] = 
+        const SPREADSHEET_PATTERNS: Patterns =
             await CommunitySpreadsheet.getAllPatterns();
 
         // update the pattern table
         let patterns: PatternAttributes[] = [];
-        for (const SPREADSHEET_PATTERN of SPREADSHEET_PATTERNS)
+        for (const [PATTERN_NAME, SPREADSHEET_PATTERN] of SPREADSHEET_PATTERNS)
         {
             patterns.push({
-                name: SPREADSHEET_PATTERN.name, 
+                name: PATTERN_NAME, 
                 type: SPREADSHEET_PATTERN.type,
                 hatchTime: 
                     SPREADSHEET_PATTERN.hatchTime ? SPREADSHEET_PATTERN.hatchTime : null
@@ -107,16 +97,17 @@ export const DataAccessLayer =
 
         // update the koi table
         let kois: KoiAttributes[] = [];
-        for (const SPREADSHEET_PATTERN of SPREADSHEET_PATTERNS)
+        for (const [PATTERN_NAME, SPREADSHEET_PATTERN] of SPREADSHEET_PATTERNS)
         {
-            for (const SPREADSHEET_KOI of SPREADSHEET_PATTERN.kois)
+            for (const [KOI_NAME, SPREADSHEET_KOI] of SPREADSHEET_PATTERN.kois)
             kois.push({
-                name: SPREADSHEET_KOI.name,
+                name: KOI_NAME,
                 rarity: SPREADSHEET_KOI.rarity,
-                patternName: SPREADSHEET_PATTERN.name
+                patternName: PATTERN_NAME
             });
         }
-        const BULK_CREATED_KOIS: Koi[] = await Koi.bulkCreate(kois, { ignoreDuplicates: true });
+        const BULK_CREATED_KOIS: Koi[] = 
+            await Koi.bulkCreate(kois, { ignoreDuplicates: true });
         
         // Get list of new patterns.
         // Note that sequelize does not provide a convenient way of 
@@ -240,13 +231,7 @@ export const DataAccessLayer =
             discordIds: [],
             rarity: koi.rarity,
             hatchTime: pattern.hatchTime ? pattern.hatchTime : undefined,
-            discordIdsWithSpreadsheetErrors: {
-                spreadsheetNotFound: [],
-                privateSpreadsheet: [],
-                formatBroken: [],
-                patternNotFound: [],
-                koiNotFound: []
-            }
+            errors: {}
         };
 
         // Get the users who do not have this koi.
@@ -266,58 +251,11 @@ export const DataAccessLayer =
                     }
                 })
                 .catch(error => {
-                    
-                    // log the issue to help the person if they need it
-                    Logger.error(`${USER.name} has an issue their spreadsheet.`);
-                    Logger.error(error);
 
-                    // Let the user know if their spreadsheet has been deleted
-                    if(error instanceof SpreadsheetNotFound)
+                    // Let the user know if something is wrong with their spreadsheet
+                    if (error instanceof InvalidSpreadsheet)
                     {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .spreadsheetNotFound.push(USER.discordId);
-                        return;
-                    }
-
-                    // Let the user know if their spreadsheet is private
-                    if(error instanceof PrivateSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .privateSpreadsheet.push(USER.discordId);
-                        return;
-                    }
-
-                    // The user may have forgotten to add this pattern to 
-                    // their spreadsheet, maybe because it's a brand new pattern.
-                    if (error instanceof PatternNotInSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .patternNotFound.push(USER.discordId);
-                        return;
-                    }
-
-                    // The user may have the pattern in their spreadsheet, 
-                    // but not the koi. If this happens it could be a typo.
-                    if (error instanceof KoiNotInSpreadsheet)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .koiNotFound.push(USER.discordId);
-                        return;
-                    }
-
-                    // let the user know if something is wrong with their spreadsheet,
-                    // such as extra empty rows, or renamed sheets
-                    if (error instanceof KoiSpreadsheetError || 
-                        error instanceof RangeNotFound ||
-                        error instanceof UnknownKoiProgress)
-                    {
-                        usersMissingKoi
-                            .discordIdsWithSpreadsheetErrors
-                            .formatBroken.push(USER.discordId);
+                        usersMissingKoi.errors[USER.discordId] = error.message;
                         return;
                     }
 

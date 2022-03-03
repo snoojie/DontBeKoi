@@ -5,6 +5,14 @@ import EnhancedError from "../util/enhancedError";
 
 export abstract class SpreadsheetError extends EnhancedError {}
 
+export class InvalidSpreadsheetColumn extends SpreadsheetError
+{
+    constructor(column: number)
+    {
+        super(`Invalid column index: ${column}. It must be at least 0.`);
+    }
+}
+
 /**
  * Error thrown when the Google API key is not set in environment variables, 
  * or when it is set but not valid.
@@ -17,31 +25,33 @@ export class InvalidGoogleApiKey extends SpreadsheetError
     }
 }
 
-export class SpreadsheetNotFound extends SpreadsheetError 
+export abstract class InvalidSpreadsheet extends SpreadsheetError {}
+
+export class SpreadsheetNotFound extends InvalidSpreadsheet 
 {
     constructor(spreadsheetId: string, error: any)
     {
-        super(`Spreadsheet ID '${spreadsheetId}' does not exist.`, error);
+        super(`Spreadsheet '${spreadsheetId}' does not exist.`, error);
     }
 }
 
-export class PrivateSpreadsheet extends SpreadsheetError
+export class PrivateSpreadsheet extends InvalidSpreadsheet
 {
     constructor(spreadsheetId: string, error: any)
     {
-        super(`Spreadsheet ID '${spreadsheetId}' is private.`, error);
+        super(`Spreadsheet '${spreadsheetId}' is private.`, error);
     }
 }
 
 /**
  * Error thrown when the spreadsheet exists, but the range does not.
  */
-export class RangeNotFound extends SpreadsheetError 
+export class RangeNotFound extends InvalidSpreadsheet 
 {
     constructor(spreadsheetId: string, range: string, error: any)
     {
         super(
-            `Spreadsheet ID '${spreadsheetId}' does not have range '${range}'.`, error
+            `Spreadsheet '${spreadsheetId}' does not have range '${range}'.`, error
         );
     }
 }
@@ -131,6 +141,26 @@ export const Spreadsheet = {
         // Because google. That's why.
         // Lets make it a table of strings.
         return <string[][]>values;
+    },
+
+    convertColumnIndexToLetter(index: number): string
+    {      
+        // logic from https://stackoverflow.com/a/29220658
+
+        if (index < 0)
+        {
+            throw new InvalidSpreadsheetColumn(index);
+        }
+        
+        let tmp: number;
+        let letter: string = "";
+        while (index >= 0)
+        {
+            tmp = index % 26;
+            letter = String.fromCharCode(tmp + 65) + letter;
+            index = (index - tmp - 1) / 26;
+        }
+        return letter;
     }
 
 };
