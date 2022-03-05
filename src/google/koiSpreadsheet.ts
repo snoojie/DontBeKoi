@@ -1,6 +1,13 @@
 import { PatternType, Rarity } from "../types";
 import { InvalidSpreadsheet, Spreadsheet } from "./spreadsheet";
 
+export enum Range
+{
+    Progressives = "Progressives!I2:AN70",
+    AMCollectors = "A-M: Collectors!B2:K",
+    NZCollectors = "N-Z: Collectors!B2:K",
+}
+
 export enum Progress 
 {
     NOT_YET_COLLECTED,
@@ -27,63 +34,50 @@ export type Patterns = Map<string, Pattern>;
 
 export abstract class KoiSpreadsheetError extends InvalidSpreadsheet {}
 
-export abstract class KoiSpreadsheetMissingData extends KoiSpreadsheetError
+export class UnknownKoiProgress extends KoiSpreadsheetError
 {
     constructor(
-        description: string, 
         spreadsheetId: string, 
-        range: string, 
-        row: number, 
-        column: number)
+        type: PatternType, 
+        koi: string, 
+        pattern: string, 
+        value: string )
     {
-
-        // both progressives and collectors ranges start on row 2
-        const REAL_ROW: number = row + 2;
-
-        // sheets use letters, not numbers, for columns
-        // also note that progressives start at column I,
-        // and collectors start at column B
-        const COLUMN_OFFSET: number = range.startsWith("Progressive") ? 8 : 1;
-        const REAL_COLUMN: string = 
-            Spreadsheet.convertColumnIndexToLetter(column + COLUMN_OFFSET);
-
         super(
-            `Error with spreadsheet '${spreadsheetId}', ` +
-            `sheet '${range.substring(0, range.indexOf("!"))}'. ` +
-            `Expected to find ${description} at row ${REAL_ROW}, ` +
-            `column ${REAL_COLUMN}, but that cell is empty.`
+            spreadsheetId, 
+            `has ${type.toLowerCase()} ${koi} ${pattern} marked with '${value}' ` +
+            `instead of 'k', 'd', or no text`
         );
     }
 }
 
-export class KoiSpreadsheetMissingPattern extends KoiSpreadsheetMissingData
+export class KoiSpreadsheetMissingPattern extends KoiSpreadsheetError
 {
-    constructor(spreadsheetId: string, range: string, row: number, column: number)
+    constructor(spreadsheetId: string, range: Range, row: number, column: number)
     {
-        super("a pattern name", spreadsheetId, range, row, column);
+        const CELL: Cell = getCell(range, row, column);
+        super(
+            spreadsheetId, 
+            `missing pattern in sheet '${CELL.sheet}', row ${CELL.row}, `+
+            `column ${CELL.column}`
+        );
     }
 }
 
-export class KoiSpreadsheetMissingColor extends KoiSpreadsheetMissingData
+export class KoiSpreadsheetMissingColor extends KoiSpreadsheetError
 {
     constructor(
-        pattern: string, 
         spreadsheetId: string, 
-        range: string,
+        range: Range,
         row: number,
-        column: number )
+        column: number,
+        pattern: string )
     {
-        super(`a color name for pattern '${pattern}'`, spreadsheetId, range, row, column);
-    }
-}
-
-export class UnknownKoiProgress extends KoiSpreadsheetError
-{
-    constructor(spreadsheetId: string, koi: string, pattern: string, value: string)
-    {
+        const CELL: Cell = getCell(range, row, column);
         super(
-            `Spreadsheet '${spreadsheetId}' has koi '${koi} ${pattern}' marked ` +
-            `with '${value}'. Expected 'k', 'd', or no text.`
+            spreadsheetId, 
+            `missing color for ${getType(range).toLowerCase()} ${pattern} in ` +
+            `row ${CELL.row}, column ${CELL.column}`
         );
     }
 }
@@ -123,17 +117,17 @@ export const KoiSpreadsheet = {
      */
     async getProgressives(spreadsheetId: string)
     {
-        return getPatternsFromSheet(spreadsheetId, "Progressives!I2:AN70");
+        return getPatternsFromSheet(spreadsheetId, Range.Progressives);
     },
 
     async getCollectorsAM(spreadsheetId: string)
     {
-        return getPatternsFromSheet(spreadsheetId, "A-M: Collectors!B2:K");
+        return getPatternsFromSheet(spreadsheetId, Range.AMCollectors);
     },
 
     async getCollectorsNZ(spreadsheetId: string)
     {
-        return getPatternsFromSheet(spreadsheetId, "N-Z: Collectors!B2:K");
+        return getPatternsFromSheet(spreadsheetId, Range.NZCollectors);
     }
 
 }
@@ -145,14 +139,12 @@ export const KoiSpreadsheet = {
  * @returns 
  */
 async function getPatternsFromSheet(
-    spreadsheetId: string, range: string): Promise<Patterns>
+    spreadsheetId: string, range: Range): Promise<Patterns>
 {
     let patterns: Patterns = new Map();
 
     // determine the type of pattern
-    const TYPE: PatternType = range.startsWith("Progressive") 
-        ? PatternType.Progressive 
-        : PatternType.Collector
+    const TYPE: PatternType = getType(range);
 
     // get the sheet
     const TABLE: string[][] = await Spreadsheet.getValues(spreadsheetId, range);
@@ -195,7 +187,7 @@ async function getPatternsFromSheet(
                 if (!baseColor)
                 {
                     throw new KoiSpreadsheetMissingColor(
-                        PATTERN_NAME, spreadsheetId, range, progressRow, patternColumn
+                        spreadsheetId, range, progressRow, patternColumn, PATTERN_NAME
                     );
                 }
                 if (baseColor.endsWith("-"))
@@ -229,11 +221,11 @@ async function getPatternsFromSheet(
                     if (!highlightColor)
                     {
                         throw new KoiSpreadsheetMissingColor(
-                            PATTERN_NAME, 
                             spreadsheetId,
                             range, 
                             HIGHLIGHT_COLOR_ROW, 
-                            progressColumn
+                            progressColumn,
+                            PATTERN_NAME
                         );
                     }
                     if (highlightColor.startsWith("-"))
@@ -262,7 +254,7 @@ async function getPatternsFromSheet(
                     if (progress == undefined)
                     {
                         throw new UnknownKoiProgress(
-                            spreadsheetId, KOI_NAME, PATTERN_NAME, PROGRESS_VALUE
+                            spreadsheetId, TYPE, KOI_NAME, PATTERN_NAME, PROGRESS_VALUE
                         );
                     }
 
@@ -275,4 +267,37 @@ async function getPatternsFromSheet(
     }
 
     return patterns;
+}
+
+interface Cell
+{
+    sheet: string;
+    row: number;
+    column: string;
+}
+
+function getCell(range: Range, row: number, column: number): Cell
+{
+    const SHEET: string = range.substring(0, range.indexOf("!"));
+
+    // both progressives and collectors ranges start on row 2
+    const REAL_ROW: number = row + 2;
+
+    // sheets use letters, not numbers, for columns
+    // also note that progressives start at column I,
+    // and collectors start at column B
+    const COLUMN_OFFSET: number = range == Range.Progressives ? 8 : 1;
+    const REAL_COLUMN: string = 
+        Spreadsheet.convertColumnIndexToLetter(column + COLUMN_OFFSET);
+
+    return { 
+        sheet: SHEET, 
+        row: REAL_ROW, 
+        column: REAL_COLUMN
+    };
+}
+
+function getType(range: Range): PatternType
+{
+    return range == Range.Progressives ? PatternType.Progressive : PatternType.Collector;
 }

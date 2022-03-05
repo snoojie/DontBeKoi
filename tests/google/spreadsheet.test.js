@@ -1,6 +1,6 @@
-const { Spreadsheet, SpreadsheetNotFound, PrivateSpreadsheet, RangeNotFound, InvalidSpreadsheetColumn } 
-    = require("../../src/google/spreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets } 
+const { Spreadsheet, InvalidSpreadsheetColumn } = require("../../src/google/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets, 
+        expectPrivateSpreadsheet, expectSpreadsheetNotFound, expectRangeNotFound } 
     = require("../_setup/spreadsheet");
 const { expectErrorAsync, expectError } = require("../_setup/testUtil");
 const { google } = require("googleapis");
@@ -23,21 +23,11 @@ testWithModifiedEnv(
 );
 
 test("Validate non existant spreadsheet.", async() => {
-    let promise = Spreadsheet.validate("invalidid");
-    await expectErrorAsync(
-        promise, 
-        SpreadsheetNotFound,
-        "Spreadsheet 'invalidid' does not exist."
-    );
+    await expectSpreadsheetNotFound(Spreadsheet.validate("invalidid"), "invalidid");
 });
 
 test("Validate private spreadsheet.", async() => {
-    let promise = Spreadsheet.validate(spreadsheets.private);
-    await expectErrorAsync(
-        promise, 
-        PrivateSpreadsheet,
-        `Spreadsheet '${spreadsheets.private}' is private.`
-    );
+    await expectPrivateSpreadsheet(Spreadsheet.validate(spreadsheets.private));
 });
 
 describe("Modify Google API for validate tests.", () => {
@@ -72,20 +62,14 @@ testWithModifiedEnv(
 );
 
 test("Get values of non existant spreadsheet.", async() => {
-    let promise = Spreadsheet.getValues("invalidid", VALID_RANGE);
-    await expectErrorAsync(
-        promise, 
-        SpreadsheetNotFound,
-        "Spreadsheet 'invalidid' does not exist."
+    await expectSpreadsheetNotFound(
+        Spreadsheet.getValues("invalidid", VALID_RANGE), "invalidid"
     );
 });
 
 test("Get values of private spreadsheet.", async() => {
-    let promise = Spreadsheet.getValues(spreadsheets.private, VALID_RANGE);
-    await expectErrorAsync(
-        promise, 
-        PrivateSpreadsheet,
-        `Spreadsheet '${spreadsheets.private}' is private.`
+    await expectPrivateSpreadsheet(
+        Spreadsheet.getValues(spreadsheets.private, VALID_RANGE)
     );
 });
 
@@ -110,11 +94,10 @@ describe("Modify Google API for get values tests.", () => {
 });
 
 test("Get values of invalid range.", async() => {
-    let promise = Spreadsheet.getValues(spreadsheets.valid, "invalidrange");
-    await expectErrorAsync(
-        promise, 
-        RangeNotFound,
-        `Spreadsheet '${spreadsheets.valid}' does not have range 'invalidrange'.`
+    await expectRangeNotFound(
+        Spreadsheet.getValues(spreadsheets.valid, "invalidrange"),
+        spreadsheets.valid,
+        "invalidrange"
     );
 });
 

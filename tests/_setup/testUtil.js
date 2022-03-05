@@ -1,9 +1,20 @@
 module.exports = {
 
-    expectErrorAsync: async function (promise, errorType, errorMessage)
+    expectErrorAsync: async function (
+        promise, errorType, errorMessage, additionalErrorProperties)
     {
-        await expect(promise).rejects.toThrow(errorType);
-        await expect(promise).rejects.toThrow(errorMessage);
+        await expect(promise).rejects.toThrow();
+        await promise.catch(error => {
+            expect(error).toBeInstanceOf(errorType);
+            expect(error.message).toBe(errorMessage);
+            if (additionalErrorProperties)
+            {
+                for (const [PROPERTY, VALUE] of Object.entries(additionalErrorProperties))
+                {
+                    expect(error[PROPERTY]).toEqual(VALUE);
+                }
+            }
+        });
     },
 
     expectError: function(methodToTest, errorType, errorMessage)

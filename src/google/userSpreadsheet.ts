@@ -3,24 +3,19 @@ import { PatternType } from "../types";
 
 export abstract class UserSpreadsheetError extends KoiSpreadsheetError {}
 
-export abstract class UserSpreadsheetMissingData extends UserSpreadsheetError {}
-
-export class UserSpreadsheetMissingPattern extends UserSpreadsheetMissingData 
+export class UserSpreadsheetMissingPattern extends UserSpreadsheetError 
 {
-    constructor(spreadsheetId: string, pattern: string)
+    constructor(spreadsheetId: string, type: PatternType, pattern: string)
     {
-        super(`Spreadsheet '${spreadsheetId}' missing pattern '${pattern}'.`);
+        super(spreadsheetId, `missing ${type.toLowerCase()} ${pattern}`);
     }
 }
 
-export class UserSpreadsheetMissingKoi extends UserSpreadsheetMissingData 
+export class UserSpreadsheetMissingKoi extends UserSpreadsheetError 
 {
-    constructor(spreadsheetId: string, pattern: string, koi: string)
+    constructor(spreadsheetId: string, type: PatternType, pattern: string, koi: string)
     {
-        super(
-            `Spreadsheet '${spreadsheetId}' missing koi '${koi}' ` +
-            `for pattern '${pattern}'.`
-        );
+        super(spreadsheetId, `missing koi ${koi} for ${type.toLowerCase()} ${pattern}`);
     }
 }
 
@@ -50,7 +45,7 @@ export const UserSpreadsheet = {
     {
         // get pattern from sheet
         const PATTERNS: Patterns = await (type == PatternType.Collector
-            ? patternName.slice(0,1) < "n" 
+            ? patternName.slice(0,1).toLowerCase() < "n" 
                 ? KoiSpreadsheet.getCollectorsAM(spreadsheetId)
                 : KoiSpreadsheet.getCollectorsNZ(spreadsheetId)
             : KoiSpreadsheet.getProgressives(spreadsheetId));
@@ -60,14 +55,16 @@ export const UserSpreadsheet = {
             PATTERNS.get(capitalizeFirstLetter(patternName));
         if (!PATTERN)
         {
-            throw new UserSpreadsheetMissingPattern(spreadsheetId, patternName);
+            throw new UserSpreadsheetMissingPattern(spreadsheetId, type, patternName);
         }
 
         // find the koi
         const KOI: Koi | undefined = PATTERN.kois.get(capitalizeFirstLetter(koiName));
         if (!KOI)
         {
-            throw new UserSpreadsheetMissingKoi(spreadsheetId, patternName, koiName);
+            throw new UserSpreadsheetMissingKoi(
+                spreadsheetId, type, patternName, koiName
+            );
         }
 
         return KOI.progress == Progress.KOI_IN_COLLECTION || 

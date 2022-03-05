@@ -1,10 +1,8 @@
-const { KoiSpreadsheet, UnknownKoiProgress, KoiSpreadsheetMissingColor, Progress, 
-        KoiSpreadsheetMissingPattern } = require("../../src/google/koiSpreadsheet");
-const { PrivateSpreadsheet, SpreadsheetNotFound, RangeNotFound } 
-    = require("../../src/google/spreadsheet");
-const { waitGoogleQuota, googleQuotaTimeout, spreadsheets, testWithModifiedEnv } 
-    = require("../_setup/spreadsheet");
-const { expectErrorAsync } = require("../_setup/testUtil");
+const { KoiSpreadsheet, Progress } = require("../../src/google/koiSpreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, spreadsheets, testWithModifiedEnv, 
+        expectPrivateSpreadsheet, expectSpreadsheetNotFound, expectRangeNotFound, 
+        expectUnknownKoiProgress, expectKoiSpreadsheetMissingPattern, 
+        expectKoiSpreadsheetMissingColor } = require("../_setup/spreadsheet");
 
 // wait a minute before starting the tests
 // this is because google has a read quota
@@ -209,41 +207,45 @@ describe("Get progressives when color names are missing dashes.", () => {
 });
 
 test("Get progressives when koi progress is unknown.", async() => {
-    await expectErrorAsync(
+    await expectUnknownKoiProgress(
         KoiSpreadsheet.getProgressives(spreadsheets.invalidKoiProgress),
-        UnknownKoiProgress,
-        `Spreadsheet '${spreadsheets.invalidKoiProgress}' has koi ` +
-        "'Kudai Toraiu' marked with 'invalid'. Expected 'k', 'd', or no text."
+        spreadsheets.invalidKoiProgress, 
+        "Progressive", 
+        "Kudai", 
+        "Toraiu", 
+        "invalid"
     );
 });
 
 test("Get progressives when a pattern name is missing.", async() => {
-    await expectErrorAsync(
+    await expectKoiSpreadsheetMissingPattern(
         KoiSpreadsheet.getProgressives(spreadsheets.missingPatternNames),
-        KoiSpreadsheetMissingPattern,
-        `Error with spreadsheet '${spreadsheets.missingPatternNames}', ` +
-        `sheet 'Progressives'. Expected to find a pattern name at ` +
-        `row 23, column AE, but that cell is empty.`
+        spreadsheets.missingPatternNames,
+        "Progressives", 
+        23, 
+        "AE"
     );
 });
 
 test("Get progressives when pattern missing a base color.", async() => {
-    await expectErrorAsync(
+    await expectKoiSpreadsheetMissingColor(
         KoiSpreadsheet.getProgressives(spreadsheets.missingBaseColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingBaseColors}', ` +
-        `sheet 'Progressives'. Expected to find a color name for pattern 'Goromo' ` +
-        `at row 11, column T, but that cell is empty.`
+        spreadsheets.missingBaseColors,
+        "Progressive", 
+        "Goromo", 
+        11, 
+        "T"
     );
 });
 
 test("Get progressives when pattern missing a highlight color.", async() => {
-    await expectErrorAsync(
-        KoiSpreadsheet.getProgressives(spreadsheets.missingHighlightColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingHighlightColors}', ` +
-        `sheet 'Progressives'. Expected to find a color name for pattern 'Meisai' ` +
-        `at row 52, column R, but that cell is empty.`
+    await expectKoiSpreadsheetMissingColor(
+        KoiSpreadsheet.getProgressives(spreadsheets.missingHighlightColors), 
+        spreadsheets.missingHighlightColors,
+        "Progressive", 
+        "Meisai", 
+        52, 
+        "R"
     );
 });
 
@@ -358,41 +360,45 @@ describe("Get collectors A-M when color names are missing dashes.", () => {
 });
 
 test("Get collectors A-M when koi progress is unknown.", async() => {
-    await expectErrorAsync(
+    await expectUnknownKoiProgress(
         KoiSpreadsheet.getCollectorsAM(spreadsheets.invalidKoiProgress),
-        UnknownKoiProgress,
-        `Spreadsheet '${spreadsheets.invalidKoiProgress}' has koi ` +
-        "'Maburu Dorama' marked with 'kk'. Expected 'k', 'd', or no text."
+        spreadsheets.invalidKoiProgress, 
+        "Collector", 
+        "Maburu", 
+        "Dorama", 
+        "kk"
     );
 });
 
 test("Get collectors A-M when a pattern name is missing.", async() => {
-    await expectErrorAsync(
-        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingPatternNames),
-        KoiSpreadsheetMissingPattern,
-        `Error with spreadsheet '${spreadsheets.missingPatternNames}', ` +
-        `sheet 'A-M: Collectors'. Expected to find a pattern name at ` +
-        `row 198, column B, but that cell is empty.`
+    await expectKoiSpreadsheetMissingPattern(
+        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingPatternNames), 
+        spreadsheets.missingPatternNames,
+        "A-M: Collectors", 
+        198, 
+        "B"
     );
 });
 
 test("Get collectors A-M when pattern missing a base color.", async() => {
-    await expectErrorAsync(
-        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingBaseColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingBaseColors}', ` +
-        `sheet 'A-M: Collectors'. Expected to find a color name for pattern 'Bunki' ` +
-        `at row 104, column B, but that cell is empty.`
+    await expectKoiSpreadsheetMissingColor(
+        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingBaseColors), 
+        spreadsheets.missingBaseColors,
+        "Collector", 
+        "Bunki", 
+        104, 
+        "B"
     );
 });
 
 test("Get collectors A-M when pattern missing a highlight color.", async() => {
-    await expectErrorAsync(
-        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingHighlightColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingHighlightColors}', ` +
-        `sheet 'A-M: Collectors'. Expected to find a color name for pattern 'Aishite' ` +
-        `at row 3, column H, but that cell is empty.`
+    await expectKoiSpreadsheetMissingColor(
+        KoiSpreadsheet.getCollectorsAM(spreadsheets.missingHighlightColors), 
+        spreadsheets.missingHighlightColors,
+        "Collector", 
+        "Aishite", 
+        3, 
+        "H"
     );
 });
 
@@ -507,41 +513,45 @@ describe("Get collectors N-Z when color names are missing dashes.", () => {
 });
 
 test("Get collectors N-Z when koi progress is unknown.", async() => {
-    await expectErrorAsync(
+    await expectUnknownKoiProgress(
         KoiSpreadsheet.getCollectorsNZ(spreadsheets.invalidKoiProgress),
-        UnknownKoiProgress,
-        `Spreadsheet '${spreadsheets.invalidKoiProgress}' has koi ` +
-        "'Mausu Naisu' marked with 'dk'. Expected 'k', 'd', or no text."
+        spreadsheets.invalidKoiProgress, 
+        "Collector", 
+        "Mausu", 
+        "Naisu", 
+        "dk"
     );
 });
 
 test("Get collectors N-Z when a pattern name is missing.", async() => {
-    await expectErrorAsync(
+    await expectKoiSpreadsheetMissingPattern(
         KoiSpreadsheet.getCollectorsNZ(spreadsheets.missingPatternNames),
-        KoiSpreadsheetMissingPattern,
-        `Error with spreadsheet '${spreadsheets.missingPatternNames}', ` +
-        `sheet 'N-Z: Collectors'. Expected to find a pattern name at ` +
-        `row 639, column B, but that cell is empty.`
+        spreadsheets.missingPatternNames, 
+        "N-Z: Collectors", 
+        639, 
+        "B"
     );
 });
 
 test("Get collectors N-Z when pattern missing a base color.", async() => {
-    await expectErrorAsync(
+    await expectKoiSpreadsheetMissingColor(
         KoiSpreadsheet.getCollectorsNZ(spreadsheets.missingBaseColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingBaseColors}', ` +
-        `sheet 'N-Z: Collectors'. Expected to find a color name for pattern 'Onmyo' ` +
-        `at row 83, column B, but that cell is empty.`
+        spreadsheets.missingBaseColors, 
+        "Collector", 
+        "Onmyo", 
+        83, 
+        "B"
     );
 });
 
 test("Get collectors N-Z when pattern missing a highlight color.", async() => {
-    await expectErrorAsync(
-        KoiSpreadsheet.getCollectorsNZ(spreadsheets.missingHighlightColors),
-        KoiSpreadsheetMissingColor,
-        `Error with spreadsheet '${spreadsheets.missingHighlightColors}', ` +
-        `sheet 'N-Z: Collectors'. Expected to find a color name for pattern 'Roru' ` +
-        `at row 178, column D, but that cell is empty.`
+    await expectKoiSpreadsheetMissingColor(
+        KoiSpreadsheet.getCollectorsNZ(spreadsheets.missingHighlightColors), 
+        spreadsheets.missingHighlightColors,
+        "Collector", 
+        "Roru", 
+        178, 
+        "D"
     );
 });
 
@@ -606,19 +616,11 @@ function testCommonCases(methodToTest)
     testWithModifiedEnv(`Get ${SHEET}`, async() => getPatterns(spreadsheets.valid));
 
     test(`Get ${SHEET} of private spreadsheet.`, async() => {
-        await expectErrorAsync(
-            getPatterns(spreadsheets.private),
-            PrivateSpreadsheet,
-            `Spreadsheet '${spreadsheets.private}' is private.`
-        );
+        await expectPrivateSpreadsheet(getPatterns(spreadsheets.private));
     });
 
     test(`Get ${SHEET} of deleted spreadsheet.`, async() => {
-        await expectErrorAsync(
-            getPatterns("invalid"),
-            SpreadsheetNotFound,
-            "Spreadsheet 'invalid' does not exist."
-        );
+        await expectSpreadsheetNotFound(getPatterns("invalid"), "invalid");
     });
 
     test(`Get ${SHEET} when spreadsheet has renamed sheets.`, async() => {
@@ -626,11 +628,11 @@ function testCommonCases(methodToTest)
             methodToTest == "getProgressives" ? "Progressives!I2:AN70" : 
             methodToTest === "getCollectorsAM" ? "A-M: Collectors!B2:K" : 
                                                  "N-Z: Collectors!B2:K";
-        await expectErrorAsync(
+                                                 
+        await expectRangeNotFound(
             getPatterns(spreadsheets.renamedSheets),
-            RangeNotFound,
-            `Spreadsheet '${spreadsheets.renamedSheets}' does not have ` +
-            `range '${RANGE}'.`
+            spreadsheets.renamedSheets,
+            RANGE
         );
     });
 }

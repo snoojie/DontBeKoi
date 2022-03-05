@@ -255,7 +255,8 @@ export const DataAccessLayer =
                     // Let the user know if something is wrong with their spreadsheet
                     if (error instanceof InvalidSpreadsheet)
                     {
-                        usersMissingKoi.errors[USER.discordId] = error.message;
+                        usersMissingKoi.errors[USER.discordId] = 
+                            `Spreadsheet ${error.info}.`;
                         return;
                     }
 

@@ -222,7 +222,7 @@ describe("There are two users.", () => {
 // =============================================
 // =====USER MISSING PATTERN IN SPREADSHEET=====
 // =============================================
-/*
+
 describe("Test with users who are missing pattern.", () => {
 
     afterAll(async() => await resetUsers());   
@@ -240,7 +240,7 @@ describe("Test with users who are missing pattern.", () => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("akaumi rozu"));
         expect(RESPONSE).toBe(
             "Needing rare 10h akaumi rozu:\n<@discord2>\n" +
-            "Could not find pattern for <@discord1>"
+            "<@discord1>: Spreadsheet missing collector rozu."
         );
     });
 
@@ -248,7 +248,7 @@ describe("Test with users who are missing pattern.", () => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("nedai rozu"));
         expect(RESPONSE).toBe(
             "Nobody needs common 10h nedai rozu.\n" +
-            "Could not find pattern for <@discord1>"
+            "<@discord1>: Spreadsheet missing collector rozu."
         );
     });
 
@@ -257,14 +257,14 @@ describe("Test with users who are missing pattern.", () => {
             discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingPatterns
         });
         const RESPONSE = await WhoCommand.execute(mockInteraction("neumi rozu"));
-        expect(
-            RESPONSE ==
-                "Nobody needs rare 10h neumi rozu.\n" +
-                "Could not find pattern for <@discord1> <@discord3>" ||
-            RESPONSE ==
-                "Nobody needs rare 10h neumi rozu.\n" +
-                "Could not find pattern for <@discord3> <@discord1>"
-        ).toBeTruthy();
+        expectResponse(
+            RESPONSE, 
+            [ "Nobody needs rare 10h neumi rozu." ], 
+            [
+                "<@discord1>: Spreadsheet missing collector rozu.",
+                "<@discord3>: Spreadsheet missing collector rozu."
+            ]
+        );
     });
 });
 
@@ -288,7 +288,7 @@ describe("Test with users with missing koi.", () => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
         expect(RESPONSE).toBe(
             "Nobody needs common 9h kukatsu hoseki.\n" +
-            "Could not find koi for <@discord1>"
+            "<@discord1>: Spreadsheet missing koi kukatsu for collector hoseki."
         );
     });
 
@@ -297,25 +297,28 @@ describe("Test with users with missing koi.", () => {
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.koiTypo
         });
         const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
-        expect(
-            RESPONSE ==
-                "Nobody needs common 9h kukatsu hoseki.\n" +
-                "Could not find koi for <@discord1> <@discord2>" ||
-            RESPONSE ==
-                "Nobody needs common 9h kukatsu hoseki.\n" +
-                "Could not find koi for <@discord2> <@discord1>"
-        ).toBeTruthy();
+        expectResponse(
+            RESPONSE, 
+            [ "Nobody needs common 9h kukatsu hoseki." ], 
+            [
+                "<@discord1>: Spreadsheet missing koi kukatsu for collector hoseki.",
+                "<@discord2>: Spreadsheet missing koi kukatsu for collector hoseki."
+            ]
+        );
     });
 
     test("User missing koi and pattern.", async() => {
         await User.create({
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns
         });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro rozu"));
-        expect(RESPONSE).toBe(
-            "Nobody needs common 10h mashiro rozu.\n" +
-            "Could not find pattern for <@discord2>\n" +
-            "Could not find koi for <@discord1>"
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs common 9h kukatsu hoseki." ],
+            [
+                "<@discord1>: Spreadsheet missing koi kukatsu for collector hoseki.",
+                "<@discord2>: Spreadsheet missing collector hoseki."
+            ]
         );
     });
 });
@@ -343,7 +346,7 @@ describe("Test with users with deleted spreadsheet.", () => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("buusu suno"));
         expect(RESPONSE).toBe(
             "Needing common 6h buusu suno:\n<@discord2>\n" +
-            "Spreadsheet does not exist for <@discord1>"
+            "<@discord1>: Spreadsheet does not exist."
         );
     });
 
@@ -352,14 +355,14 @@ describe("Test with users with deleted spreadsheet.", () => {
             {discordId: "discord2", name: "name2", spreadsheetId: "invalid"}
         );
         const RESPONSE = await WhoCommand.execute(mockInteraction("ryoumi suno"));
-        expect(
-            RESPONSE ==
-                "Nobody needs common 6h ryoumi suno.\n" +
-                "Spreadsheet does not exist for <@discord1> <@discord2>" ||
-            RESPONSE ==
-                "Nobody needs common 6h ryoumi suno.\n" +
-                "Spreadsheet does not exist for <@discord2> <@discord1>"
-        ).toBeTruthy();
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs common 6h ryoumi suno." ],
+            [ 
+                "<@discord1>: Spreadsheet does not exist.",
+                "<@discord2>: Spreadsheet does not exist." 
+            ]
+        );
     });
 
     test("Users missing spreadsheet, koi, and pattern.", async() => {
@@ -367,12 +370,15 @@ describe("Test with users with deleted spreadsheet.", () => {
             {discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns},
             {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.koiTypo}
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("madai rozu"));
-        expect(RESPONSE).toBe(
-            "Nobody needs common 10h madai rozu.\n" +
-            "Could not find pattern for <@discord2>\n" +
-            "Could not find koi for <@discord3>\n" +
-            "Spreadsheet does not exist for <@discord1>"
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kukatsu hoseki"));
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs common 9h kukatsu hoseki." ],
+            [ 
+                "<@discord1>: Spreadsheet does not exist.",
+                "<@discord2>: Spreadsheet missing collector hoseki.",
+                "<@discord3>: Spreadsheet missing koi kukatsu for collector hoseki."
+            ]
         );
     });
 });
@@ -397,7 +403,7 @@ describe("Test with users with private spreadsheet.", () => {
         const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon modoru"));
         expect(RESPONSE).toBe(
             "Nobody needs common 5h aoukon modoru.\n" +
-            "Spreadsheet is private for <@discord1>"
+            "<@discord1>: Spreadsheet is private."
         );
     });
 
@@ -406,107 +412,220 @@ describe("Test with users with private spreadsheet.", () => {
             discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.private
         });
         const RESPONSE = await WhoCommand.execute(mockInteraction("aoukon modoru"));
-        expect(
-            RESPONSE == 
-                "Nobody needs common 5h aoukon modoru.\n" +
-                "Spreadsheet is private for <@discord1> <@discord2>" ||
-            RESPONSE == 
-                "Nobody needs common 5h aoukon modoru.\n" +
-                "Spreadsheet is private for <@discord2> <@discord1>"
-        ).toBeTruthy();
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs common 5h aoukon modoru." ],
+            [ 
+                "<@discord1>: Spreadsheet is private.",
+                "<@discord2>: Spreadsheet is private." 
+            ]
+        );
     });
 
     test("Missing spreadsheet, koi, and pattern, and private spreadsheet.", async() => {          
         await User.bulkCreate([
             {discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns},
             {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.koiTypo},
-            {discordId: "discord4", name: "name4", spreadsheetId: "invalid"}
+            {discordId: "discord4", name: "name4", spreadsheetId: "invalid"},
+            {discordId: "discord5", name: "name5", spreadsheetId: spreadsheets.valid}
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mashiro rozu"));
-        expect(RESPONSE).toBe(
-            "Nobody needs common 10h mashiro rozu.\n" +
-            "Could not find pattern for <@discord2>\n" + 
-            "Could not find koi for <@discord3>\n" + 
-            "Spreadsheet does not exist for <@discord4>\n" +
-            "Spreadsheet is private for <@discord1>" 
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kumido supure"));
+        expectResponse(
+            RESPONSE,
+            [ 
+                "Needing rare kumido supure:",
+                "<@discord5>"
+            ],
+            [ 
+                "<@discord1>: Spreadsheet is private.",
+                "<@discord2>: Spreadsheet missing progressive supure.",
+                "<@discord3>: Spreadsheet missing koi kumido for progressive supure.",
+                "<@discord4>: Spreadsheet does not exist."
+            ]
         );
     });
 });
 
-// =====================================
-// =====USER WITH BROKEN FORMATTING=====
-// =====================================
+// ==================================
+// =====USER WITH RENAMED SHEETS=====
+// ==================================
 
-describe("Test with users with broken formatting in their spreadsheet.", () => {
+describe("Test with users with renamed sheets.", () => {
 
     afterAll(async() => await resetUsers());   
 
     beforeEach(async() => {
-        await resetUsers([{
-            discordId: "discord1", name: "name1", spreadsheetId: spreadsheets.extraRow
-        }]);
+        await resetUsers([
+            { discordId: "discord1", name: "name1", spreadsheetId: spreadsheets.renamedSheets },
+            { discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.valid }
+        ]);
         await DataAccessLayer.start();
     });
     afterEach(async() => await DataAccessLayer.stop());
 
-    test("User has extra rows in their spreadsheet.", async() => {
-        const RESPONSE = await WhoCommand.execute(mockInteraction("bushiro mukei"));
+    test("User has renamed sheets.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("Kishiro Godan"));
         expect(RESPONSE).toBe(
-            "Nobody needs common 10h bushiro mukei.\n" +
-            "Spreadsheet formatting broken for <@discord1>"
+            "Needing common Kishiro Godan:\n" +
+            "<@discord2>\n" +
+            "<@discord1>: Spreadsheet does not have range 'Progressives!I2:AN70'."
         );
     });
 
-    test("User has sheet renamed.", async() => {
-        await User.create({
-            discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.renamedSheets
-        });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("ryoburu uoza"));
-        expect(RESPONSE).toBe(
-            "Needing rare 10h ryoburu uoza:\n" +
-            "<@discord1>\n" +
-            "Spreadsheet formatting broken for <@discord2>"
-        );
-    });
-
-    test("Several users have broken formatting.", async() => {
-        await User.create({
-            discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.renamedSheets
-        });
-        const RESPONSE = await WhoCommand.execute(mockInteraction("mupinku mukei"));
-        expect(
-            RESPONSE ==
-                "Nobody needs rare 10h mupinku mukei.\n" +
-                "Spreadsheet formatting broken for <@discord1> <@discord2>" ||
-            RESPONSE ==
-                "Nobody needs rare 10h mupinku mukei.\n" +
-                "Spreadsheet formatting broken for <@discord2> <@discord1>"
-        ).toBeTruthy();
-    });
-
-    test("Missing spreadsheet, koi, and pattern, and private spreadsheet, and broken formatting.", 
+    test("Missing spreadsheet, koi, and pattern; private spreadsheet; renamed sheets.", 
         async() => 
     {          
         await User.bulkCreate([
-            {discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatterns},
-            {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.private},
-            {discordId: "discord4", name: "name4", spreadsheetId: "invalid"},
-            {discordId: "discord5", name: "name5", spreadsheetId: spreadsheets.renamedSheets},
-            {discordId: "discord6", name: "name6", spreadsheetId: spreadsheets.koiTypo}
+            {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingPatterns},
+            {discordId: "discord4", name: "name4", spreadsheetId: spreadsheets.koiTypo},
+            {discordId: "discord5", name: "name5", spreadsheetId: "invalid"},
+            {discordId: "discord6", name: "name6", spreadsheetId: spreadsheets.private},
         ]);
-        const RESPONSE = await WhoCommand.execute(mockInteraction("madai rozu"));
-        expect(RESPONSE).toBe(
-            "Needing common 10h madai rozu:\n" +
-            "<@discord1>\n" +
-            "Could not find pattern for <@discord2>\n" + 
-            "Could not find koi for <@discord6>\n" + 
-            "Spreadsheet does not exist for <@discord4>\n" +
-            "Spreadsheet is private for <@discord3>\n" +
-            "Spreadsheet formatting broken for <@discord5>" 
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kupinku supure"));
+        expectResponse(
+            RESPONSE,
+            [ 
+                "Needing rare kupinku supure:",
+                "<@discord2>"
+            ],
+            [ 
+                "<@discord1>: Spreadsheet does not have range 'Progressives!I2:AN70'.",
+                "<@discord3>: Spreadsheet missing progressive supure.",
+                "<@discord4>: Spreadsheet missing koi kupinku for progressive supure.",
+                "<@discord5>: Spreadsheet does not exist.",
+                "<@discord6>: Spreadsheet is private.",
+            ]
         );
     });
 });
-*/
+
+// ========================================
+// =====USER WITH UNKNOWN KOI PROGRESS=====
+// ========================================
+
+describe("Test with users with unknown koi progress.", () => {
+
+    afterAll(async() => await resetUsers());   
+
+    beforeEach(async() => {
+        await resetUsers([
+            { discordId: "discord1", name: "name1", spreadsheetId: spreadsheets.invalidKoiProgress },
+            { discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.badButValidKoiProgress }
+        ]);
+        await DataAccessLayer.start();
+    });
+    afterEach(async() => await DataAccessLayer.stop());
+
+    test("User has unknown koi progress.", async() => {
+        const RESPONSE = await WhoCommand.execute(mockInteraction("mausu naisu"));
+        expect(RESPONSE).toBe(
+            "Needing rare 11h mausu naisu:\n" +
+            "<@discord2>\n" +
+            "<@discord1>: Spreadsheet has collector Mausu Naisu marked with " +
+                "'dk' instead of 'k', 'd', or no text."
+        );
+    });
+
+    test("Missing spreadsheet, koi, and pattern; private spreadsheet; renamed sheets; unknown koi progress.", 
+        async() => 
+    {          
+        await User.bulkCreate([
+            {discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingPatterns},
+            {discordId: "discord4", name: "name4", spreadsheetId: spreadsheets.koiTypo},
+            {discordId: "discord5", name: "name5", spreadsheetId: "invalid"},
+            {discordId: "discord6", name: "name6", spreadsheetId: spreadsheets.private},
+            {discordId: "discord7", name: "name7", spreadsheetId: spreadsheets.renamedSheets},
+        ]);
+        const RESPONSE = await WhoCommand.execute(mockInteraction("Kushiro Supure"));
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs common Kushiro Supure." ],
+            [ 
+                "<@discord1>: Spreadsheet has progressive Kudai Toraiu marked with " +
+                    "'invalid' instead of 'k', 'd', or no text.",
+                "<@discord3>: Spreadsheet missing progressive Supure.",
+                "<@discord4>: Spreadsheet missing koi Kushiro for progressive Supure.",
+                "<@discord5>: Spreadsheet does not exist.",
+                "<@discord6>: Spreadsheet is private.",
+                "<@discord7>: Spreadsheet does not have range 'Progressives!I2:AN70'."
+            ]
+        );
+    });
+});
+
+
+
+// ==================================
+// =====USER WITH BAD FORMATTING=====
+// ==================================
+
+describe("Test with users with bad formatting.", () => {
+
+    afterAll(async() => await resetUsers());   
+
+    beforeEach(async() => {
+        await resetUsers([
+            { discordId: "discord1", name: "name1", spreadsheetId: spreadsheets.valid }
+        ]);
+        await DataAccessLayer.start();
+    });
+    afterEach(async() => await DataAccessLayer.stop());
+
+    test("Users with empty colors and empty pattern names.", async() => {
+        await User.bulkCreate([
+            { discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingBaseColors },
+            { discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingHighlightColors },
+            { discordId: "discord4", name: "name4", spreadsheetId: spreadsheets.missingPatternNames }
+        ]);
+        const RESPONSE = await WhoCommand.execute(mockInteraction("kuburu nidan"));
+        expectResponse(
+            RESPONSE,
+            [ "Nobody needs rare kuburu nidan." ],
+            [
+                "<@discord2>: Spreadsheet missing color for progressive Goromo in " +
+                    "row 11, column T.",
+                "<@discord3>: Spreadsheet missing color for progressive Meisai in " + 
+                    "row 52, column R.",
+                "<@discord4>: Spreadsheet missing pattern in sheet 'Progressives', " +
+                    "row 23, column AE."
+            ]
+        )
+    });
+
+    test("User has extra rows affecting base colors.", async() => {
+        await User.create({
+            discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingBaseColors,
+        });
+        const RESPONSE = await WhoCommand.execute(mockInteraction("Chakura Pazuru"));
+        expect(RESPONSE).toBe(
+            "Nobody needs common 6h Chakura Pazuru.\n" +
+            "<@discord2>: Spreadsheet missing color for collector Onmyo in " +
+                "row 83, column B."
+        );
+    });
+
+    test("Users with extra rows and columns.", async() => {
+        await User.bulkCreate([
+            { discordId: "discord2", name: "name2", spreadsheetId: spreadsheets.missingPatternNames },
+            { discordId: "discord3", name: "name3", spreadsheetId: spreadsheets.missingHighlightColors }
+        ]);
+        const RESPONSE = await WhoCommand.execute(mockInteraction("bucheri aishite"));
+        expectResponse(
+            RESPONSE,
+            [ 
+                "Needing rare 10h bucheri aishite:",
+                "<@discord1>"
+            ],
+            [
+                "<@discord2>: Spreadsheet missing pattern in sheet 'A-M: Collectors', " +
+                    "row 198, column B.",
+                "<@discord3>: Spreadsheet missing color for collector Aishite in " + 
+                    "row 3, column H.",
+            ]
+        )
+    });
+});
+
 function mockInteraction(param)
 {
     return { 
@@ -529,4 +648,25 @@ async function resetUsers(users)
         await User.bulkCreate(users);
     }
     await DataAccessLayer.stop();
+}
+
+function expectResponse(received, expectedSuccess, expectedErrors)
+{
+    expectedErrors = expectedErrors ? expectedErrors : [];
+
+    const RECEIVED_LINES = received.split("\n");
+    expect(RECEIVED_LINES.length).toBe(expectedSuccess.length + expectedErrors.length);
+
+    const RECEIVED_SUCCESS = RECEIVED_LINES.slice(0, expectedSuccess.length);
+    for (let i=0; i<expectedSuccess.length; i++)
+    {
+        expect(RECEIVED_SUCCESS[i]).toEqual(expectedSuccess[i]);
+    }
+
+    const RECEIVED_ERRORS = RECEIVED_LINES.slice(expectedSuccess.length).sort();
+    expectedErrors = expectedErrors.sort();
+    for (let i=0; i<expectedErrors.length; i++)
+    {
+        expect(RECEIVED_ERRORS[i]).toEqual(expectedErrors[i]);
+    }
 }

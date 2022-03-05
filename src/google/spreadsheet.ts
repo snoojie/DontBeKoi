@@ -25,13 +25,22 @@ export class InvalidGoogleApiKey extends SpreadsheetError
     }
 }
 
-export abstract class InvalidSpreadsheet extends SpreadsheetError {}
+export abstract class InvalidSpreadsheet extends SpreadsheetError 
+{
+    public readonly info: string;
+
+    constructor(spreadsheetId: string, info: string, error?: any)
+    {
+        super(`Spreadsheet '${spreadsheetId}' ${info}.`, error);
+        this.info = info;
+    }
+}
 
 export class SpreadsheetNotFound extends InvalidSpreadsheet 
 {
     constructor(spreadsheetId: string, error: any)
     {
-        super(`Spreadsheet '${spreadsheetId}' does not exist.`, error);
+        super(spreadsheetId, "does not exist", error);
     }
 }
 
@@ -39,7 +48,7 @@ export class PrivateSpreadsheet extends InvalidSpreadsheet
 {
     constructor(spreadsheetId: string, error: any)
     {
-        super(`Spreadsheet '${spreadsheetId}' is private.`, error);
+        super(spreadsheetId, "is private", error);
     }
 }
 
@@ -50,9 +59,7 @@ export class RangeNotFound extends InvalidSpreadsheet
 {
     constructor(spreadsheetId: string, range: string, error: any)
     {
-        super(
-            `Spreadsheet '${spreadsheetId}' does not have range '${range}'.`, error
-        );
+        super(spreadsheetId, `does not have range '${range}'`, error);
     }
 }
 

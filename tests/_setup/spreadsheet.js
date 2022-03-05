@@ -1,10 +1,13 @@
-const { InvalidGoogleApiKey } = require("../../src/google/spreadsheet");
+const { UnknownKoiProgress, KoiSpreadsheetMissingColor, KoiSpreadsheetMissingPattern } 
+    = require("../../src/google/koiSpreadsheet");
+const { InvalidGoogleApiKey, PrivateSpreadsheet, SpreadsheetNotFound, RangeNotFound } 
+    = require("../../src/google/spreadsheet");
 const { ConfigError } = require("../../src/util/config");
 const { expectErrorAsync } = require("./testUtil");
 
 const GOOGLE_QUOTA_TIMEOUT = 70000;
 
-module.exports = {
+const Util = {
 
     /**
      * Wait a minute before running tests.
@@ -15,7 +18,7 @@ module.exports = {
         return new Promise(resolve => setTimeout(resolve, GOOGLE_QUOTA_TIMEOUT));
     },
 
-    googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT+20000,
+    googleQuotaTimeout: GOOGLE_QUOTA_TIMEOUT+30000,
 
     spreadsheets: {
 
@@ -47,8 +50,9 @@ module.exports = {
         badButValidKoiProgress: "1CtREH8Avhbe9VICV8Gxtz_RQDKX2xN1vq6WvAFnB50w",
 
         // progressive kudai toraiu marked with 'invalid'
+        // progressive kimura katame marked with 'invalid'
         // collector maburu dorama marked with 'kk'
-        // collector mausu natsu marked with 'dk'
+        // collector mausu naisu marked with 'dk'
         invalidKoiProgress: "17SdMbBrTIrq52VttiP2ZuqY5g-mbf7QpCOoffOsvqU4",
 
         // progressive goromo missing base color Shi
@@ -75,16 +79,14 @@ module.exports = {
         // collector yumi missing its name
         missingPatternNames: "1g-Ihn-7586pz53UqLIbtw7vlmJdu0aux6wnJ9f2Fi4I",
 
-        // missing pattern rozu
+        // missing collectors rozu and hoseki
+        // missing progressives supure, bekko, and katame
         missingPatterns: "1flz3aTbLTElXd4lp9D41aNjWkwb8Oo2ZXTJqejyqFPE",
 
-        // for the hoseki pattern, the '-katsu' highlight color is '-invalid'
-        // for the rozu pattern, the 'ma-' base color is 'invalid-'
-        koiTypo: "1gJW64Rb4dGf_FNO6rs9aqpkRRkQZt66e_RY8m7spps8",
-
-        // extra empty row in pattern akachan
-        extraRow: "1uEcwgMuqXvg-xWKghocLW4c85NE367aNDBDt0S6oGqE"
-
+        // for collector hoseki, the '-katsu' highlight color is '-invalid'
+        // for collector rozu, the 'ma-' base color is 'invalid-'
+        // for progressive supure, the 'ku-' base color is 'invalid'
+        koiTypo: "1gJW64Rb4dGf_FNO6rs9aqpkRRkQZt66e_RY8m7spps8"
     },
 
     getSpreadsheetErrorMessage: function(spreadsheetId, range)
@@ -128,5 +130,70 @@ module.exports = {
                 );
             }
         });
+    },
+
+    expectSpreadsheetError: async function(promise, errorType, spreadsheetId, errorInfo)
+    {
+        await expectErrorAsync(
+            promise, 
+            errorType,
+            `Spreadsheet '${spreadsheetId}' ${errorInfo}.`,
+            { info: errorInfo }
+        );
+    },
+
+    expectSpreadsheetNotFound: async function(promise, spreadsheetId)
+    {
+        await Util.expectSpreadsheetError(
+            promise, SpreadsheetNotFound, spreadsheetId, "does not exist"
+        );
+    },
+
+    expectPrivateSpreadsheet: async function(promise)
+    {
+        await Util.expectSpreadsheetError(
+            promise, PrivateSpreadsheet, Util.spreadsheets.private, "is private"
+        );
+    },
+
+    expectRangeNotFound: async function(promise, spreadsheetId, range)
+    {
+        await Util.expectSpreadsheetError(
+            promise, RangeNotFound, spreadsheetId, `does not have range '${range}'`
+        );
+    },
+
+    expectUnknownKoiProgress: async function(promise, spreadsheetId, type, koi, pattern, value)
+    {
+        await Util.expectSpreadsheetError(
+            promise, 
+            UnknownKoiProgress, 
+            spreadsheetId, 
+            `has ${type.toLowerCase()} ${koi} ${pattern} marked with '${value}' ` +
+            `instead of 'k', 'd', or no text`
+        );
+    },
+
+    expectKoiSpreadsheetMissingPattern: async function(promise, spreadsheetId, sheet, row, column)
+    {
+        await Util.expectSpreadsheetError(
+            promise,
+            KoiSpreadsheetMissingPattern,
+            spreadsheetId,
+            `missing pattern in sheet '${sheet}', row ${row}, column ${column}`
+        );
+    },
+
+    expectKoiSpreadsheetMissingColor: async function(promise, spreadsheetId, type, pattern, row, column)
+    {
+        await Util.expectSpreadsheetError(
+            promise,
+            KoiSpreadsheetMissingColor,
+            spreadsheetId,
+            `missing color for ${type.toLowerCase()} ${pattern} in ` +
+            `row ${row}, column ${column}`
+        );
     }
 };
+
+module.exports = Util;

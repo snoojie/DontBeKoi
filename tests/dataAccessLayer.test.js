@@ -8,11 +8,9 @@ const { Pattern } = require("../src/database/models/pattern");
 const { Koi } = require("../src/database/models/koi");
 const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
-const { waitGoogleQuota, googleQuotaTimeout, spreadsheets } 
-    = require("./_setup/spreadsheet");
+const { waitGoogleQuota, googleQuotaTimeout, spreadsheets, expectSpreadsheetNotFound, 
+    expectPrivateSpreadsheet } = require("./_setup/spreadsheet");
 const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
-const { PrivateSpreadsheet, SpreadsheetNotFound } 
-    = require("../src/google/userSpreadsheet");
 
 // wait a minute before starting the tests
 // this is because google has a read quota
@@ -202,20 +200,17 @@ describe("Save user.", () => {
     afterAll(async() => await dropAllTables());
 
     test("Spreadsheet ID is invalid.", async() => {
-        await expectErrorAsync(
+        await expectSpreadsheetNotFound(
             DataAccessLayer.saveUser("somediscordid", "somename", "invalidspreadsheet"),
-            SpreadsheetNotFound,
-            "Spreadsheet 'invalidspreadsheet' does not exist."
+            "invalidspreadsheet"
         );
     });
 
     test("Spreadsheet is private.", async() => {
-        await expectErrorAsync(
+        await expectPrivateSpreadsheet(
             DataAccessLayer.saveUser(
                 "somediscordid", "somename", spreadsheets.private
-            ),
-            PrivateSpreadsheet,
-            `Spreadsheet '${spreadsheets.private}' is private.`
+            )
         );
     });
 
@@ -512,8 +507,7 @@ describe("Get users missing koi.", () => {
                     rarity: "Rare",
                     hatchTime: 10,
                     errors: { 
-                        "did1" : `Spreadsheet '${spreadsheets.missingPatterns}' ` +
-                                  "missing pattern 'rozu'."
+                        "did1" : "Spreadsheet missing collector rozu."
                     }
                 }
             );
@@ -533,8 +527,7 @@ describe("Get users missing koi.", () => {
                     rarity: "Common",
                     hatchTime: 9,
                     errors: { 
-                        "did1" : `Spreadsheet '${spreadsheets.koiTypo}' ` +
-                                  "missing koi 'makatsu' for pattern 'hoseki'."
+                        "did1" : "Spreadsheet missing koi makatsu for collector hoseki."
                     }
                 }
             );
@@ -554,10 +547,8 @@ describe("Get users missing koi.", () => {
                     rarity: "Common",
                     hatchTime: 10,
                     errors: {
-                        "did1": `Error with spreadsheet ` +
-                                `'${spreadsheets.missingPatternNames}', sheet ` +
-                                `'A-M: Collectors'. Expected to find a pattern name ` +
-                                `at row 198, column B, but that cell is empty.`
+                        "did1": "Spreadsheet missing pattern in sheet " +
+                                "'A-M: Collectors', row 198, column B."
                     }
                 }
             );
@@ -577,11 +568,8 @@ describe("Get users missing koi.", () => {
                     rarity: "Common",
                     hatchTime: 10,
                     errors: {
-                        "did1": `Error with spreadsheet ` +
-                                `'${spreadsheets.missingBaseColors}', sheet ` +
-                                `'N-Z: Collectors'. Expected to find a color name ` +
-                                `for pattern 'Onmyo' at row 83, column B, ` +
-                                `but that cell is empty.`
+                        "did1": "Spreadsheet missing color for collector Onmyo in " +
+                                "row 83, column B."
                     }
                 }
             );
@@ -601,11 +589,8 @@ describe("Get users missing koi.", () => {
                     rarity: "Rare",
                     hatchTime: 6,
                     errors: {
-                        "did1": `Error with spreadsheet ` +
-                                `'${spreadsheets.missingHighlightColors}', sheet ` +
-                                `'A-M: Collectors'. Expected to find a color name ` +
-                                `for pattern 'Aishite' at row 3, column H, ` +
-                                `but that cell is empty.`
+                        "did1": "Spreadsheet missing color for collector Aishite " +
+                                "in row 3, column H."
                     }
                 }
             );
@@ -625,9 +610,8 @@ describe("Get users missing koi.", () => {
                     rarity: "Common",
                     hatchTime: undefined,
                     errors: {
-                        "did1": `Spreadsheet '${spreadsheets.invalidKoiProgress}' ` +
-                                `has koi 'Kudai Toraiu' marked with 'invalid'. ` +
-                                `Expected 'k', 'd', or no text.`
+                        "did1": "Spreadsheet has progressive Kudai Toraiu marked " +
+                                "with 'invalid' instead of 'k', 'd', or no text."
                     }
                 }
             );
@@ -647,8 +631,7 @@ describe("Get users missing koi.", () => {
                     rarity: "Common",
                     hatchTime: 10,
                     errors: {
-                        "did1": `Spreadsheet '${spreadsheets.renamedSheets}' does ` +
-                                `not have range 'A-M: Collectors!B2:K'.`
+                        "did1": "Spreadsheet does not have range 'A-M: Collectors!B2:K'."
                     }
                 }
             );
@@ -668,7 +651,7 @@ describe("Get users missing koi.", () => {
                     rarity: "Rare",
                     hatchTime: 5,
                     errors: {
-                        "did2": `Spreadsheet '${spreadsheets.private}' is private.`
+                        "did2": `Spreadsheet is private.`
                     }
                 }
             );
@@ -688,7 +671,7 @@ describe("Get users missing koi.", () => {
                     rarity: "Rare",
                     hatchTime: 5,
                     errors: {
-                        "did2": "Spreadsheet 'invalid' does not exist."
+                        "did2": "Spreadsheet does not exist."
                     }
                 }
             );
