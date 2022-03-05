@@ -27,9 +27,11 @@ test("No error deploying commands to discord server.", async () => {
     
 test("Missing commands/ directory.", async() => {
     fs.existsSync = jest.fn(() => false);
-    let run = commandManager.run();
-    await expect(run).rejects.toThrow(CommandsNotFound);
-    await expect(run).rejects.toThrow("commands directory is missing");
+    await expectErrorAsync(
+        commandManager.run(),
+        CommandsNotFound,
+        "The commands directory is missing."
+    );
 });
 
 describe("Validate command scripts.", () => {
@@ -39,35 +41,27 @@ describe("Validate command scripts.", () => {
     // ================
 
     test("Command script is empty.", async() => {
-        mockCommandDirectory("emptyFile");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "Default export is empty. Was nothing exported?"
+        await testInvalidCommand(
+            "emptyFile", "Default export is empty. Was nothing exported?"
         );
     });
 
     test("Command script not empty but nothing was exported.", async() => {
-        mockCommandDirectory("exportNothing");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "Default export is empty. Was nothing exported?"
+        await testInvalidCommand(
+            "exportNothing", "Default export is empty. Was nothing exported?"
         );
     });
 
     test("Number exported.", async() => {
-        mockCommandDirectory("exportNumber");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "exportNumber",
             "Expected default export to be of type object. " +
-            "Instead, it is of type 'number'"
+            "Instead, it is of type 'number'."
         );
     });
 
     test("Multiple exports.", async() => {
-        mockCommandDirectory("exportMany");
-        let run = commandManager.run();
-        await expectInvalidCommand(run, "Missing a default export.");
+        await testInvalidCommand("exportMany", "Missing a default export.");
     });
 
     // =======================
@@ -75,55 +69,52 @@ describe("Validate command scripts.", () => {
     // =======================
 
     test("Missing name property.", async() => {
-        mockCommandDirectory("nameMissing");
-        let run = commandManager.run();
-        await expectInvalidCommand(run, `The command name 'undefined' is missing`);
+        await testInvalidCommand(
+            "nameMissing", "The command name 'undefined' is missing or empty.");
     });
     
     test("Name is not a string.", async() => {
-        mockCommandDirectory("nameNotString");
-        let run = commandManager.run();
-        await expectInvalidCommand(run, "The command name '3' must be a string");
+        await testInvalidCommand("nameNotString", "The command name '3' must be a string.");
     });
 
     test("Name with spaces.", async() => {
-        mockCommandDirectory("nameWithSpaces");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The command name 'name with spaces' has spaces"
+        await testInvalidCommand(
+            "nameWithSpaces", 
+            "The command name 'name with spaces' has spaces. " + 
+            "Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
     test("Long name.", async() => {
-        mockCommandDirectory("nameTooLong");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The command name 'namethatisverylongjusttoolongwaytoolong' is too long"
+        await testInvalidCommand(
+            "nameTooLong", 
+            "The command name 'namethatisverylongjusttoolongwaytoolong' is too long. " +
+            "It can only have up to 32 characters."
         );
     });
 
     test("Name with capitals.", async() => {
-        mockCommandDirectory("nameWithCapitals");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The command name 'SomeName' has uppercase letters"
+        await testInvalidCommand(
+            "nameWithCapitals", 
+            "The command name 'SomeName' has uppercase letters. " +
+            "Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
     test("Name with a period.", async() => {
-        mockCommandDirectory("nameWithPeriod");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The command name 'some.name' has invalid characters"
+        await testInvalidCommand(
+            "nameWithPeriod", 
+            "The command name 'some.name' has invalid characters. " +
+            "Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
     test("Two commands with the same name.", async() => {
         mockCommandDirectory("valid", "validDuplicate");
-        let run = commandManager.run();
         await expectInvalidCommand(
-            run, "There exists multiple commands with the same name 'validcommand'"
+            commandManager.run(), 
+            "validDuplicate",
+            "There exists multiple commands with the same name 'validcommand'."
         );
     });
 
@@ -132,30 +123,27 @@ describe("Validate command scripts.", () => {
     // ==============================
 
     test("Missing description property.", async() => {
-        mockCommandDirectory("descriptionMissing");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The description 'undefined' on command 'somename' is missing"
+        await testInvalidCommand(
+            "descriptionMissing",
+            "The description 'undefined' on command 'somename' is missing or empty."
         );
     });
 
     test("Description is not a string.", async() => {
-        mockCommandDirectory("descriptionNotString");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The description '3' on command 'somename' must be a string"
+        await testInvalidCommand(
+            "descriptionNotString",
+            "The description '3' on command 'somename' must be a string."
         );
     });
 
     test("Long description.", async() => {
-        mockCommandDirectory("descriptionTooLong");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "descriptionTooLong",
             "The description " +
                 "'here is a description. it is very long. why so long? why not. " +
                 "this is a test. it can be whatever. it just needs to be long.' " +
-            "on command 'somename' is too long"
+            "on command 'somename' is too long. " +
+            "It can only have up to 100 characters."
         );
     });
 
@@ -164,18 +152,16 @@ describe("Validate command scripts.", () => {
     // ==========================
 
     test("Missing execute property.", async() => {
-        mockCommandDirectory("executeMissing");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The execute property on command 'somename' is missing"
+        await testInvalidCommand(
+            "executeMissing", 
+            "The execute property on command 'somename' is missing."
         );
     });
 
     test("Execute property not a function.", async() => {
-        mockCommandDirectory("executeNotFunction");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The execute property on command 'somename' must be a function"
+        await testInvalidCommand(
+            "executeNotFunction", 
+            "The execute property on command 'somename' must be a function."
         );
     });
 
@@ -184,30 +170,23 @@ describe("Validate command scripts.", () => {
     // ==========================
 
     test("Options is not an array.", async() => {
-        mockCommandDirectory("optionsNotArray");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The command 'somename' has options defined, but it is not an array"
+        await testInvalidCommand(
+            "optionsNotArray",
+            "The command 'somename' has options defined, but it is not an array."
         );
     });
 
     test("Too many options.", async() => {
-        mockCommandDirectory("optionsTooMany");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The command 'somename' has too many options"
+        await testInvalidCommand(
+            "optionsTooMany", 
+            "The command 'somename' has too many options. There can be at most 25 options."
         );
     });
 
     test("Duplicate option names.", async() => {
-        mockCommandDirectory("optionsDuplicateNames");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The command 'somename' has multiple options " +
-            "of the same name 'someoption'"
+        await testInvalidCommand(
+            "optionsDuplicateNames",
+            "The command 'somename' has multiple options of the same name 'someoption'."
         );
     });
 
@@ -216,57 +195,49 @@ describe("Validate command scripts.", () => {
     // ===============================
 
     test("Option missing name.", async() => {
-        mockCommandDirectory("optionNameMissing");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, `The option name 'undefined' on command 'somename' is missing`
+        await testInvalidCommand(
+            "optionNameMissing",
+            "The option name 'undefined' on command 'somename' is missing or empty."
         );
     });
     
     test("Option name is not a string.", async() => {
-        mockCommandDirectory("optionNameNotString");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, "The option name '5' on command 'somename' must be a string"
+        await testInvalidCommand(
+            "optionNameNotString", 
+            "The option name '5' on command 'somename' must be a string."
         );
     });
 
     test("Option name with spaces.", async() => {
-        mockCommandDirectory("optionNameWithSpaces");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The option name 'some option name' on command 'somename' has spaces"
+        await testInvalidCommand(
+            "optionNameWithSpaces",
+            "The option name 'some option name' on command 'somename' has spaces. " +
+            "Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
     test("Option long name.", async() => {
-        mockCommandDirectory("optionNameTooLong");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionNameTooLong",
             "The option name 'namethatisverylongjusttoolongwaytoolong' " +
-            "on command 'somename' is too long"
+            "on command 'somename' is too long. " +
+            "It can only have up to 32 characters."
         );
     });
 
     test("Option name with capitals.", async() => {
-        mockCommandDirectory("optionNameWithCapitals");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The option name 'someOptionName' on " +
-            "command 'somename' has uppercase letters"
+        await testInvalidCommand(
+            "optionNameWithCapitals",
+            "The option name 'someOptionName' on command 'somename' has uppercase " +
+            "letters. Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
     test("Option name with pound sign.", async() => {
-        mockCommandDirectory("optionNameWithPound");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
-            "The option name 'some#optionname' on " +
-            "command 'somename' has invalid characters"
+        await testInvalidCommand(
+            "optionNameWithPound",
+            "The option name 'some#optionname' on command 'somename' has invalid " +
+            "characters. Use lowercase letters, numbers, underscores, and dashes only."
         );
     });
 
@@ -275,34 +246,29 @@ describe("Validate command scripts.", () => {
     // =====================================
 
     test("Option missing description property.", async() => {
-        mockCommandDirectory("optionDescriptionMissing");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionDescriptionMissing",
             "The description 'undefined' on command 'somename' " +
-            "option 'someoptionname' is missing"
+            "option 'someoptionname' is missing or empty."
         );
     });
 
     test("Option description is not a string.", async() => {
-        mockCommandDirectory("optionDescriptionNotString");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionDescriptionNotString",
             "The description '6' on command 'somename' " +
-            "option 'someoptionname' must be a string"
+            "option 'someoptionname' must be a string."
         );
     });
 
     test("Option long description.", async() => {
-        mockCommandDirectory("optionDescriptionTooLong");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionDescriptionTooLong",
             "The description " +
                 "'here is a description. it is very long. why so long? why not. " +
                 "this is a test. it can be whatever. it just needs to be long.' " +
-            "on command 'somename' option 'someoptionname' is too long"
+            "on command 'somename' option 'someoptionname' is too long. " +
+            "It can only have up to 100 characters."
         );
     });
 
@@ -311,32 +277,26 @@ describe("Validate command scripts.", () => {
     // ==============================
 
     test("Option type is an empty string.", async() => {
-        mockCommandDirectory("optionTypeEmpty");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionTypeEmpty",
             "The type '' on command 'somename' option 'someoptionname' is " +
-            "defined, but it is neither 'string' nor 'number'"
+            "defined, but it is neither 'string' nor 'number'."
         );
     });
 
     test("Option type is not a string.", async() => {
-        mockCommandDirectory("optionTypeNotString");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionTypeNotString",
             "The type '1' on command 'somename' option 'someoptionname' is " +
-            "defined, but it is neither 'string' nor 'number'"
+            "defined, but it is neither 'string' nor 'number'."
         );
     });
     
     test("Option type is unknown.", async() => {
-        mockCommandDirectory("optionTypeUnknown");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "optionTypeUnknown",
             "The type 'unknowntype' on command 'somename' option " +
-            "'someoptionname' is defined, but it is neither 'string' nor 'number'"
+            "'someoptionname' is defined, but it is neither 'string' nor 'number'."
         );
     });
 
@@ -345,18 +305,31 @@ describe("Validate command scripts.", () => {
     // =============================
 
     test("Is Private is not a boolean.", async() => {
-        mockCommandDirectory("isPrivateNotBoolean");
-        let run = commandManager.run();
-        await expectInvalidCommand(
-            run, 
+        await testInvalidCommand(
+            "isPrivateNotBoolean",
             "Property isPrivate on command 'somename' is defined, " +
-            "but it is neither 'true' nor 'false'"
+            "but it is neither 'true' nor 'false'."
         );
     });
-
-    async function expectInvalidCommand(run, message)
+    
+    async function testInvalidCommand(file, errorMessage)
     {
-        await expectErrorAsync(run, InvalidCommand, message);
+        mockCommandDirectory(file);
+        await expectInvalidCommand(
+            commandManager.run(), 
+            file,
+            errorMessage
+        );
+    }
+
+    async function expectInvalidCommand(run, file, errorMessage)
+    {
+        await expectErrorAsync(
+            run, 
+            InvalidCommand, 
+            `../../tests/_mocks/commands/${file}.js is not a valid command script. ` +
+            errorMessage
+        );
     }
     
 });
@@ -373,9 +346,11 @@ describe("Test parameters to REST call to discord.", () => {
         REST.prototype.put = jest.fn(async () => 
             { throw new Error("mock rest error"); }
         );
-        let run = commandManager.run();
-        await expect(run).rejects.toThrow(DeployCommandsError);
-        await expect(run).rejects.toThrow("Failed to deploy commands to discord");
+        await expectErrorAsync(
+            commandManager.run(),
+            DeployCommandsError,
+            "Failed to deploy commands to discord."
+        );
     });
 
     test("Command properties sent to discord.", async() => {
@@ -563,7 +538,7 @@ describe("Test execute method.", () => {
         interaction.isCommand = () => false;
         let execute = commandManager.executeCommand(interaction);
         await expectCommandExecutionError(
-            execute, "Cannot execute a command for a non command interaction"
+            execute, "Cannot execute a command for a non command interaction."
         );
     });
 
@@ -571,7 +546,7 @@ describe("Test execute method.", () => {
         interaction.commandName = "unknowncommand";
         let execute = commandManager.executeCommand(interaction);
         await expectCommandExecutionError(
-            execute, "Did not recognize the command name 'unknowncommand'"
+            execute, "Did not recognize the command name 'unknowncommand'."
         );
     });
 
