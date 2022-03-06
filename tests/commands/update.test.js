@@ -5,6 +5,7 @@ const { testName, testDescription, testResponseIsPublic, testOptionsCount }
 const { dropAllTables } = require("../_setup/database");
 const Command = require("../../src/commands/update").default;
 const { Op } = require("sequelize");
+const { waitGoogleQuota, googleQuotaTimeout } = require("../_setup/spreadsheet");
 
 // ====================
 // =====PROPERTIES=====
@@ -21,10 +22,11 @@ testOptionsCount(Command, 0);
 
 beforeAll(async() => {
     await dropAllTables();
+    await waitGoogleQuota();
     await DataAccessLayer.start();
     await DataAccessLayer.updatePatterns();
     await DataAccessLayer.stop();
-});
+}, googleQuotaTimeout);
 
 beforeEach(async() => {
     await DataAccessLayer.start();
