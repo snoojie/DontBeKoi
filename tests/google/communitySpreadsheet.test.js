@@ -1,5 +1,5 @@
-const { CommunitySpreadsheet } = require("../../src/google/communitySpreadsheet");
-const { Progress } = require("../../src/google/koiSpreadsheet");
+const { CommunitySpreadsheet } = require("../../src/spreadsheets/communitySpreadsheet");
+const { Progress } = require("../../src/spreadsheets/koiSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv } 
     = require("../_setup/spreadsheet");
 

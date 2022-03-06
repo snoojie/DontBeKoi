@@ -1,7 +1,7 @@
 const { UnknownKoiProgress, KoiSpreadsheetMissingColor, KoiSpreadsheetMissingPattern } 
-    = require("../../src/google/koiSpreadsheet");
+    = require("../../src/spreadsheets/koiSpreadsheet");
 const { InvalidGoogleApiKey, PrivateSpreadsheet, SpreadsheetNotFound, RangeNotFound } 
-    = require("../../src/google/spreadsheet");
+    = require("../../src/spreadsheets/spreadsheet");
 const { ConfigError } = require("../../src/util/config");
 const { expectErrorAsync } = require("./testUtil");
 

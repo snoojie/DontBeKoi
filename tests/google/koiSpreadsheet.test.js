@@ -1,4 +1,4 @@
-const { KoiSpreadsheet, Progress } = require("../../src/google/koiSpreadsheet");
+const { KoiSpreadsheet, Progress } = require("../../src/spreadsheets/koiSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, spreadsheets, testWithModifiedEnv, 
         expectPrivateSpreadsheet, expectSpreadsheetNotFound, expectRangeNotFound, 
         expectUnknownKoiProgress, expectKoiSpreadsheetMissingPattern, 

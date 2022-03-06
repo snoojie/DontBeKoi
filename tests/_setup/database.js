@@ -65,7 +65,7 @@ module.exports = {
                 await dropAllTables();
     
                 sequelize = initSequelize();
-                await init(sequelize);
+                init(sequelize);
                 await sequelize.sync();
             });
 

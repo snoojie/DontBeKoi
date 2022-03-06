@@ -5,9 +5,9 @@ const USER = { discordId: "did", name: "somename", "spreadsheetId": "sid" };
 
 testModel({
 
-    init: async function(sequelize)
+    init: function(sequelize)
     {
-        await initUser(sequelize);
+        initUser(sequelize);
     },
 
     tableName: "users",

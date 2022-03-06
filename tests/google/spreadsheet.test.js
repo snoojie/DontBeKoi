@@ -1,4 +1,5 @@
-const { Spreadsheet, InvalidSpreadsheetColumn } = require("../../src/google/spreadsheet");
+const { Spreadsheet, InvalidSpreadsheetColumn } 
+    = require("../../src/spreadsheets/spreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets, 
         expectPrivateSpreadsheet, expectSpreadsheetNotFound, expectRangeNotFound } 
     = require("../_setup/spreadsheet");

@@ -10,7 +10,7 @@ const { User } = require("../src/database/models/user");
 const { Op } = require("sequelize");
 const { waitGoogleQuota, googleQuotaTimeout, spreadsheets, expectSpreadsheetNotFound, 
     expectPrivateSpreadsheet } = require("./_setup/spreadsheet");
-const { InvalidGoogleApiKey } = require("../src/google/spreadsheet");
+const { InvalidGoogleApiKey } = require("../src/spreadsheets/spreadsheet");
 
 // wait a minute before starting the tests
 // this is because google has a read quota

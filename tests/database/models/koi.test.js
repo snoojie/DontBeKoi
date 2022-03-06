@@ -1,16 +1,16 @@
 const { initKoi, Koi, KoiModelError } = require("../../../src/database/models/koi");
 const { initPattern, Pattern } = require("../../../src/database/models/pattern");
 const { initSequelize, dropAllTables, testModel } = require("../../_setup/database");
-const { expectErrorAsync } = require("../../_setup/testUtil");
+const { expectError } = require("../../_setup/testUtil");
 const { ForeignKeyConstraintError } = require("sequelize");
 
 const PATTERN = { name: "somepattern", type: "sometype" };
 const KOI = { name: "somekoi", rarity: "somerarity", patternName: PATTERN.name };
 
-async function init(sequelize)
+function init(sequelize)
 {
-    await initPattern(sequelize);
-    await initKoi(sequelize);
+    initPattern(sequelize);
+    initKoi(sequelize);
 }
 
 testModel({
@@ -56,8 +56,8 @@ describe("Association testing.", () => {
     });
 
     test("Error initializing kois before patterns.", () => {
-        expectErrorAsync(
-            async() => initKoi(sequelize),
+        expectError(
+            () => initKoi(sequelize),
             KoiModelError,
             "Could not associate Pattern to Koi. " +
             "Did you forget to inititalize Pattern before initializing Koi?"
@@ -66,7 +66,7 @@ describe("Association testing.", () => {
 
     describe("Init models before tests.", () => {
         beforeEach(async() => {
-            await init(sequelize);
+            init(sequelize);
             await sequelize.sync();
         });
 

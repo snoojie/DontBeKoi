@@ -5,9 +5,9 @@ const PATTERN = { name: "somename", type: "sometype", hatchTime: 99 };
 
 testModel({
 
-    init: async function(sequelize)
+    init: function(sequelize)
     {
-        await initPattern(sequelize);
+        initPattern(sequelize);
     },
 
     tableName: "patterns",

@@ -5,10 +5,10 @@ import { Database } from "./database/database";
 import { Koi, type KoiAttributes } from "./database/models/koi";
 import { Pattern, type PatternAttributes } from "./database/models/pattern";
 import { User } from "./database/models/user";
-import { InvalidSpreadsheet, Spreadsheet } from "./google/spreadsheet";
-import { Patterns } from "./google/koiSpreadsheet";
-import { UserSpreadsheet } from "./google/userSpreadsheet";
-import { CommunitySpreadsheet } from "./google/communitySpreadsheet";
+import { InvalidSpreadsheet, Spreadsheet } from "./spreadsheets/spreadsheet";
+import { Patterns } from "./spreadsheets/koiSpreadsheet";
+import { UserSpreadsheet } from "./spreadsheets/userSpreadsheet";
+import { CommunitySpreadsheet } from "./spreadsheets/communitySpreadsheet";
 
 export class DataAccessLayerError extends EnhancedError {}
 

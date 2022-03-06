@@ -1,5 +1,5 @@
 const { UserSpreadsheet, UserSpreadsheetMissingKoi, UserSpreadsheetMissingPattern }
-    = require("../../src/google/userSpreadsheet");
+    = require("../../src/spreadsheets/userSpreadsheet");
 const { waitGoogleQuota, googleQuotaTimeout, testWithModifiedEnv, spreadsheets, 
         expectSpreadsheetError, expectPrivateSpreadsheet, expectRangeNotFound, 
         expectUnknownKoiProgress, expectKoiSpreadsheetMissingPattern, 
