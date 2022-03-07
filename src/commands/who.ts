@@ -59,8 +59,8 @@ const WhoCommand: Command = {
             reply = `Nobody needs ${koiDescription}.`;
         }
 
-        // otherwise at least one person needs this koi,
-        // so mention all discord users who need this koi
+        // Otherwise at least one person needs this koi,
+        // so mention all discord users who need this koi.
         else
         {
             let userMentions: string[] = [];
@@ -68,6 +68,14 @@ const WhoCommand: Command = {
             {
                 userMentions.push(`<@${DISCORD_ID}>`);
             }
+
+            // randomize the list of users
+            // this will eliminate the need to roll a dice if no one claims
+            for (let i = userMentions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [userMentions[i], userMentions[j]] = [userMentions[j]!, userMentions[i]!];
+            }
+            
             reply = `Needing ${koiDescription}:\n${userMentions.join(" ")}`;
         }
 
